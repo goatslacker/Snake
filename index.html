@@ -1,0 +1,15 @@
+<script type="text/javascript" src="prototype.js"></script>
+<script type="text/javascript" src="snake.js"></script>
+<script type="text/javascript" src="schema.js"></script>
+
+<textarea id="js"></textarea>
+<input type="button" value="Run JS" onclick="ExecuteJS()" />
+
+<script type="text/javascript">
+  function ExecuteJS () {
+    console.log("Javascript Results");
+    var js = document.getElementById('js').value;
+    var result = eval(js);
+    document.getElementById('js').value = "";
+  }
+</script>
