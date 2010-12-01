@@ -47,10 +47,8 @@ Function.method('inherits', function (parent) {
 // setup the models
 var Snake = {};
 
-Snake.db = {};
-
-// creates on the fly objects
-Snake.db.create = function (o) {
+// creates the SQL
+Snake.buildSql = function (o) {
 
   // build sql
   for (var tableName in o.schema) {
@@ -87,6 +85,7 @@ Snake.db.create = function (o) {
         columns: columns
       });
 
+      // TODO add keys and constraints
       console.log(sql);
     }
   }

@@ -8,22 +8,39 @@ var schema = {
     size: 200000 // default this
   },
   schema: {
-    my_table: {
-      jsName: "myTable",
+    card: {
+      jsName: "Card",
       columns: {
-        id: { type: "integer", primaryKey: true }, // make it so you don't have to include this
-        num: { type: "real" },
-        data: { type: "text" }
+        id: { type: "integer", primaryKey: true }, // TODO make it so you don't have to include this
+        card: { type: "text" },
+        type: { type: "text" }
+      }
+    },
+    stack: {
+      jsName: "Stack",
+      columns: {
+        id: { type: "integer", primaryKey: true },
+        stack_id: { type: "integer", index: true },
+        card_id: { type: "integer", foreignReference: "card", foreignKey: "id", foreign: "card.id" }
+      }
+    },
+    player: {
+      jsName: "Player",
+      columns: {
+        id: { type: "integer", primaryKey: true },
+        stack_id: { type: "integer", foreignReference: "stack", foreignKey: "id", foreign: "stack.id" },
+        name: { type: "text" },
+        created_at: { type: "integer" }
       }
     }
   }
 };
 
-//build sql
-//Snake.db.create(schema);
-
 // build on the fly objects
 Snake.buildModel(schema);
+
+//build sql
+Snake.buildSql(schema);
 
 // execute query ?
 function executeQuery () {
