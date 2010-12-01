@@ -93,7 +93,7 @@ Snake.db.create = function (o) {
 
 };
 
-Snake.Schema = function (o) {
+Snake.buildModel = function (o) {
 
   // build sql and objects?
   for (var tableName in o.schema) {
@@ -101,9 +101,6 @@ Snake.Schema = function (o) {
 
       // table object
       var table = o.schema[tableName];
-
-      // columns array
-      var columns = [];
 
       // create the model
       window[table.jsName] = function () { };
@@ -113,6 +110,7 @@ Snake.Schema = function (o) {
       window[table.jsName + 'Peer'] = function () { };
       var peer = window[table.jsName + 'Peer'];
       peer.columns = [];
+      peer.fields = {};
 
       // loop through each column
       for (var columnName in table.columns) {
@@ -149,6 +147,7 @@ Snake.Schema = function (o) {
           // column names (although I could just pull these from the columns)
           peer[columnName.toUpperCase()] = tableName + "." + columnName;
           peer.columns.push(columnName);
+          peer.fields[columnName] = column;
         }
       }
 
@@ -174,7 +173,11 @@ Snake.Schema = function (o) {
         }
 */
       };
-      // TODO retrieveByPK method
+      peer.retrieveByPK = function (pk, callback) {
+        var c = new Snake.Criteria();
+        c.add(this.ID, pk);
+        this.doSelect(c, callback);
+      };
 
       // model native methods
       model.prototype.getPeer = function () {
@@ -301,8 +304,10 @@ Snake.Criteria.prototype = {
     var values = [];
 
     for (var i = 0; i < peer.columns.length; i = i + 1) {
-      var val = model[peer.columns[i]] || "NULL";
-      values.push(val); // TODO wrap strings in quotes
+      var val = model[peer.columns[i]] || false;
+      //console.log(peer.fields[peer.columns[i]].type);
+      val = val ? "'" + val + "'" : "NULL"; // TODO no quotes if integer...
+      values.push(val);
     }
 
     var sql = "INSERT INTO #{table} (#{columns}) VALUES (#{values})".interpolate({
@@ -320,8 +325,9 @@ Snake.Criteria.prototype = {
     var conditions = [];
 
     for (var i = 0; i < peer.columns.length; i = i + 1) {
-      var val = model[peer.columns[i]] || "NULL";
-      conditions.push(peer.columns[i] + " = " + val); // TODO compare with previous values, if unchanged don't set them, wrap strings in quotes
+      var val = model[peer.columns[i]] || false;
+      val = val ? "'" + val + "'" : "NULL";
+      conditions.push(peer.columns[i] + " = " + val); // TODO compare with previous values, if unchanged don't set them
     }
 
     var sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpolate({

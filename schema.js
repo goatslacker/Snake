@@ -23,7 +23,7 @@ var schema = {
 //Snake.db.create(schema);
 
 // build on the fly objects
-Snake.Schema(schema);
+Snake.buildModel(schema);
 
 // execute query ?
 function executeQuery () {
