@@ -43,25 +43,91 @@ Function.method('inherits', function (parent) {
 });
 */
 
-
-// setup the models
+// base object
 var Snake = {};
 
-// creates the SQL
-Snake.buildSql = function (o) {
+Snake.init = function (o) {
+  o = o || false;
+
+  if (o) {
+    Snake.loadSchema(o);
+    Snake.buildModel();
+    Snake.buildSql();
+  }
+
+  Snake.connect(null, function (errorText) {
+    console.log(errorText);
+  });
+};
+
+// load all items into a config file
+Snake.loadSchema = function (o) {
+  // need to load defaults!
+  Snake.config = o;
+  Snake.config.sql = [];
+  return true;
+};
+
+// Create the database connection
+Snake.connect = function (onSuccess, onFailure) {
+  var db = Snake.config.database;
+  onSuccess = onSuccess || function () {};
+  onFailure = onFailure || function () {};
+  Snake.db = openDatabase(db.name, db.version, db.displayName, db.size);
+
+  if (!Snake.db) {
+    onFailure("Could not open database");
+  } else {
+    onSuccess();
+  }
+};
+
+// query the database
+Snake.query = function (query, onSuccess, onFailure) {
+  onSuccess = onSuccess || function (transaction, results) {
+    console.log(transaction);
+    console.log(results);
+  };
+  onFailure = onFailure || function (transaction, error) {
+    console.log(transaction);
+    console.log(error);
+  };
+
+  if (!Snake.db) {
+    Snake.connect(); // TODO need to callback query with same params
+  } else {
+    Snake.db.transaction(function (transaction) {
+      console.log('===Excuting Query===');
+      query = query + ";";
+      console.log(query);
+
+      transaction.executeSql(query, [], onSuccess, onFailure);
+    });
+  }
+};
+
+// creates the SQL from the schema
+Snake.buildSql = function () {
+
+  var o = Snake.config;
 
   // build sql
   for (var tableName in o.schema) {
     if (o.schema.hasOwnProperty(tableName)) {
 
       // init sql
-      var sql = "CREATE TABLE IF NOT EXISTS '#{table}' (#{columns});";
+      var sql = "CREATE TABLE IF NOT EXISTS '#{table}' (#{columns})";
 
       // table object
       var table = o.schema[tableName];
 
       // columns array
       var columns = [];
+      var foreign = {
+        key: [],
+        table: [],
+        reference: []
+      };
 
       // loop through each column
       for (var columnName in table.columns) {
@@ -76,25 +142,43 @@ Snake.buildSql = function (o) {
             type: column.type.toUpperCase()
           }));
 
+          if (column.foreign) {
+            var foreignItem = column.foreign.split(".");
+            foreign.key.push(columnName);
+            foreign.table.push(foreignItem[0]);
+            foreign.reference.push(foreignItem[1]);
+          }
+
         }
       }
 
       // interpolate the sql
-      var sql = sql.interpolate({
+      sql = sql.interpolate({
         table: tableName,
         columns: columns
       });
 
-      // TODO add keys and constraints
-      console.log(sql);
+      if (foreign.key.length > 0) { // TODO test
+        sql = sql + " FOREIGN KEY (#{key}) REFERENCES #{table}(#{reference})".interpolate({
+          key: foreign.key,
+          table: foreign.table,
+          reference: foreign.reference
+        });
+      }
+
+      // load into config
+      Snake.config.sql.push(sql);
     }
   }
 
 };
 
-Snake.buildModel = function (o) {
+// creates the objects from the schema
+Snake.buildModel = function () {
 
-  // build sql and objects?
+  var o = Snake.config;
+
+  // build objects?
   for (var tableName in o.schema) {
     if (o.schema.hasOwnProperty(tableName)) {
 
@@ -105,11 +189,16 @@ Snake.buildModel = function (o) {
       window[table.jsName] = function () { };
       var model = window[table.jsName];
 
+      // TODO autocreate the ID and CREATED_AT
+
       // create the peer class
       window[table.jsName + 'Peer'] = function () { };
       var peer = window[table.jsName + 'Peer'];
       peer.columns = [];
       peer.fields = {};
+
+      // store foreign elements
+      var foreign = [];
 
       // loop through each column
       for (var columnName in table.columns) {
@@ -147,6 +236,15 @@ Snake.buildModel = function (o) {
           peer[columnName.toUpperCase()] = tableName + "." + columnName;
           peer.columns.push(columnName);
           peer.fields[columnName] = column;
+
+          if (column.foreign) {
+            var foreignItem = column.foreign.split(".");
+            foreign.push({
+              key: columnName,
+              table: foreignItem[0],
+              reference: foreignItem[1]
+            });
+          }
         }
       }
 
@@ -155,14 +253,26 @@ Snake.buildModel = function (o) {
       peer.doSelect = function (criteria, callback) {
         criteria = criteria || new Snake.Criteria();
        
-        criteria.executeQuery(this);
+        criteria.executeSelect(this, callback);
       };
+      // build doSelectJoins
+      if (foreign.length > 0) {
+        for (var i = 0; i < foreign.length; i = i + 1) {
+          peer['doSelectJoin' + foreign.table] = function (criteria, callback) {
+            criteria = criteria || new Snake.Criteria();
+
+            //criteria.addJoin();
+            criteria.executeSelect(this, callback);
+          }
+        }
+      }
       peer.update = function (model) {
+
         var criteria = new Snake.Criteria();
         if (model.id === null) {
-          criteria.executeInsert(model);
+          criteria.executeInsert(model, this);
         } else {
-          criteria.executeUpdate(model);
+          criteria.executeUpdate(model, this);
         }
 
 /*
@@ -179,12 +289,11 @@ Snake.buildModel = function (o) {
       };
 
       // model native methods
-      model.prototype.getPeer = function () {
-        return peer;
-      };
+      model.prototype.peer = peer;
       model.prototype.save = function () {
-        this.getPeer().update(this);
+        this.peer.update(this);
       };
+
 /*
       model.method('getPeer', function () {
         return peer;
@@ -199,6 +308,21 @@ Snake.buildModel = function (o) {
 
 };
 
+// loads all the tables into the database
+Snake.insertSql = function (drop_existing) {
+  if (Snake.config.sql.length > 0) {
+    drop_existing = drop_existing || false;
+
+    Snake.connect(function () {
+
+      // TODO drop_existing
+
+      for (var i = 0; i < Snake.config.sql.length; i = i + 1) {
+        Snake.query(Snake.config.sql[i]);
+      }
+    });
+  }
+};
 
 
 
@@ -229,13 +353,6 @@ Snake.Criteria.prototype = {
       value: value
     });
 
-    var from = field.split(".");
-
-    // tables to select from
-    if (!this.from.in_array(from[0])) {
-      this.from.push(from[0]);
-    }
-
     // where
     this.where.push(where);
   },
@@ -260,12 +377,23 @@ Snake.Criteria.prototype = {
     }
   },
 
-  executeQuery: function (peer) {
+  executeSelect: function (peer, callback) {
 
     // add select columns
     if (this.select.length === 0) {
       for (var i = 0; i < peer.columns.length; i = i + 1) {
         this.select.push(peer.tableName + "." + peer.columns[i]);
+      }
+    }
+
+    // add the from
+    for (var i = 0; i < this.select.length; i = i + 1) {
+      var field = this.select[i];
+
+      var from = field.split(".");
+      // tables to select from
+      if (!this.from.in_array(from[0])) {
+        this.from.push(from[0]);
       }
     }
 
@@ -294,12 +422,10 @@ Snake.Criteria.prototype = {
     this.from = [];
     this.where = [];
 
-    console.log(sql);
+    Snake.query(sql, callback);
   },
 
-  executeInsert: function (model) {
-    var peer = model.getPeer();
-
+  executeInsert: function (model, peer) {
     var values = [];
 
     for (var i = 0; i < peer.columns.length; i = i + 1) {
@@ -315,12 +441,10 @@ Snake.Criteria.prototype = {
       values: values
     });
 
-    console.log(sql);
+    Snake.query(sql);
   },
 
-  executeUpdate: function (model) {
-    var peer = model.getPeer();
-
+  executeUpdate: function (model, peer) {
     var conditions = [];
 
     for (var i = 0; i < peer.columns.length; i = i + 1) {
@@ -335,6 +459,6 @@ Snake.Criteria.prototype = {
       id: model.id
     });
 
-    console.log(sql);
+    Snake.query(sql);
   }
 };
