@@ -1,0 +1,41 @@
+{
+  "database": {
+    "name": "MyDB",
+    "version": "0.1",
+    "displayName": "My Mojo-Driven database",
+    "size": 200000
+  },
+  "schema": {
+    "card": {
+      "jsName": "Card",
+      "columns": {
+        "id": { "type": "integer", "primaryKey": true },
+        "card": { "type": "text" },
+        "type": { "type": "text" }
+      }
+    },
+    "card_in_stack": {
+      "jsName": "CardInStack",
+      "columns": {
+        "id": { "type": "integer", "primaryKey": true },
+        "stack_id": { "type": "integer", "index": true, "foreign": "stack.id" },
+        "card_id": { "type": "integer", "foreign": "card.id" }
+      }
+    },
+    "stack": {
+      "jsName": "Stack",
+      "columns": {
+        "id": { "type": "integer", "primaryKey": true },
+        "player_id": { "type": "integer", "foreign": "player.id" }
+      }
+    },
+    "player": {
+      "jsName": "Player",
+      "columns": {
+        "id": { "type": "integer", "primaryKey": true },
+        "name": { "type": "text" },
+        "created_at": { "type": "integer" }
+      }
+    }
+  }
+}
