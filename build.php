@@ -13,48 +13,6 @@
 
   $handle = fopen($o['database']['name'] . ".js", 'w');
 
-// TODO put this in Snake.js
-$base = "
-function Snake.Base (peer) {
-  this.peer = peer;
-}
-
-Snake.Base.prototype = {
-  save: function () {
-    this.peer.update(this);
-  } 
-};
-
-function Snake.BasePeer (tableName) {
-  this.columns = [];
-  this.fields = {};
-
-  this.tableName = tableName;
-}
-
-Snake.BasePeer.prototype = {
-  doSelect: function (criteria, callback) {
-    criteria = criteria || new Snake.Criteria();
-    criteria.executeSelect(this, callback);
-  }, 
-
-  update = function (model) {
-    var criteria = new Snake.Criteria();
-    if (model.id === null) {
-      criteria.executeInsert(model, this);
-    } else {
-      criteria.executeUpdate(model, this);
-    }
-  },
-
-  retrieveByPK = function (pk, callback) {
-    var c = new Snake.Criteria();
-    c.add(this.ID, pk);
-    this.doSelect(c, callback);
-  }
-}
-";
-
   $code = array();
   foreach ($o['schema'] as $tableName => $table) {
 

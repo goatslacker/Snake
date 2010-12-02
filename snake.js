@@ -185,124 +185,90 @@ Snake.buildModel = function () {
       // table object
       var table = o.schema[tableName];
 
-      // create the model
-      window[table.jsName] = function () { };
-      var model = window[table.jsName];
+      if (!window[table.jsName] || !window[table.jsName + 'Peer']) {
 
-      // TODO autocreate the ID and CREATED_AT
+        // create the peer class
+        window[table.jsName + 'Peer'] = new Snake.BasePeer(tableName);
+        var peer = window[table.jsName + 'Peer'];
+        peer.columns = [];
+        peer.fields = {};
 
-      // create the peer class
-      window[table.jsName + 'Peer'] = function () { };
-      var peer = window[table.jsName + 'Peer'];
-      peer.columns = [];
-      peer.fields = {};
+        // create the model
+        window[table.jsName] = new Snake.Base(peer);
+        var model = window[table.jsName];
 
-      // store foreign elements
-      var foreign = [];
+        console.log(model);
 
-      // loop through each column
-      for (var columnName in table.columns) {
-        if (table.columns.hasOwnProperty(columnName)) {
+        // TODO autocreate the ID and CREATED_AT
 
-          // column object
-          var column = table.columns[columnName];
 
-          model.prototype[columnName] = null;
+        // store foreign elements
+        var foreign = [];
 
-//prototype
-/*
-          model.prototype[columnName] = null;
-          model.prototype['set' + columnName] = function (value) {
-            this[columnName] = value;
-          }
-          model.prototype['get' + columnName] = function () {
-            console.log(tmp);
-            return this[columnName];
-          }
-*/
+        // loop through each column
+        for (var columnName in table.columns) {
+          if (table.columns.hasOwnProperty(columnName)) {
 
-// method
-/*
-          model.method(columnName, null);
-          model.method('set' + columnName, function (value) {
-            this[columnName] = value;
-          });
-          model.method('get' + columnName, function () {
-            return this[columnName];
-          });
-*/
+            // column object
+            var column = table.columns[columnName];
 
-          // column names (although I could just pull these from the columns)
-          peer[columnName.toUpperCase()] = tableName + "." + columnName;
-          peer.columns.push(columnName);
-          peer.fields[columnName] = column;
+            model.prototype[columnName] = null;
 
-          if (column.foreign) {
-            var foreignItem = column.foreign.split(".");
-            foreign.push({
-              key: columnName,
-              table: foreignItem[0],
-              reference: foreignItem[1]
-            });
+            peer[columnName.toUpperCase()] = tableName + "." + columnName;
+            peer.columns.push(columnName);
+            peer.fields[columnName] = column;
+
+            if (column.foreign) {
+              var foreignItem = column.foreign.split(".");
+              foreign.push({
+                key: columnName,
+                table: foreignItem[0],
+                reference: foreignItem[1]
+              });
+            }
           }
         }
+
+        // build peer
+        peer.tableName = tableName;
+        peer.doSelect = function (criteria, callback) {
+          criteria = criteria || new Snake.Criteria();
+         
+          criteria.executeSelect(this, callback);
+        };
+        // build doSelectJoins
+        if (foreign.length > 0) {
+          for (var i = 0; i < foreign.length; i = i + 1) {
+            peer['doSelectJoin' + foreign.table] = function (criteria, callback) {
+              criteria = criteria || new Snake.Criteria();
+
+              //criteria.addJoin();
+              criteria.executeSelect(this, callback);
+            }
+          }
+        }
+        peer.update = function (model) {
+          var criteria = new Snake.Criteria();
+          if (model.id === null) {
+            criteria.executeInsert(model, this);
+          } else {
+            criteria.executeUpdate(model, this);
+          }
+        };
+
+        peer.retrieveByPK = function (pk, callback) {
+          var c = new Snake.Criteria();
+          c.add(this.ID, pk);
+          this.doSelect(c, callback);
+        };
+
+        // model native methods
+        model.prototype.peer = peer;
+        model.prototype.save = function () {
+          this.peer.update(this);
+        };
+
       }
-
-      // build peer
-      peer.tableName = tableName;
-      peer.doSelect = function (criteria, callback) {
-        criteria = criteria || new Snake.Criteria();
-       
-        criteria.executeSelect(this, callback);
-      };
-      // build doSelectJoins
-      if (foreign.length > 0) {
-        for (var i = 0; i < foreign.length; i = i + 1) {
-          peer['doSelectJoin' + foreign.table] = function (criteria, callback) {
-            criteria = criteria || new Snake.Criteria();
-
-            //criteria.addJoin();
-            criteria.executeSelect(this, callback);
-          }
-        }
-      }
-      peer.update = function (model) {
-
-        var criteria = new Snake.Criteria();
-        if (model.id === null) {
-          criteria.executeInsert(model, this);
-        } else {
-          criteria.executeUpdate(model, this);
-        }
-
-/*
-        for (var i = 0; i < peer.columns.length; i = i + 1) {
-          //console.log(peer.columns[i]);
-          console.log(model[peer.columns[i]]);
-        }
-*/
-      };
-      peer.retrieveByPK = function (pk, callback) {
-        var c = new Snake.Criteria();
-        c.add(this.ID, pk);
-        this.doSelect(c, callback);
-      };
-
-      // model native methods
-      model.prototype.peer = peer;
-      model.prototype.save = function () {
-        this.peer.update(this);
-      };
-
-/*
-      model.method('getPeer', function () {
-        return peer;
-      });
-      model.method('save', function () {
-        this.getPeer().buildInsert(this);
-      });
-*/
-
     }
   }
 
@@ -325,6 +291,45 @@ Snake.insertSql = function (drop_existing) {
 };
 
 
+// Base Classes
+Snake.Base = function (peer) {
+  this.peer = peer;
+};
+
+Snake.Base.prototype = {
+  save: function () {
+    this.peer.update(this);
+  } 
+};
+
+Snake.BasePeer = function (tableName) {
+  this.columns = [];
+  this.fields = {};
+
+  this.tableName = tableName;
+};
+
+Snake.BasePeer.prototype = {
+  doSelect: function (criteria, callback) {
+    criteria = criteria || new Snake.Criteria();
+    criteria.executeSelect(this, callback);
+  }, 
+
+  update: function (model) {
+    var criteria = new Snake.Criteria();
+    if (model.id === null) {
+      criteria.executeInsert(model, this);
+    } else {
+      criteria.executeUpdate(model, this);
+    }
+  },
+
+  retrieveByPK: function (pk, callback) {
+    var c = new Snake.Criteria();
+    c.add(this.ID, pk);
+    this.doSelect(c, callback);
+  }
+};
 
 // Criteria class
 Snake.Criteria = function () {
