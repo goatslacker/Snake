@@ -11,66 +11,86 @@
     die("Cannot decode JSON -- Make sure it's properly formatted\n");
   }
 
+$base = "
+function Base (peer) {
+  this.peer = peer;
+}
+
+Base.prototype = {
+  save: function () {
+    this.peer.update(this);
+  } 
+};
+
+function BasePeer (tableName) {
+  this.columns = [];
+  this.fields = {};
+
+  this.tableName = tableName;
+}
+
+BasePeer.prototype = {
+  doSelect: function (criteria, callback) {
+    criteria = criteria || new Snake.Criteria();
+    criteria.executeSelect(this, callback);
+  }, 
+
+  update = function (model) {
+    var criteria = new Snake.Criteria();
+    if (model.id === null) {
+      criteria.executeInsert(model, this);
+    } else {
+      criteria.executeUpdate(model, this);
+    }
+  },
+
+  retrieveByPK = function (pk, callback) {
+    var c = new Snake.Criteria();
+    c.add(this.ID, pk);
+    this.doSelect(c, callback);
+  }
+}
+";
+
+  echo "\n" . $base . "\n";
+
   // TODO make a BasePeer object and inherit the peer's from that one
-  foreach ($o['schema'] as $table) {
+  foreach ($o['schema'] as $tableName => $table) {
 
-    //$tableName = key of table
-    
     // TODO add the columns
-    $code = "
-      {$table['jsName']}Peer = {
-        columns: [],
-        fields: {},
-        tableName: '{$tableName}',
-       
-        doSelect: function (criteria, callback) {
-          criteria = criteria || new Snake.Criteria();
-          criteria.executeSelect(this, callback);
-        }, 
+$code = "
+var {$table['jsName']}Peer = new BasePeer('{$tableName}');
+var {$table['jsName']} = new Base({$table['jsName']}Peer);
+";
 
-        update = function (model) {
-          var criteria = new Snake.Criteria();
-          if (model.id === null) {
-            criteria.executeInsert(model, this);
-          } else {
-            criteria.executeUpdate(model, this);
-          }
-        },
+    $columns = array();     
+    foreach ($table['columns'] as $columnName => $column) {
 
-        retrieveByPK = function (pk, callback) {
-          var c = new Snake.Criteria();
-          c.add(this.ID, pk);
-          this.doSelect(c, callback);
-        }
-        
-      };
+      $columns[] = "'" . $columnName . "'";
 
-      function {$table['jsName']} () {
+      $columnTypes = array();
+      foreach ($column as $type => $value) {
+        $columnTypes[] = "\"$type\": \"$value\"";
       }
-      {$table['jsName']}.prototype = {
-        peer: {$table['jsName']}Peer,
-       
-        save: function () {
-          this.peer.update(this);
-        } 
-      };
 
-    ";
+    // try to prototype all this stuff so it looks cleaner
+$code .= "{$table['jsName']}Peer." . strtoupper($columnName) . " = '{$tableName}.{$columnName}';
+{$table['jsName']}Peer.fields.{$columnName} = { " . implode(", ", $columnTypes) . " };
+{$table['jsName']}.{$columnName} = null;
+";
+
+    }
+
+$code .= "{$table['jsName']}Peer.columns = [" . implode(", ", $columns) . "];
+";
     
-    echo "\n" . $code . "\n";
+    echo $code;
   }
 
+  echo "\n";
+
+// TODO foreign stuff
 /*
-          // column object
-          var column = table.columns[columnName];
-
-          model.prototype[columnName] = null;
-
-
-          // column names (although I could just pull these from the columns)
-          peer[columnName.toUpperCase()] = tableName + "." + columnName;
-          peer.columns.push(columnName);
-          peer.fields[columnName] = column;
 */
 /*
           if (column.foreign) {
