@@ -11,25 +11,28 @@
     die("Cannot decode JSON -- Make sure it's properly formatted\n");
   }
 
+  $handle = fopen($o['database']['name'] . ".js", 'w');
+
+// TODO put this in Snake.js
 $base = "
-function Base (peer) {
+function Snake.Base (peer) {
   this.peer = peer;
 }
 
-Base.prototype = {
+Snake.Base.prototype = {
   save: function () {
     this.peer.update(this);
   } 
 };
 
-function BasePeer (tableName) {
+function Snake.BasePeer (tableName) {
   this.columns = [];
   this.fields = {};
 
   this.tableName = tableName;
 }
 
-BasePeer.prototype = {
+Snake.BasePeer.prototype = {
   doSelect: function (criteria, callback) {
     criteria = criteria || new Snake.Criteria();
     criteria.executeSelect(this, callback);
@@ -52,42 +55,55 @@ BasePeer.prototype = {
 }
 ";
 
-  echo "\n" . $base . "\n";
-
-  // TODO make a BasePeer object and inherit the peer's from that one
+  $code = array();
   foreach ($o['schema'] as $tableName => $table) {
 
-    // TODO add the columns
-$code = "
-var {$table['jsName']}Peer = new BasePeer('{$tableName}');
-var {$table['jsName']} = new Base({$table['jsName']}Peer);
-";
+    $peer = "var {$table['jsName']}Peer = new Snake.BasePeer('{$tableName}');";
+    $model = "var {$table['jsName']} = new Snake.Base({$table['jsName']}Peer);";
 
-    $columns = array();     
+    $innerCode = array();
+    $innerCodePeer = array();
+
+    $columns = array();
+    $columnTypes = array();
+    $fields = array();
     foreach ($table['columns'] as $columnName => $column) {
 
       $columns[] = "'" . $columnName . "'";
 
-      $columnTypes = array();
+      $columnTypes[$columnName] = array();
       foreach ($column as $type => $value) {
-        $columnTypes[] = "\"$type\": \"$value\"";
+        $columnTypes[$columnName][] = "\"$type\": \"$value\"";
       }
 
-    // try to prototype all this stuff so it looks cleaner
-$code .= "{$table['jsName']}Peer." . strtoupper($columnName) . " = '{$tableName}.{$columnName}';
-{$table['jsName']}Peer.fields.{$columnName} = { " . implode(", ", $columnTypes) . " };
-{$table['jsName']}.{$columnName} = null;
-";
-
+      $innerCode[] = "{$columnName}: null";
+      $innerCodePeer[] = strtoupper($columnName) . ": '{$tableName}.{$columnName}'";
+      $fields[] = "{$columnName}: { " . implode(", ", $columnTypes[$columnName]) . " }";
     }
 
-$code .= "{$table['jsName']}Peer.columns = [" . implode(", ", $columns) . "];
+  $innerCodePeer[] = "
+  fields: {
+    " . implode(",\n    ", $fields) . "
+  }";
+
+    $innerCodePeer[] = "columns: [" . implode(", ", $columns) . "]";
+
+$code [] = "
+{$peer}
+{$table['jsName']}Peer.prototype = {
+  " . implode(",\n  ", $innerCodePeer) . "
+};
+
+{$model}
+{$table['jsName']}.prototype = {
+  " . implode(",\n  ", $innerCode) . "
+};
 ";
-    
-    echo $code;
+
   }
 
-  echo "\n";
+  fwrite($handle, implode("", $code));
+  fclose($handle);
 
 // TODO foreign stuff
 /*

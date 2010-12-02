@@ -1,8 +1,8 @@
 {
   "database": {
-    "name": "MyDB",
+    "name": "cards",
     "version": "0.1",
-    "displayName": "My Mojo-Driven database",
+    "displayName": "A Card Database",
     "size": 200000
   },
   "schema": {
