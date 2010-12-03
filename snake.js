@@ -47,15 +47,19 @@ Function.method('inherits', function (parent) {
 var Snake = {};
 
 Snake.init = function (o) {
-  o = o || false;
-
-  if (o) {
-    Snake.loadSchema(o);
-    Snake.buildModel();
-    Snake.buildSql();
+  
+  if (!o) {
+    console.log("Error, configuration file not loaded");
+    return false;
   }
 
-  Snake.connect(null, function (errorText) {
+  Snake.loadSchema(o);
+  //Snake.buildModel();
+  //Snake.buildSql();
+
+  Snake.connect(function () {
+    Snake.insertSql();
+  }, function (errorText) {
     console.log(errorText);
   });
 };
@@ -64,7 +68,6 @@ Snake.init = function (o) {
 Snake.loadSchema = function (o) {
   // need to load defaults!
   Snake.config = o;
-  Snake.config.sql = [];
   return true;
 };
 
@@ -111,63 +114,66 @@ Snake.buildSql = function () {
 
   var o = Snake.config;
 
-  // build sql
-  for (var tableName in o.schema) {
-    if (o.schema.hasOwnProperty(tableName)) {
+  if (!o.sql) {
+    o.sql = [];
+    // build sql
+    for (var tableName in o.schema) {
+      if (o.schema.hasOwnProperty(tableName)) {
 
-      // init sql
-      var sql = "CREATE TABLE IF NOT EXISTS '#{table}' (#{columns})";
+        // init sql
+        var sql = "CREATE TABLE IF NOT EXISTS '#{table}' (#{columns})";
 
-      // table object
-      var table = o.schema[tableName];
+        // table object
+        var table = o.schema[tableName];
 
-      // columns array
-      var columns = [];
-      var foreign = {
-        key: [],
-        table: [],
-        reference: []
-      };
+        // columns array
+        var columns = [];
+        var foreign = {
+          key: [],
+          table: [],
+          reference: []
+        };
 
-      // loop through each column
-      for (var columnName in table.columns) {
-        if (table.columns.hasOwnProperty(columnName)) {
+        // loop through each column
+        for (var columnName in table.columns) {
+          if (table.columns.hasOwnProperty(columnName)) {
 
-          // column object
-          var column = table.columns[columnName];
+            // column object
+            var column = table.columns[columnName];
 
-          // push into columns array
-          columns.push("#{column} #{type} #{constraints}".interpolate({
-            column: columnName,
-            type: column.type.toUpperCase()
-          }));
+            // push into columns array
+            columns.push("#{column} #{type} #{constraints}".interpolate({
+              column: columnName,
+              type: column.type.toUpperCase()
+            }));
 
-          if (column.foreign) {
-            var foreignItem = column.foreign.split(".");
-            foreign.key.push(columnName);
-            foreign.table.push(foreignItem[0]);
-            foreign.reference.push(foreignItem[1]);
+            if (column.foreign) {
+              var foreignItem = column.foreign.split(".");
+              foreign.key.push(columnName);
+              foreign.table.push(foreignItem[0]);
+              foreign.reference.push(foreignItem[1]);
+            }
+
           }
-
         }
-      }
 
-      // interpolate the sql
-      sql = sql.interpolate({
-        table: tableName,
-        columns: columns
-      });
-
-      if (foreign.key.length > 0) { // TODO test
-        sql = sql + " FOREIGN KEY (#{key}) REFERENCES #{table}(#{reference})".interpolate({
-          key: foreign.key,
-          table: foreign.table,
-          reference: foreign.reference
+        // interpolate the sql
+        sql = sql.interpolate({
+          table: tableName,
+          columns: columns
         });
-      }
 
-      // load into config
-      Snake.config.sql.push(sql);
+        if (foreign.key.length > 0) { // TODO test
+          sql = sql + " FOREIGN KEY (#{key}) REFERENCES #{table}(#{reference})".interpolate({
+            key: foreign.key,
+            table: foreign.table,
+            reference: foreign.reference
+          });
+        }
+
+        // load into config
+        Snake.config.sql.push(sql);
+      }
     }
   }
 
@@ -185,6 +191,8 @@ Snake.buildModel = function () {
       // table object
       var table = o.schema[tableName];
 
+      console.log(tableName);
+/*
       if (!window[table.jsName] || !window[table.jsName + 'Peer']) {
 
         // create the peer class
@@ -269,6 +277,7 @@ Snake.buildModel = function () {
         };
 
       }
+*/
     }
   }
 
