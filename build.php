@@ -23,7 +23,9 @@
   foreach ($o['schema'] as $tableName => $table) {
 
     $peer = "var {$table['jsName']}Peer = new Snake.BasePeer('{$tableName}');";
-    $model = "var {$table['jsName']} = new Snake.Base({$table['jsName']}Peer);";
+    //$model = "var {$table['jsName']} = new Snake.Base({$table['jsName']}Peer);";
+
+
 
     $_sql = "CREATE TABLE IF NOT EXISTS '$tableName' ";
 
@@ -36,6 +38,8 @@
 
     $sqlColumns = array();
 
+    $fields[] = "id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' }"; // TODO field types
+
     foreach ($table['columns'] as $columnName => $column) {
 
       $columns[] = "'" . $columnName . "'";
@@ -46,28 +50,35 @@
 
       $innerCode[] = "{$columnName}: null";
       $innerCodePeer[] = strtoupper($columnName) . ": '{$tableName}.{$columnName}'";
-      $fields[] = "{$columnName}: { " . implode(", ", $columnTypes[$columnName]) . " }";
+      $fields[] = "{$columnName}: { type: '{$column['type']}' }";
     }
+
+$model = "var {$table['jsName']} = Snake.Base.extend({
+  init: function () {
+    this._super({$table['jsName']}Peer);
+  },
+  id: null,
+  created_at: null,
+  " . implode(",\n  ", $innerCode) . "
+});";
 
 $innerCodePeer[] = "
   fields: {
     " . implode(",\n    ", $fields) . "
   }";
 
-    $innerCodePeer[] = "columns: [" . implode(", ", $columns) . "]";
+    $innerCodePeer[] = "columns: [ 'id', 'created_at', " . implode(", ", $columns) . "]";
 
     $sql[] = $_sql . "(" . implode(", ", $sqlColumns) . ")";
 
 $code[] = "
 {$peer}
 {$table['jsName']}Peer.prototype = {
+  ID: '$tableName.id',
+  CREATED_AT: '$tableName.created_at',
   " . implode(",\n  ", $innerCodePeer) . "
 };
-
 {$model}
-{$table['jsName']}.prototype = {
-  " . implode(",\n  ", $innerCode) . "
-};
 ";
 
   }

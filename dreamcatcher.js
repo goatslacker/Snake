@@ -2,66 +2,84 @@ Snake.init({"database":{"name":"dreamcatcher","version":"0.1","displayName":"Dre
 
 var DreamPeer = new Snake.BasePeer('dream');
 DreamPeer.prototype = {
+  ID: 'dream.id',
+  CREATED_AT: 'dream.created_at',
   TITLE: 'dream.title',
   SUMMARY: 'dream.summary',
   DREAMDATE: 'dream.dreamDate',
   
   fields: {
-    title: {  },
-    summary: {  },
-    dreamDate: {  }
+    id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' },
+    title: { type: 'text' },
+    summary: { type: 'text' },
+    dreamDate: { type: 'text' }
   },
   columns: ['title', 'summary', 'dreamDate']
 };
-
-var Dream = new Snake.Base(DreamPeer);
-Dream.prototype = {
+var Dream = Snake.Base.extend({
+  init: function () {
+    this._super(DreamPeer);
+  },
+  id: null,
+  created_at: null,
   title: null,
   summary: null,
   dreamDate: null
-};
+});
 
 var DreamSearchPeer = new Snake.BasePeer('dream_search');
 DreamSearchPeer.prototype = {
+  ID: 'dream_search.id',
+  CREATED_AT: 'dream_search.created_at',
   DREAM_ID: 'dream_search.dream_id',
   WORD: 'dream_search.word',
   STEM: 'dream_search.stem',
   WEIGHT: 'dream_search.weight',
   
   fields: {
-    dream_id: {  },
-    word: {  },
-    stem: {  },
-    weight: {  }
+    id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' },
+    dream_id: { type: 'integer' },
+    word: { type: 'text' },
+    stem: { type: 'text' },
+    weight: { type: 'integer' }
   },
   columns: ['dream_id', 'word', 'stem', 'weight']
 };
-
-var DreamSearch = new Snake.Base(DreamSearchPeer);
-DreamSearch.prototype = {
+var DreamSearch = Snake.Base.extend({
+  init: function () {
+    this._super(DreamSearchPeer);
+  },
+  id: null,
+  created_at: null,
   dream_id: null,
   word: null,
   stem: null,
   weight: null
-};
+});
 
 var DreamTagPeer = new Snake.BasePeer('dream_tag');
 DreamTagPeer.prototype = {
+  ID: 'dream_tag.id',
+  CREATED_AT: 'dream_tag.created_at',
   DREAM_ID: 'dream_tag.dream_id',
   TAG: 'dream_tag.tag',
   NORMALIZED: 'dream_tag.normalized',
   
   fields: {
-    dream_id: {  },
-    tag: {  },
-    normalized: {  }
+    id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' },
+    dream_id: { type: 'integer' },
+    tag: { type: 'text' },
+    normalized: { type: 'text' }
   },
   columns: ['dream_id', 'tag', 'normalized']
 };
-
-var DreamTag = new Snake.Base(DreamTagPeer);
-DreamTag.prototype = {
+var DreamTag = Snake.Base.extend({
+  init: function () {
+    this._super(DreamTagPeer);
+  },
+  id: null,
+  created_at: null,
   dream_id: null,
   tag: null,
   normalized: null
-};
+});

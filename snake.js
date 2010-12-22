@@ -8,40 +8,69 @@ Array.prototype.in_array = function (val) {
   return false;
 };
 
-// Crockford
-/*
-Function.prototype.method = function (name, func) {
-    this.prototype[name] = func;
-    return this;
-};
+/* Simple JavaScript Inheritance
+ * By John Resig http://ejohn.org/
+ * MIT Licensed.
+ */
+// Inspired by base2 and Prototype
+(function(){
+  var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+  // The base Class implementation (does nothing)
+  this.Class = function(){};
+  
+  // Create a new Class that inherits from this class
+  Class.extend = function(prop) {
+    var _super = this.prototype;
+    
+    // Instantiate a base class (but only create the instance,
+    // don't run the init constructor)
+    initializing = true;
+    var prototype = new this();
+    initializing = false;
+    
+    // Copy the properties over onto the new prototype
+    for (var name in prop) {
+      // Check if we're overwriting an existing function
+      prototype[name] = typeof prop[name] == "function" && 
+        typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+        (function(name, fn){
+          return function() {
+            var tmp = this._super;
+            
+            // Add a new ._super() method that is the same method
+            // but on the super-class
+            this._super = _super[name];
+            
+            // The method only need to be bound temporarily, so we
+            // remove it when we're done executing
+            var ret = fn.apply(this, arguments);        
+            this._super = tmp;
+            
+            return ret;
+          };
+        })(name, prop[name]) :
+        prop[name];
+    }
+    
+    // The dummy class constructor
+    function Class() {
+      // All construction is actually done in the init method
+      if ( !initializing && this.init )
+        this.init.apply(this, arguments);
+    }
+    
+    // Populate our constructed prototype object
+    Class.prototype = prototype;
+    
+    // Enforce the constructor to be what we expect
+    Class.constructor = Class;
 
-Function.method('inherits', function (parent) {
-    var d = {}, p = (this.prototype = new parent());
-    this.method('uber', function uber(name) {
-        if (!(name in d)) {
-            d[name] = 0;
-        }        
-        var f, r, t = d[name], v = parent.prototype;
-        if (t) {
-            while (t) {
-                v = v.constructor.prototype;
-                t -= 1;
-            }
-            f = v[name];
-        } else {
-            f = p[name];
-            if (f == this[name]) {
-                f = v[name];
-            }
-        }
-        d[name] += 1;
-        r = f.apply(this, Array.prototype.slice.apply(arguments, [1]));
-        d[name] -= 1;
-        return r;
-    });
-    return this;
-});
-*/
+    // And make this class extendable
+    Class.extend = arguments.callee;
+    
+    return Class;
+  };
+})();
 
 // base object
 var Snake = {};
@@ -291,9 +320,11 @@ Snake.insertSql = function (drop_existing) {
     Snake.connect(function () {
 
       // TODO drop_existing
+      var i = 0; query = null, drop = drop_existing ? "DROP TABLE IF EXISTS..." : "";
 
-      for (var i = 0; i < Snake.config.sql.length; i = i + 1) {
-        Snake.query(Snake.config.sql[i]);
+      for (i = 0; i < Snake.config.sql.length; i = i + 1) {
+        query = Snake.config.sql[i];
+        Snake.query(query);
       }
     });
   }
@@ -301,15 +332,15 @@ Snake.insertSql = function (drop_existing) {
 
 
 // Base Classes
-Snake.Base = function (peer) {
-  this.peer = peer;
-};
+Snake.Base = Class.extend({
+  init: function (peer) {
+    this.peer = peer;
+  },
 
-Snake.Base.prototype = {
   save: function () {
     this.peer.update(this);
-  } 
-};
+  }
+});
 
 Snake.BasePeer = function (tableName) {
   this.columns = [];
@@ -442,6 +473,10 @@ Snake.Criteria.prototype = {
   executeInsert: function (model, peer) {
     var values = [];
 
+    console.log(peer);
+
+    return false;
+
     for (var i = 0; i < peer.columns.length; i = i + 1) {
       var val = model[peer.columns[i]] || false;
       //console.log(peer.fields[peer.columns[i]].type);
@@ -455,7 +490,9 @@ Snake.Criteria.prototype = {
       values: values
     });
 
-    Snake.query(sql);
+    console.log(sql);
+
+    //Snake.query(sql);
   },
 
   executeUpdate: function (model, peer) {
