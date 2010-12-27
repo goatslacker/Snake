@@ -342,12 +342,13 @@ Snake.Base = Class.extend({
   }
 });
 
-Snake.BasePeer = function (tableName) {
-  this.columns = [];
-  this.fields = {};
+Snake.BasePeer = function (obj) {
+  for (var i in obj) {
+    this[i] = obj[i];
+  }
 
-  this.tableName = tableName;
-};
+  return this;
+}
 
 Snake.BasePeer.prototype = {
   doSelect: function (criteria, callback) {
@@ -473,13 +474,13 @@ Snake.Criteria.prototype = {
   executeInsert: function (model, peer) {
     var values = [];
 
-    console.log(peer);
-
-    return false;
-
     for (var i = 0; i < peer.columns.length; i = i + 1) {
-      var val = model[peer.columns[i]] || false;
-      //console.log(peer.fields[peer.columns[i]].type);
+      if (peer.columns[i] === 'created_at') {
+        var val = Date.now();
+      } else {
+        var val = model[peer.columns[i]] || false;
+      }
+
       val = val ? "'" + val + "'" : "NULL"; // TODO no quotes if integer...
       values.push(val);
     }

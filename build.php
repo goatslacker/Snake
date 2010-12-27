@@ -22,11 +22,6 @@
 
   foreach ($o['schema'] as $tableName => $table) {
 
-    $peer = "var {$table['jsName']}Peer = new Snake.BasePeer('{$tableName}');";
-    //$model = "var {$table['jsName']} = new Snake.Base({$table['jsName']}Peer);";
-
-
-
     $_sql = "CREATE TABLE IF NOT EXISTS '$tableName' ";
 
     $innerCode = array();
@@ -67,17 +62,17 @@ $innerCodePeer[] = "
     " . implode(",\n    ", $fields) . "
   }";
 
-    $innerCodePeer[] = "columns: [ 'id', 'created_at', " . implode(", ", $columns) . "]";
+    $innerCodePeer[] = "columns: [ 'id', " . implode(", ", $columns) . ", 'created_at' ]";
 
     $sql[] = $_sql . "(" . implode(", ", $sqlColumns) . ")";
 
 $code[] = "
-{$peer}
-{$table['jsName']}Peer.prototype = {
+var {$table['jsName']}Peer = new Snake.BasePeer({
+  tableName: '$tableName',
   ID: '$tableName.id',
   CREATED_AT: '$tableName.created_at',
   " . implode(",\n  ", $innerCodePeer) . "
-};
+});
 {$model}
 ";
 
