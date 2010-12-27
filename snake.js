@@ -80,6 +80,7 @@ var Snake = {
   has_loaded: false
 };
 
+// TODO support verisioning!
 Snake.init = function (o) {
   var self = Snake;  
 
@@ -330,6 +331,7 @@ Snake.Criteria.prototype = {
 
           for (var prop in obj) {
             tmp[prop] = obj[prop];
+            tmp['_' + prop] = obj[prop];
           }
 
           arr.push(tmp);
@@ -369,7 +371,10 @@ Snake.Criteria.prototype = {
     for (var i = 0; i < peer.columns.length; i = i + 1) {
       var val = model[peer.columns[i]] || false;
       val = val ? "'" + val + "'" : "NULL";
-      conditions.push(peer.columns[i] + " = " + val); // TODO compare with previous values, if unchanged don't set them
+
+      if (model[peer.columns[i]] !== model['_' + peer.columns[i]]) {
+        conditions.push(peer.columns[i] + " = " + val);
+      }
     }
 
     var sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpolate({

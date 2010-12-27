@@ -3,29 +3,27 @@
 <script type="text/javascript" src="dreamcatcher.js"></script>
 
 <script type="text/javascript">
-  Snake.ready(function () {
 
-// Unit test for inserting
-/*
+  function insert () {
     var dream = new Dream();
     dream.summary = "Hello World";
     dream.save();
-*/
+  }
 
-// Unit testing for selecting
-/*
+  function select () {
     DreamPeer.doSelect(new Snake.Criteria(), function (dreams) {
       console.log(dreams);
     });
-*/
+  }
 
-// Update test
-/*
+  function update () {
     DreamPeer.doSelect(new Snake.Criteria(), function (dreams) {
       console.log(dreams);
-      dreams[0].title = "Dream #1";
-      //dreams[0].save();
+      dreams[0].title = "Dream #5";
+      dreams[0].save();
     });
-*/
+  }
+
+  Snake.ready(function () {
   });
 </script>

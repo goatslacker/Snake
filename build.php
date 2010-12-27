@@ -69,7 +69,7 @@ $innerCodePeer[] = "
     $innerCodePeer[] = "columns: [ 'id', " . implode(", ", $columns) . ", 'created_at' ]";
 
     //$sql[] = "DROP TABLE '$tableName'"; // TODO add flag for drop existing
-    $sql[] = $_sql . "(id INTEGER, " . implode(", ", $sqlColumns) . ", created_at INTEGER)";
+    $sql[] = $_sql . "(id INTEGER PRIMARY KEY, " . implode(", ", $sqlColumns) . ", created_at INTEGER)";
 
 $code[] = "
 var {$table['jsName']}Peer = new Snake.BasePeer({
