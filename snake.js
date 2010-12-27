@@ -189,7 +189,12 @@ Snake.Base = Class.extend({
   },
 
   save: function () {
-    this.peer.update(this);
+    this.peer.doUpdate(this);
+  },
+
+  // delete
+  remove: function () {
+    this.peer.doDeleteRecord(this);
   }
 });
 
@@ -205,9 +210,21 @@ Snake.BasePeer.prototype = {
   doSelect: function (criteria, callback) {
     criteria = criteria || new Snake.Criteria();
     criteria.executeSelect(this, callback);
-  }, 
+  },
 
-  update: function (model) {
+  // TODO test!
+  doDeleteRecord: function (model) {
+    var criteria = new Snake.Criteria();
+    criteria.add(model.ID, model.id);
+    this.doDelete(criteria);
+  },
+
+  doDelete: function (criteria) {
+    criteria = criteria || new Snake.Criteria();
+    criteria.executeDelete(this);
+  },
+
+  doUpdate: function (model) {
     var criteria = new Snake.Criteria();
     if (model.id === null) {
       criteria.executeInsert(model, this);
@@ -384,6 +401,26 @@ Snake.Criteria.prototype = {
     });
 
     Snake.query(sql);
+  },
+
+  executeDelete: function (peer) {
+    this.from = peer.tableName;  
+
+    // build select
+    var sql = "DELETE FROM #{from}".interpolate({
+      from: this.from
+    });
+
+    // where
+    if (this.where.length > 0) {
+      sql = sql + " WHERE #{where}".interpolate({ where: this.where });
+    }
+
+    // reset results
+    this.from = [];
+    this.where = [];
+
+    console.log(sql);
   }
 };
 
