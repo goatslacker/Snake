@@ -3,9 +3,29 @@
 <script type="text/javascript" src="dreamcatcher.js"></script>
 
 <script type="text/javascript">
-  window.onload = function () {
+  Snake.ready(function () {
+
+// Unit test for inserting
+/*
     var dream = new Dream();
     dream.summary = "Hello World";
     dream.save();
-  }
+*/
+
+// Unit testing for selecting
+/*
+    DreamPeer.doSelect(new Snake.Criteria(), function (dreams) {
+      console.log(dreams);
+    });
+*/
+
+// Update test
+/*
+    DreamPeer.doSelect(new Snake.Criteria(), function (dreams) {
+      console.log(dreams);
+      dreams[0].title = "Dream #1";
+      //dreams[0].save();
+    });
+*/
+  });
 </script>

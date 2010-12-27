@@ -15,7 +15,11 @@
 
   $o = $decoded['snake'];
   
-  $handle = fopen($o['database']['name'] . ".js", 'w');
+  $jsfile = $o['database']['name'] . ".js";
+  if (file_exists($jsfile)) {
+    unlink($jsfile);
+  }
+  $handle = fopen($jsfile, 'w');
 
   $code = array();
   $sql = array();
@@ -64,11 +68,13 @@ $innerCodePeer[] = "
 
     $innerCodePeer[] = "columns: [ 'id', " . implode(", ", $columns) . ", 'created_at' ]";
 
-    $sql[] = $_sql . "(" . implode(", ", $sqlColumns) . ")";
+    //$sql[] = "DROP TABLE '$tableName'"; // TODO add flag for drop existing
+    $sql[] = $_sql . "(id INTEGER, " . implode(", ", $sqlColumns) . ", created_at INTEGER)";
 
 $code[] = "
 var {$table['jsName']}Peer = new Snake.BasePeer({
   tableName: '$tableName',
+  jsName: '{$table['jsName']}',
   ID: '$tableName.id',
   CREATED_AT: '$tableName.created_at',
   " . implode(",\n  ", $innerCodePeer) . "
