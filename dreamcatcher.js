@@ -26,7 +26,6 @@ var Dream = Snake.Base.extend({
   title: null,
   summary: null,
   dream_date: null
-  
 });
 
 var DreamSearchPeer = new Snake.BasePeer({
@@ -57,7 +56,7 @@ var DreamSearch = Snake.Base.extend({
   dream_id: null,
   word: null,
   stem: null,
-  weight: null
+  weight: null,
   dream: {}
 });
 
@@ -86,6 +85,6 @@ var DreamTag = Snake.Base.extend({
   created_at: null,
   dream_id: null,
   tag: null,
-  normalized: null
+  normalized: null,
   dream: {}
 });

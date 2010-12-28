@@ -69,8 +69,11 @@ $model = "var {$table['jsName']} = Snake.Base.extend({
   },
   id: null,
   created_at: null,
-  " . implode(",\n  ", $innerCode) . "
-  " . implode(",\n ", $foreignObj) . "
+  " . implode(",\n  ", $innerCode);
+  if (count($foreignObj) > 0) { $model .= ",
+  " . implode(",\n ", $foreignObj);
+  }
+$model .= "
 });";
 
 $innerCodePeer[] = "
