@@ -1,4 +1,4 @@
-Snake.init({"database":{"name":"dreamcatcher","version":"0.1","displayName":"Dreamcatcher Database","size":100000000},"schema":{"dream":{"jsName":"Dream","columns":{"title":{"type":"text"},"summary":{"type":"text"},"dreamDate":{"type":"text"}}},"dream_search":{"jsName":"DreamSearch","columns":{"dream_id":{"type":"integer","foreign":"dream.id"},"word":{"type":"text"},"stem":{"type":"text"},"weight":{"type":"integer"}}},"dream_tag":{"jsName":"DreamTag","columns":{"dream_id":{"type":"integer","foreign":"dream.id"},"tag":{"type":"text"},"normalized":{"type":"text"}}}},"sql":["CREATE TABLE IF NOT EXISTS 'dream' (id INTEGER PRIMARY KEY, title TEXT, summary TEXT, dreamDate TEXT, created_at INTEGER)","CREATE TABLE IF NOT EXISTS 'dream_search' (id INTEGER PRIMARY KEY, dream_id INTEGER, word TEXT, stem TEXT, weight INTEGER, created_at INTEGER)","CREATE TABLE IF NOT EXISTS 'dream_tag' (id INTEGER PRIMARY KEY, dream_id INTEGER, tag TEXT, normalized TEXT, created_at INTEGER)"]});
+Snake.init({"database":{"fileName":"dreamcatcher","name":"ext:dreamcatcher","version":"0.1","displayName":"Dreamcatcher Database","size":100000000},"schema":{"dream":{"jsName":"Dream","columns":{"title":{"type":"text"},"summary":{"type":"text"},"dream_date":{"type":"text"}}},"dream_search":{"jsName":"DreamSearch","columns":{"dream_id":{"type":"integer","foreign":"dream.id"},"word":{"type":"text"},"stem":{"type":"text"},"weight":{"type":"integer"}}},"dream_tag":{"jsName":"DreamTag","columns":{"dream_id":{"type":"integer","foreign":"dream.id"},"tag":{"type":"text"},"normalized":{"type":"text"}}}},"sql":["CREATE TABLE IF NOT EXISTS 'dream' (id INTEGER PRIMARY KEY, title TEXT, summary TEXT, dream_date TEXT, created_at INTEGERArray)","CREATE TABLE IF NOT EXISTS 'dream_search' (id INTEGER PRIMARY KEY, dream_id INTEGER, word TEXT, stem TEXT, weight INTEGER, created_at INTEGER, FOREIGN KEY (dream_id) REFERENCES dream(id))","CREATE TABLE IF NOT EXISTS 'dream_tag' (id INTEGER PRIMARY KEY, dream_id INTEGER, tag TEXT, normalized TEXT, created_at INTEGER, FOREIGN KEY (dream_id) REFERENCES dream(id))"]});
 
 var DreamPeer = new Snake.BasePeer({
   tableName: 'dream',
@@ -7,15 +7,15 @@ var DreamPeer = new Snake.BasePeer({
   CREATED_AT: 'dream.created_at',
   TITLE: 'dream.title',
   SUMMARY: 'dream.summary',
-  DREAMDATE: 'dream.dreamDate',
+  DREAM_DATE: 'dream.dream_date',
   
   fields: {
     id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' },
     title: { type: 'text' },
     summary: { type: 'text' },
-    dreamDate: { type: 'text' }
+    dream_date: { type: 'text' }
   },
-  columns: [ 'id', 'title', 'summary', 'dreamDate', 'created_at' ]
+  columns: [ 'id', 'title', 'summary', 'dream_date', 'created_at' ]
 });
 var Dream = Snake.Base.extend({
   init: function () {
@@ -25,7 +25,7 @@ var Dream = Snake.Base.extend({
   created_at: null,
   title: null,
   summary: null,
-  dreamDate: null
+  dream_date: null
 });
 
 var DreamSearchPeer = new Snake.BasePeer({
@@ -49,7 +49,7 @@ var DreamSearchPeer = new Snake.BasePeer({
 });
 var DreamSearch = Snake.Base.extend({
   init: function () {
-    this._super(DreamSearchPeer);
+    this._super(dPeer);
   },
   id: null,
   created_at: null,
@@ -57,32 +57,4 @@ var DreamSearch = Snake.Base.extend({
   word: null,
   stem: null,
   weight: null
-});
-
-var DreamTagPeer = new Snake.BasePeer({
-  tableName: 'dream_tag',
-  jsName: 'DreamTag',
-  ID: 'dream_tag.id',
-  CREATED_AT: 'dream_tag.created_at',
-  DREAM_ID: 'dream_tag.dream_id',
-  TAG: 'dream_tag.tag',
-  NORMALIZED: 'dream_tag.normalized',
-  
-  fields: {
-    id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' },
-    dream_id: { type: 'integer' },
-    tag: { type: 'text' },
-    normalized: { type: 'text' }
-  },
-  columns: [ 'id', 'dream_id', 'tag', 'normalized', 'created_at' ]
-});
-var DreamTag = Snake.Base.extend({
-  init: function () {
-    this._super(DreamTagPeer);
-  },
-  id: null,
-  created_at: null,
-  dream_id: null,
-  tag: null,
-  normalized: null
 });

@@ -1,7 +1,8 @@
 {
   "snake": {
     "database": {
-      "name": "dreamcatcher",
+      "fileName": "dreamcatcher",
+      "name": "ext:dreamcatcher",
       "version": "0.1",
       "displayName": "Dreamcatcher Database",
       "size": 100000000
@@ -12,7 +13,7 @@
         "columns": {
           "title": { "type": "text" },
           "summary": { "type": "text" },
-          "dreamDate": { "type": "text" }
+          "dream_date": { "type": "text" }
         }
       },
       "dream_search": {

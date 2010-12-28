@@ -6,12 +6,28 @@
 
   function insert () {
     var dream = new Dream();
-    dream.summary = "Hello World";
+    dream.summary = "Vivamus sed dapibus nibh. Integer sed arcu arcu, a sagittis nulla. Integer tortor eros, luctus vitae eleifend ultrices, dignissim non est. Sed volutpat varius metus nec tempor. Mauris at dui sit amet massa blandit suscipit. Aenean tempus leo ut dui sollicitudin quis rhoncus diam tincidunt. In ac suscipit quam. Pellentesque ut ornare nulla. Morbi accumsan hendrerit lectus ac ullamcorper.";
     dream.save();
   }
 
-  function select () {
+  function selectAll () {
     DreamPeer.doSelect(new Snake.Criteria(), function (dreams) {
+      console.log(dreams);
+    });
+  }
+
+  function selectWhere () {
+    var c = new Snake.Criteria();
+    c.add(DreamPeer.ID, 1);
+    DreamPeer.doSelect(c, function (dream) {
+      console.log(dream);
+    });
+  }
+
+  function selectJoin () {
+    var c = new Snake.Criteria();
+    c.addJoin(DreamPeer.ID, DreamSearchPeer.DREAM_ID);
+    DreamPeer.doSelect(c, function (dreams) {
       console.log(dreams);
     });
   }
@@ -25,5 +41,6 @@
   }
 
   Snake.ready(function () {
+    selectJoin();
   });
 </script>

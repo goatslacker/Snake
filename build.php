@@ -15,7 +15,7 @@
 
   $o = $decoded['snake'];
   
-  $jsfile = $o['database']['name'] . ".js";
+  $jsfile = $o['database']['fileName'] . ".js";
   if (file_exists($jsfile)) {
     unlink($jsfile);
   }
@@ -37,6 +37,8 @@
 
     $sqlColumns = array();
 
+    $foreign = array();
+
     $fields[] = "id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' }"; // TODO field types
 
     foreach ($table['columns'] as $columnName => $column) {
@@ -46,6 +48,14 @@
       $columnTypes[$columnName] = array();
     
       $sqlColumns[] = "$columnName " . strtoupper($column['type']);
+
+      if (array_key_exists('foreign', $column)) {
+        list($table, $reference) = explode(".", $column['foreign']);
+
+        $foreign[] = "FOREIGN KEY ({$columnName}) REFERENCES {$table}({$reference})";
+        // TODO add foreign objects...
+        // figure out that whole dPeer thing...
+      }
 
       $innerCode[] = "{$columnName}: null";
       $innerCodePeer[] = strtoupper($columnName) . ": '{$tableName}.{$columnName}'";
@@ -69,7 +79,10 @@ $innerCodePeer[] = "
     $innerCodePeer[] = "columns: [ 'id', " . implode(", ", $columns) . ", 'created_at' ]";
 
     //$sql[] = "DROP TABLE '$tableName'"; // TODO add flag for drop existing
-    $sql[] = $_sql . "(id INTEGER PRIMARY KEY, " . implode(", ", $sqlColumns) . ", created_at INTEGER)";
+    if (count($foreign)) {
+      $foreign = ", " . implode(", ", $foreign);
+    }
+    $sql[] = $_sql . "(id INTEGER PRIMARY KEY, " . implode(", ", $sqlColumns) . ", created_at INTEGER{$foreign})";
 
 $code[] = "
 var {$table['jsName']}Peer = new Snake.BasePeer({
