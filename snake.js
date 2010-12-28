@@ -74,6 +74,7 @@ Array.prototype.in_array = function (val) {
 
 // base object
 var Snake = {
+  version: "0.0.9",
   _chain: [],
   db: false,
   config: {},
@@ -403,7 +404,7 @@ Snake.Criteria.prototype = {
 
     for (var i = 0; i < peer.columns.length; i = i + 1) {
       if (peer.columns[i] === 'created_at') {
-        var val = Date.now();
+        var val = Date.now(); // TODO check to see if there's a value being inserted
       } else {
         var val = model[peer.columns[i]] || false;
       }
