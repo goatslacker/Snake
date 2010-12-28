@@ -152,7 +152,7 @@ Snake.query = function (query, onSuccess, onFailure) {
       query = query + ";";
       console.log(query);
 
-      transaction.executeSql(query, [], onSuccess, onFailure);
+      //transaction.executeSql(query, [], onSuccess, onFailure);
     });
   }
 };
@@ -190,7 +190,7 @@ Snake.Base = Class.extend({
   },
 
   save: function () {
-    this.peer.doUpdate(this);
+    this.peer.doUpdate(this); // TODO return BOOLEAN
   },
 
   // delete
