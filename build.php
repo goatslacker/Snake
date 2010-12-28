@@ -39,7 +39,9 @@
 
     $foreign = array();
 
-    $fields[] = "id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' }"; // TODO field types
+    $foreignObj = array();
+
+    $fields[] = "id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' }"; 
 
     foreach ($table['columns'] as $columnName => $column) {
 
@@ -50,11 +52,10 @@
       $sqlColumns[] = "$columnName " . strtoupper($column['type']);
 
       if (array_key_exists('foreign', $column)) {
-        list($table, $reference) = explode(".", $column['foreign']);
+        list($foreign_table, $foreign_reference) = explode(".", $column['foreign']);
 
-        $foreign[] = "FOREIGN KEY ({$columnName}) REFERENCES {$table}({$reference})";
-        // TODO add foreign objects...
-        // figure out that whole dPeer thing...
+        $foreign[] = "FOREIGN KEY ({$columnName}) REFERENCES {$foreign_table}({$foreign_reference})";
+        $foreignObj[] = $foreign_table . ": {}";
       }
 
       $innerCode[] = "{$columnName}: null";
@@ -69,6 +70,7 @@ $model = "var {$table['jsName']} = Snake.Base.extend({
   id: null,
   created_at: null,
   " . implode(",\n  ", $innerCode) . "
+  " . implode(",\n ", $foreignObj) . "
 });";
 
 $innerCodePeer[] = "
@@ -106,77 +108,3 @@ $data = "Snake.init({$new_json});
 
   fwrite($handle, $data);
   fclose($handle);
-
-// TODO foreign stuff
-/*
-*/
-/*
-
-
- // init sql
-      var columns = [];
-      var foreign = {
-        key: [],
-        table: [],
-        reference: []
-      };
-
-          if (column.foreign) {
-            var foreignItem = column.foreign.split(".");
-            foreign.key.push(columnName);
-            foreign.table.push(foreignItem[0]);
-            foreign.reference.push(foreignItem[1]);
-          }
-
-        }
-      }
-
-      if (foreign.key.length > 0) { // TODO test
-        sql = sql + " FOREIGN KEY (#{key}) REFERENCES #{table}(#{reference})".interpolate({
-          key: foreign.key,
-          table: foreign.table,
-          reference: foreign.reference
-        });
-      }
-
-      // load into config
-      Snake.config.sql.push(sql);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          if (column.foreign) {
-            var foreignItem = column.foreign.split(".");
-            foreign.push({
-              key: columnName,
-              table: foreignItem[0],
-              reference: foreignItem[1]
-            });
-          }
-*/
-
-/*
-      if (foreign.length > 0) {
-        for (var i = 0; i < foreign.length; i = i + 1) {
-          peer['doSelectJoin' + foreign.table] = function (criteria, callback) {
-            criteria = criteria || new Snake.Criteria();
-
-            //criteria.addJoin();
-            criteria.executeSelect(this, callback);
-          }
-        }
-*/
-?>

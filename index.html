@@ -26,11 +26,14 @@
 
   function selectJoin () {
     var c = new Snake.Criteria();
-    c.addJoin(DreamPeer.ID, DreamSearchPeer.DREAM_ID);
+    c.addJoin(DreamPeer.ID, DreamSearchPeer.DREAM_ID); // TODO test INNER_JOIN and RIGHT_JOIN
     DreamPeer.doSelect(c, function (dreams) {
       console.log(dreams);
     });
   }
+
+  // TODO test selecting from a table with a foreign reference...
+  // test loading a foreign object into object
 
   function update () {
     DreamPeer.doSelect(new Snake.Criteria(), function (dreams) {

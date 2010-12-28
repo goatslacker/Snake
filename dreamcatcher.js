@@ -26,6 +26,7 @@ var Dream = Snake.Base.extend({
   title: null,
   summary: null,
   dream_date: null
+  
 });
 
 var DreamSearchPeer = new Snake.BasePeer({
@@ -49,7 +50,7 @@ var DreamSearchPeer = new Snake.BasePeer({
 });
 var DreamSearch = Snake.Base.extend({
   init: function () {
-    this._super(dPeer);
+    this._super(DreamSearchPeer);
   },
   id: null,
   created_at: null,
@@ -57,4 +58,34 @@ var DreamSearch = Snake.Base.extend({
   word: null,
   stem: null,
   weight: null
+  dream: {}
+});
+
+var DreamTagPeer = new Snake.BasePeer({
+  tableName: 'dream_tag',
+  jsName: 'DreamTag',
+  ID: 'dream_tag.id',
+  CREATED_AT: 'dream_tag.created_at',
+  DREAM_ID: 'dream_tag.dream_id',
+  TAG: 'dream_tag.tag',
+  NORMALIZED: 'dream_tag.normalized',
+  
+  fields: {
+    id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' },
+    dream_id: { type: 'integer' },
+    tag: { type: 'text' },
+    normalized: { type: 'text' }
+  },
+  columns: [ 'id', 'dream_id', 'tag', 'normalized', 'created_at' ]
+});
+var DreamTag = Snake.Base.extend({
+  init: function () {
+    this._super(DreamTagPeer);
+  },
+  id: null,
+  created_at: null,
+  dream_id: null,
+  tag: null,
+  normalized: null
+  dream: {}
 });
