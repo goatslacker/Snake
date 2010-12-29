@@ -131,8 +131,10 @@ Snake.connect = function (onSuccess, onFailure) {
 };
 
 // query the database
-Snake.query = function (query, onSuccess, onFailure) {
+Snake.query = function (query, params, onSuccess, onFailure) {
   var self = Snake;
+
+  params = params || null;
 
   onSuccess = onSuccess || function (transaction, results) {
     console.log(transaction);
@@ -152,7 +154,11 @@ Snake.query = function (query, onSuccess, onFailure) {
       query = query + ";";
       console.log(query);
 
-      //transaction.executeSql(query, [], onSuccess, onFailure);
+      if (params) {
+        console.log(params);
+      }
+
+      transaction.executeSql(query, params, onSuccess, onFailure);
     });
   }
 };
@@ -189,8 +195,8 @@ Snake.Base = Class.extend({
     this.peer = peer;
   },
 
-  save: function () {
-    this.peer.doUpdate(this); // TODO return BOOLEAN
+  save: function (onSuccess, onFailure) {
+    this.peer.doUpdate(this, onSuccess, onFailure); // TODO return BOOLEAN
   },
 
   // delete
@@ -225,10 +231,10 @@ Snake.BasePeer.prototype = {
     criteria.executeDelete(this);
   },
 
-  doUpdate: function (model) {
+  doUpdate: function (model, onSuccess, onFailure) {
     var criteria = new Snake.Criteria();
     if (model.id === null) {
-      criteria.executeInsert(model, this);
+      criteria.executeInsert(model, this, onSuccess, onFailure);
     } else {
       criteria.executeUpdate(model, this);
     }
@@ -399,27 +405,35 @@ Snake.Criteria.prototype = {
     });
   },
 
-  executeInsert: function (model, peer) {
-    var values = [];
+  executeInsert: function (model, peer, onSuccess, onFailure) {
+    var values = [], q = [];
 
     for (var i = 0; i < peer.columns.length; i = i + 1) {
-      if (peer.columns[i] === 'created_at') {
-        var val = Date.now(); // TODO check to see if there's a value being inserted
-      } else {
-        var val = model[peer.columns[i]] || false;
+      var val = model[peer.columns[i]] || null;
+
+      if (peer.columns[i] === 'created_at' && val === null) {
+        val = Date.now();
       }
 
-      val = val ? "'" + val + "'" : "NULL"; // TODO no quotes if integer...
       values.push(val);
+      q.push("?");
     }
 
-    var sql = "INSERT INTO #{table} (#{columns}) VALUES (#{values})".interpolate({
+    var sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpolate({
       table: peer.tableName,
       columns: peer.columns,
-      values: values
+      q: q
     });
 
-    Snake.query(sql);
+    Snake.query(sql, values, function (transaction, results) {
+      model.id = results.insertId;
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    }, onFailure);
+    // TODO use insertId in result set and set it to model.id
+    // return true if everything was successful, false onFailure ?? wait we don't do that shit we do callbacks
   },
 
   executeUpdate: function (model, peer) {
@@ -434,6 +448,7 @@ Snake.Criteria.prototype = {
       }
     }
 
+    // FIXME : fix update like insert
     var sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpolate({
       table: peer.tableName,
       conditions: conditions,
