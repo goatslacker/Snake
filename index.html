@@ -1,8 +1,98 @@
 <script type="text/javascript" src="prototype.js"></script>
 <script type="text/javascript" src="snake.js"></script>
+<script type="text/javascript" src="stemmer.js"></script>
 <script type="text/javascript" src="dreamcatcher.js"></script>
 
 <script type="text/javascript">
+
+  function updateSearchIndex (dream) {
+    dream = dream || new Dream();
+
+    dream.title = dream.title || "";
+    dream.summary = dream.summary || "";
+
+    // get keywords and push them into an array repeated by weight...
+    var summary = dream.summary.split(" ")
+      , title = dream.title.split(" ")
+      , keywords = title.concat(title, title, summary)
+      , stop = [
+        'i', 'im', 'ive', 'me', 'my', 'myself', 'we', 'weve', 'our', 'ours', 'ourselves', 'you', 'your', 
+        'youre', 'youve', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 
+        'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves',
+        'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are',
+        'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does',
+        'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until',
+        'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into',
+        'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down',
+        'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here',
+        'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more',
+        'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so',
+        'than', 'too', 'very', 'put', 'also', 'other', 'gave', 'well', 'know', 'make', 'seen',
+        'let', ''
+      ]                                                             // TODO add more stop words
+      , splice = false
+      , keys = []
+      , index = {}
+      , i = 0
+      , j = 0
+      , c = null;
+
+    // delete existing keywords
+    c = new Snake.Criteria();
+    c.add(DreamSearchPeer.DREAM_ID, dream.id);
+    DreamSearchPeer.doDelete(c);
+
+    // remove stop words
+
+    // then remove all the stop words
+    // and remove all sepcial chars, stem the words
+
+    for (i = 0; i < keywords.length; i = i + 1) {
+      for (j = 0; j < stop.length; j = j + 1) {
+        if (stop[j] === keywords[i].toLowerCase()) {
+          splice = true;
+        }
+      }
+
+      // remove special chars, stem and push into keys
+      if (!splice) {
+        var no_special_chars = keywords[i].replace(/[^a-zA-Z 0-9]+/g,'')
+          , stemmed = stemmer(no_special_chars);
+
+        index[no_special_chars] = stemmed;
+        keys.push(stemmed);
+      }
+
+      splice = false;
+    }
+
+    keys.sort();
+
+    keywords = {};
+
+    // add up the weights
+
+    for (i = 0; i < keys.length; i = i + 1) {
+      if (i > 0 && keys[i] === keys[i - 1]) {
+        keywords[keys[i]]++;
+      } else {
+        keywords[keys[i]] = 1;
+      }
+    }
+
+    // add to database!
+    for (i in keywords) {
+      if (keywords.hasOwnProperty(i)) {
+        var ds = new DreamSearch();
+        ds.dream_id = dream.id;
+        ds.word = index[i]; // FIXME figure out why some words are null .. :(
+        ds.stem = i;
+        ds.weight = keywords[i];
+        ds.save();
+      }
+    }
+  }
+
 
   function loadViaLoop () {
     var dreams = [
@@ -25,11 +115,12 @@
         dream: "Ten years ago a crack commando unit was sent to prison by a military court for a crime they didn't commit. These men promptly escaped from a maximum security stockade to the Los Angeles underground. Today, still wanted by the government, they survive as soldiers of fortune. If you have a problem and no one else can help, and if you can find them, maybe you can hire the A-team.",
         date_format: "10-10-10",
         timestamp: null,
-        tags: ['crack,', 'commando,', 'unit,', 'prison,', 'escaped']
+        tags: ['crack,', 'commando,', 'unit,', 'prison,', 'escaped', 'two words']
       },
     ];
 
     var dream = null;
+
     for (var i = 0; i < dreams.length; i = i + 1) {
       dream = new Dream();
       dream.title = dreams[i].title;
@@ -37,21 +128,22 @@
       dream.dream_date = dreams[i].date_format;
       dream.created_at = dreams[i].timestamp;
 
-      dream.save(); // TODO should apply a dream.id!
+      dream.save((function (i, model) {
+        if (dreams[i].tags.length > 0) {
+          for (var j = 0; j < dreams[i].tags.length; j = j + 1) {
+            var tag = new DreamTag();
+            tag.dream_id = model.id;
+            tag.tag = dreams[i].tags[j].replace(/[^a-zA-Z 0-9]+/g,'');
+            tag.normalized = tag.tag.toLowerCase().split(" ").join("-");
 
-      if (dreams[i].tags.length > 0) {
-        for (var j = 0; j < dreams[i].tags.length; j = j + 1) {
-          var tag = new DreamTag();
-          tag.dream_id = dream.id;
-          tag.tag = dreams[i].tags[j]; // TODO - cleanse the data
-          tag.normalized = ""; // TODO extend function tag to always normalize
-          tag.save();
+            tag.save();
+          }
         }
-      }
 
+        updateSearchIndex(model); // TODO test
+      }).bind(this, i));
     }
 
-    // test
   }
 
   function insert () {
@@ -94,8 +186,8 @@
   }
 
   Snake.ready(function () {
-    insert();
+    //insert();
     //selectJoin();
-    //loadViaLoop();
+    loadViaLoop();
   });
 </script>

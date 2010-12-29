@@ -196,7 +196,7 @@ Snake.Base = Class.extend({
   },
 
   save: function (onSuccess, onFailure) {
-    this.peer.doUpdate(this, onSuccess, onFailure); // TODO return BOOLEAN
+    this.peer.doUpdate(this, onSuccess, onFailure);
   },
 
   // delete
@@ -426,14 +426,13 @@ Snake.Criteria.prototype = {
     });
 
     Snake.query(sql, values, function (transaction, results) {
+      // set an ID
       model.id = results.insertId;
 
       if (onSuccess) {
-        onSuccess();
+        onSuccess(model);
       }
     }, onFailure);
-    // TODO use insertId in result set and set it to model.id
-    // return true if everything was successful, false onFailure ?? wait we don't do that shit we do callbacks
   },
 
   executeUpdate: function (model, peer) {
