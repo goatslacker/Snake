@@ -14,7 +14,8 @@
     // get keywords and push them into an array repeated by weight...
     var summary = dream.summary.split(" ")
       , title = dream.title.split(" ")
-      , keywords = title.concat(title, title, summary)
+      , tags = dream.tags
+      , keywords = title.concat(title, title, summary, tags)
       , stop = [
         'i', 'im', 'ive', 'me', 'my', 'myself', 'we', 'weve', 'our', 'ours', 'ourselves', 'you', 'your', 
         'youre', 'youve', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 
@@ -130,6 +131,9 @@
 
       dream.save((function (i, model) {
         if (dreams[i].tags.length > 0) {
+
+          var tags = [];
+
           for (var j = 0; j < dreams[i].tags.length; j = j + 1) {
             var tag = new DreamTag();
             tag.dream_id = model.id;
@@ -137,7 +141,10 @@
             tag.normalized = tag.tag.toLowerCase().split(" ").join("-");
 
             tag.save();
+            tags.push(tag.tag);
           }
+
+          model.tags = tags;
         }
 
         updateSearchIndex(model); 
