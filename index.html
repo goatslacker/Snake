@@ -59,7 +59,7 @@
         var no_special_chars = keywords[i].replace(/[^a-zA-Z 0-9]+/g,'')
           , stemmed = stemmer(no_special_chars);
 
-        index[no_special_chars] = stemmed;
+        index[stemmed] = no_special_chars;
         keys.push(stemmed);
       }
 
@@ -85,7 +85,7 @@
       if (keywords.hasOwnProperty(i)) {
         var ds = new DreamSearch();
         ds.dream_id = dream.id;
-        ds.word = index[i]; // FIXME figure out why some words are null .. :(
+        ds.word = index[i]; 
         ds.stem = i;
         ds.weight = keywords[i];
         ds.save();
@@ -111,7 +111,7 @@
         tags: ['boss,guy,gorgeous,lady,max']
       },
       {
-        title: "The Unit",
+        title: "The Who", // TODO make sure the title doesn't get filtered by stop words
         dream: "Ten years ago a crack commando unit was sent to prison by a military court for a crime they didn't commit. These men promptly escaped from a maximum security stockade to the Los Angeles underground. Today, still wanted by the government, they survive as soldiers of fortune. If you have a problem and no one else can help, and if you can find them, maybe you can hire the A-team.",
         date_format: "10-10-10",
         timestamp: null,
@@ -140,7 +140,7 @@
           }
         }
 
-        updateSearchIndex(model); // TODO test
+        updateSearchIndex(model); 
       }).bind(this, i));
     }
 
