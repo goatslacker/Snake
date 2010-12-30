@@ -239,6 +239,16 @@ Snake.BasePeer.prototype = {
     criteria.executeSelect(this, callback);
   },
 
+  doSelectOne: function (criteria, callback) {
+    criteria = criteria || new Snake.Criteria();
+    criteria.setLimit(1);
+    criteria.executeSelect(this, function (result) {
+      if (callback && result.length >= 0) {
+        callback(result[0]);
+      }
+    });
+  },
+
   // TODO test!
   doDeleteRecord: function (model) {
     var criteria = new Snake.Criteria();
@@ -386,6 +396,7 @@ Snake.Criteria.prototype = {
     }
 
     // where
+    // TODO add prepare statement '????'
     if (this.where.length > 0) {
       sql = sql + " WHERE #{where}".interpolate({ where: this.where });
     }
@@ -457,27 +468,25 @@ Snake.Criteria.prototype = {
   },
 
   executeUpdate: function (model, peer) {
-/*
-    var conditions = [];
+    var conditions = []
+      , values = [];
 
     for (var i = 0; i < peer.columns.length; i = i + 1) {
-      var val = model[peer.columns[i]] || false;
-      val = val ? "'" + val + "'" : "NULL";
-
       if (model[peer.columns[i]] !== model['_' + peer.columns[i]]) {
-        conditions.push(peer.columns[i] + " = " + val);
+        var val = model[peer.columns[i]] || null;
+        values.push(val);
+
+        conditions.push(peer.columns[i] + " = ?");
       }
     }
 
-    // FIXME : fix update like insert
     var sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpolate({
       table: peer.tableName,
       conditions: conditions,
       id: model.id
     });
 
-    Snake.query(sql);
-*/
+    Snake.query(sql, values);
   },
 
   executeDelete: function (peer) {
