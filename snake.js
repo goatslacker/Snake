@@ -284,6 +284,7 @@ Snake.Criteria = function () {
   this.from = [];
   this.join = [];
   this.where = [];
+  this.whereQ = [];
   this.order = [];
   this.limit = false;
   this.group = [];
@@ -303,6 +304,17 @@ Snake.Criteria.prototype = {
   add: function (field, value, selector) {
     selector = this[selector] || this["EQUAL"];
 
+    var where = "#{field} #{selector} ?".interpolate({
+      field: field,
+      selector: selector
+    });
+
+    // where
+    this.where.push(where);
+    this.whereQ.push(value);
+
+    // TODO addOr
+/*
     var where = "#{field} #{selector} '#{value}'".interpolate({
       field: field,
       selector: selector,
@@ -311,6 +323,7 @@ Snake.Criteria.prototype = {
 
     // where
     this.where.push(where);
+*/
   },
 
   addJoin: function (join1, join2, join_method) {
@@ -396,9 +409,9 @@ Snake.Criteria.prototype = {
     }
 
     // where
-    // TODO add prepare statement '????'
     if (this.where.length > 0) {
-      sql = sql + " WHERE #{where}".interpolate({ where: this.where });
+      var where = this.where.join(" AND ");
+      sql = sql + " WHERE " + where;
     }
 
     // order by
@@ -411,11 +424,14 @@ Snake.Criteria.prototype = {
     }
 
     // reset results ??
+/*
     this.select = [];
     this.from = [];
     this.where = [];
+*/
+    var params = (this.whereQ.length > 0) ? this.whereQ : null;
 
-    Snake.query(sql, null, function (transaction, results) {
+    Snake.query(sql, params, function (transaction, results) {
       var arr = [];
 
       if (results.rows.length > 0) {

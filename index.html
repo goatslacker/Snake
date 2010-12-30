@@ -273,30 +273,53 @@
   }
 
   function selectWhere () {
+
+    // single column where
     var c = new Snake.Criteria();
     c.add(DreamPeer.ID, 1);
     DreamPeer.doSelect(c, function (dream) {
       console.log(dream);
     });
+
+    // multiple column where
+    var c = new Snake.Criteria();
+    c.add(DreamPeer.TITLE, "Hello World");
+    c.add(DreamPeer.ID, 20, "LESS_THAN");
+    DreamPeer.doSelect(c, function (dream) {
+      console.log(dream);
+    });
+
+    // BETWEEN
+    var c = new Snake.Criteria();
+    c.add(DreamPeer.CREATED_AT, 1293581218811, "GREATER_THAN");
+    c.add(DreamPeer.CREATED_AT, 1293730000000, "LESS_THAN");
+    c.addDescendingOrderByColumn(DreamPeer.TITLE);
+    DreamPeer.doSelect(c, function (dream) {
+      console.log(dream);
+    });
+
   }
 
   function selectJoin () {
+
+    // LEFT_JOIN
     var c = new Snake.Criteria();
-    c.addJoin(DreamPeer.ID, DreamSearchPeer.DREAM_ID); // TODO test INNER_JOIN and RIGHT_JOIN
-    DreamPeer.doSelect(c, function (dreams) {
+    c.add(DreamTagPeer.TAG, "school");
+    c.addJoin(DreamPeer.ID, DreamTagPeer.DREAM_ID);
+    DreamPeer.doSelect(c, function (dreams) { // TODO a doSelectJoinTags ?
       console.log(dreams);
     });
-  }
 
-  // TODO test selecting from a table with a foreign reference...
-  // test loading a foreign object into object
+    // RIGHT_JOIN
+    // TODO can HTML5 SQLite do RIGHT & INNER? What's the Syntax?
+  }
 
   Snake.ready(function () {
     //insert(); Ok
-    //selectJoin();
+    //selectJoin(); Ok for LEFT_JOIN
     //loadViaLoop(); Ok
     //performSearches(); Ok
     //update(); Ok
-    selectWhere();
+    //selectWhere(); Ok FIXME - needs addOr
   });
 </script>
