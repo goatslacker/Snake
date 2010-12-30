@@ -404,7 +404,7 @@ Snake.Criteria.prototype = {
     this.from = [];
     this.where = [];
 
-    Snake.query(sql, function (transaction, results) {
+    Snake.query(sql, null, function (transaction, results) {
       var arr = [];
 
       if (results.rows.length > 0) {
@@ -457,6 +457,7 @@ Snake.Criteria.prototype = {
   },
 
   executeUpdate: function (model, peer) {
+/*
     var conditions = [];
 
     for (var i = 0; i < peer.columns.length; i = i + 1) {
@@ -476,6 +477,7 @@ Snake.Criteria.prototype = {
     });
 
     Snake.query(sql);
+*/
   },
 
   executeDelete: function (peer) {

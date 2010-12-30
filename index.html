@@ -6,19 +6,15 @@
 <script type="text/javascript">
 
   function performSearches () {
-/*
-    doTestSearch("two words"); // Doesn't return proper results
-    doTestSearch("nonsense"); // ??
-    doTestSearch("hello world"); // ??
-    doTestSearch("abc"); // OK
-    doTestSearch("school"); // OK
-    doTestSearch("commando"); // OK
-    doTestSearch("Ratproof"); // OK
-*/
-
-    DreamSearchPeer.doSelect(new Snake.Criteria(), function (results) {
-      console.log(results);
-    });
+    doTestSearch("two words"); // Doesn't return proper results .
+    // we need to combine the words and single them out as well? combined words work in quotes?
+    // not a Snake error necessarily -
+    doTestSearch("nonsense"); // Ok
+    doTestSearch("hello world"); // Ok
+    doTestSearch("abc"); // Ok
+    doTestSearch("school"); // Ok
+    doTestSearch("commando"); // Ok
+    doTestSearch("Ratproof"); // Ok
   }
 
   function doTestSearch (str) {
@@ -29,12 +25,12 @@
       q = [];
     
     for (i = 0; i < words.length; i = i + 1) {
-      stemmed_words.push(stemmer(words[i]));
+      stemmed_words.push(stemmer(words[i].replace(/[^a-zA-Z 0-9]+/g,'')));
       q.push("?");
     }
 
     // custom query
-    query = "SELECT dream_id, COUNT(*) AS nb, SUM(weight) AS total_weight, dream.id, dream.title, dream.summary, dream.dream_date, dream.created_at FROM dream_search, dream WHERE dream_id = dream.id AND word IN (#{words}) GROUP BY dream_id ORDER BY nb DESC, total_weight DESC".interpolate({ words: q });
+    query = "SELECT dream_id, COUNT(*) AS nb, SUM(weight) AS total_weight, dream.id, dream.title, dream.summary, dream.dream_date, dream.created_at FROM dream_search, dream WHERE dream_id = dream.id AND stem IN (#{words}) GROUP BY dream_id ORDER BY nb DESC, total_weight DESC".interpolate({ words: q });
 
     // hydrates a record set
     Snake.query(query, stemmed_words, Snake.hydrateRS.bind(this, DreamPeer, function (dreams) {
