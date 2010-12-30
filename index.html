@@ -17,11 +17,14 @@
       q.push("?");
     }
 
+    // TODO select more of the dream's details so I can load it into a dream object and return that array
     query = "SELECT dream_id, COUNT(*) AS nb, SUM(weight) AS total_weight FROM dream_search, dream WHERE dream_id = dream.id AND word IN (#{words}) GROUP BY dream_id ORDER BY nb DESC, total_weight DESC".interpolate({ words: q });
 
     Snake.query(query, stemmed_words, (function (transaction, results) {
-      console.log(transaction);
-      console.log(results);
+      for (var i = 0; i < results.rows.length; i = i + 1) {
+        var obj = results.rows.item(i);
+        console.log(obj); 
+      }
     }).bind(this));
   }
 
@@ -227,6 +230,7 @@
     //insert();
     //selectJoin();
     //loadViaLoop();
-    doTestSearch("The Who");
+    //doTestSearch("two words"); // :(
+    doTestSearch("school"); // :(
   });
 </script>
