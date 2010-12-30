@@ -5,6 +5,22 @@
 
 <script type="text/javascript">
 
+  function performSearches () {
+/*
+    doTestSearch("two words"); // Doesn't return proper results
+    doTestSearch("nonsense"); // ??
+    doTestSearch("hello world"); // ??
+    doTestSearch("abc"); // OK
+    doTestSearch("school"); // OK
+    doTestSearch("commando"); // OK
+    doTestSearch("Ratproof"); // OK
+*/
+
+    DreamSearchPeer.doSelect(new Snake.Criteria(), function (results) {
+      console.log(results);
+    });
+  }
+
   function doTestSearch (str) {
     var words = str.split(" ")
       , stemmed_words = []
@@ -17,15 +33,15 @@
       q.push("?");
     }
 
-    // TODO select more of the dream's details so I can load it into a dream object and return that array
-    query = "SELECT dream_id, COUNT(*) AS nb, SUM(weight) AS total_weight FROM dream_search, dream WHERE dream_id = dream.id AND word IN (#{words}) GROUP BY dream_id ORDER BY nb DESC, total_weight DESC".interpolate({ words: q });
+    // custom query
+    query = "SELECT dream_id, COUNT(*) AS nb, SUM(weight) AS total_weight, dream.id, dream.title, dream.summary, dream.dream_date, dream.created_at FROM dream_search, dream WHERE dream_id = dream.id AND word IN (#{words}) GROUP BY dream_id ORDER BY nb DESC, total_weight DESC".interpolate({ words: q });
 
-    Snake.query(query, stemmed_words, (function (transaction, results) {
-      for (var i = 0; i < results.rows.length; i = i + 1) {
-        var obj = results.rows.item(i);
-        console.log(obj); 
-      }
-    }).bind(this));
+    // hydrates a record set
+    Snake.query(query, stemmed_words, Snake.hydrateRS.bind(this, DreamPeer, function (dreams) {
+      console.log(dreams);
+    }));
+
+    // FIXME we'll need getters and setters for tags for example...tags are in a different db and I won't always be joining!
   }
 
   function updateSearchIndex (dream) {
@@ -42,18 +58,18 @@
       , stop = [
         'i', 'im', 'ive', 'me', 'my', 'myself', 'we', 'weve', 'our', 'ours', 'ourselves', 'you', 'your', 
         'youre', 'youve', 'yours', 'yourself', 'yourselves', 'he', 'hes', 'hay', 'hey', 'him', 'his', 'himself', 'she', 
-        'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves',
-        'can', 'cent', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are',
+        'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'didnt',
+        'can', 'cent', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'los',
         'was', 'take', 'aint', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does',
-        'did', 'cause', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until',
-        'while', 'of', 'hi', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'makes',
-        'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'else',
-        'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'ago',
-        'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more',
-        'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so',
-        'than', 'too', 'very', 'put', 'also', 'other', 'gave', 'well', 'know', 'make', 'seen',
+        'did', 'cause', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'will',
+        'while', 'of', 'hi', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'makes', 'cannot',
+        'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'else', 'ever',
+        'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'ago', 'give',
+        'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'find', 'goes',
+        'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'must', 'wed',
+        'than', 'too', 'very', 'put', 'also', 'other', 'gave', 'well', 'know', 'make', 'seen', 'shes',
         'let', ''
-      ]                                                             // TODO add more stop words
+      ]
       , no_push = false
       , keys = []
       , keyword = null
@@ -92,13 +108,14 @@
     keywords = title.concat(title, title, n, tags, tags, tags)
 
     for (i = 0; i < keywords.length; i = i + 1) {
+      if (keywords[i] && keywords[i].length >= 3) {
+        // remove special chars, stem and push into keys
+        var no_special_chars = keywords[i].replace(/[^a-zA-Z 0-9]+/g,'')
+          , stemmed = stemmer(no_special_chars).toLowerCase();
 
-      // remove special chars, stem and push into keys
-      var no_special_chars = keywords[i].replace(/[^a-zA-Z 0-9]+/g,'')
-        , stemmed = stemmer(no_special_chars);
-
-      index[stemmed] = no_special_chars;
-      keys.push(stemmed);
+        index[stemmed] = no_special_chars;
+        keys.push(stemmed);
+      }
     }
 
     keys.sort();
@@ -132,23 +149,44 @@
   function loadViaLoop () {
     var dreams = [
       {
+        title: "Hello World",
+        dream: "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure? On the other hand, we denounce with righteous indignation and dislike men who are so beguiled and demoralized by the charms of pleasure of the moment, so blinded by desire, that they cannot foresee",
+        date_format: "12-19-2010",
+        timestamp: null,
+        tags: []
+      },
+      {
+        title: "List of funky characters",
+        dream: "abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ ! \"§ $%& /() =? * '<> |; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ ! \"§ $%& /() =? * '<> |; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ ! \"§ $%& /() =? * '<> |; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ ! \"§ $%& /() =? * '<> |; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ ! \"§ $%& /() =? * '<> |; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ ! \"§ $%& /() =? * '<> |; ²³~ @`´ ©«» ¤¼× {} abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI JKL MNO PQRS TUV WXYZ ! \"§ $%& /() =? * '<> |; ²³~ @`´ ©«» ¤¼× {}abc def ghi jkl mno pqrs tuv wxyz ABC DEF GHI",
+        date_format: "12-30-2010",
+        timestamp: null,
+        tags: ["abc"]
+      },
+      {
+        title: "Nonsense",
+        dream: "Bridger ramed replace, lace bredi keerie gab ophiomorph. On, a seep, mops, bebrine, musettes us dad, loups. Swallow ebb fir, if blob, fluvio, eats squalene a a radial, denned. Drib tiens till, jailers websterian dewier, kamiks fro refered a non suppressor, rimose, a vic, ell flintworker, fohat dew nonpurgative. Coelostat redischarge mealock disrates annas, underskin stockrooms oh ha, poll, ha, hat gem, choel, cilioretinal. Debugged, fuss fort, a found nondocumental, nabs gorgon gap releasor, is, in, iso. Leaf preaccommodated ow unshowable, toed, lei alumroots to bird maladaptive metanotum, viperous ant jest kagus, conceiver, be tv goloe, nonlibelous. Ammos furl, plumpened. If unearned, to kcal. Microlith anorectic, carib, perau, a bred microcranous jut. Nasat, fed off, whisks, acenaphthene, on, piasaba archons dangersome, jeans. Ratproof pomonic, undertie, an, uh. Francia desisted, ow sons joie brad, moll toil put doh, kit. It mandil, encarditis, misreport. Classicists creophagous, file, bub, evechurr, wilga multipass, craftless, cop. Disk bieberite memorial moil, impendence, a jail goes pupigerous, acorus a insultation a sled. Fig, son, sputa a frisk, subgum gin, wit, wed mesa. Letting, amuck reinventing, a orchidaceous. If sat, as testaceous, vat begirt, premeasured. Scrab, uh, is, rocker hirling, dike albacea, staff, us bale. Sampan, latter, palar, serrulateed, gimp windsorite, dorms, asp lour rimbase. Glassblowing frier ok, weld, a udometers, ass iso, unbare. Draw a unaffectation age prereckoning, nain, a den, cutup durns two bairns lonesome, pawkrie, sunlet, adversion phew in. Coble, leerfish phonesis, mace briar, micrometeorograph, unopressible a bum droghlin car, overlander. Duds runtish, cafe, died. Drawn, ren curemaster, governail be calci, meatworks, seen. Hairs gag rep, be vat on, semihardness khodja nave. Rowboats, a or misdrives coos, dings, upleg, of, flickering an, deathroot. Kith on, biological, egg. Uh, dildoe sertive muskies, lurers, donative uh, talite, orb reg. Uptowns hive, ribs, um lollapaloosa a asphalt, noduli.",
+        date_format: "11-15-2010",
+        timestamp: null,
+        tags: ["bridger", "flintworker", "undertie", "biological"]
+      },
+      {
         title: "Time in school",
         dream: "I never spend much time in school but I taught ladies plenty. It's true I hire my body out for pay, hey hey. I've gotten burned over Cheryl Tiegs, blown up for Raquel Welch. But when I end up in the hay it's only hay, hey hey. I might jump an open drawbridge, or Tarzan from a vine. 'Cause I'm the unknown stuntman that makes Eastwood look so fine.",
-        date_format: "09-09-09",
+        date_format: "09-09-2009",
         timestamp: 1293581218811,
         tags: ['school', 'vine', 'Eastwood', 'Tarzan', 'ladies']
       },
       {
         title: 'My "job"',
         dream: "This is my boss, Jonathan Hart, a self-made millionaire, he's quite a guy. This is Mrs H., she's gorgeous, she's one lady who knows how to take care of herself. By the way, my name is Max. I take care of both of them, which ain't easy, 'cause when they met it was MURDER!",
-        date_format: "07-07-07",
+        date_format: "07-07-2007",
         timestamp: null,
         tags: ['boss,guy,gorgeous,lady,max']
       },
       {
-        title: "The Who", // TODO make sure the title doesn't get filtered by stop words
+        title: "The Who",
         dream: "Ten years ago a crack commando unit was sent to prison by a military court for a crime they didn't commit. These men promptly escaped from a maximum security stockade to the Los Angeles underground. Today, still wanted by the government, they survive as soldiers of fortune. If you have a problem and no one else can help, and if you can find them, maybe you can hire the A-team.",
-        date_format: "10-10-10",
+        date_format: "10-10-2010",
         timestamp: null,
         tags: ['crack,', 'commando,', 'unit,', 'prison,', 'escaped', 'two words']
       },
@@ -230,7 +268,6 @@
     //insert();
     //selectJoin();
     //loadViaLoop();
-    //doTestSearch("two words"); // :(
-    doTestSearch("school"); // :(
+    performSearches();
   });
 </script>

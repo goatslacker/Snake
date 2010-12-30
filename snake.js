@@ -199,11 +199,31 @@ Snake.Base = Class.extend({
     this.peer.doUpdate(this, onSuccess, onFailure);
   },
 
+  hydrate: function (obj) {
+    for (var i in obj) {
+      this[i] = obj[i];
+    }
+  },
+
   // delete
   remove: function () {
     this.peer.doDeleteRecord(this);
   }
 });
+
+Snake.hydrateRS = function (peer, callback, transaction, results) {
+  var model = null
+    , i = 0
+    , model_rs = [];
+
+  for (i = 0; i < results.rows.length; i = i + 1) {
+    model = new window[peer.jsName];
+    model.hydrate(results.rows.item(i)); // YAY for hydrate
+    model_rs.push(model);
+  }
+
+  callback(model_rs);
+};
 
 Snake.BasePeer = function (obj) {
   for (var i in obj) {
@@ -244,7 +264,8 @@ Snake.BasePeer.prototype = {
     var c = new Snake.Criteria();
     c.add(this.ID, pk);
     this.doSelect(c, callback);
-  }
+  },
+
 };
 
 // Criteria class
