@@ -5,6 +5,26 @@
 
 <script type="text/javascript">
 
+  function doTestSearch (str) {
+    var words = str.split(" ")
+      , stemmed_words = []
+      , i = 0
+      , query = "",
+      q = [];
+    
+    for (i = 0; i < words.length; i = i + 1) {
+      stemmed_words.push(stemmer(words[i]));
+      q.push("?");
+    }
+
+    query = "SELECT dream_id, COUNT(*) AS nb, SUM(weight) AS total_weight FROM dream_search, dream WHERE dream_id = dream.id AND word IN (#{words}) GROUP BY dream_id ORDER BY nb DESC, total_weight DESC".interpolate({ words: q });
+
+    Snake.query(query, stemmed_words, (function (transaction, results) {
+      console.log(transaction);
+      console.log(results);
+    }).bind(this));
+  }
+
   function updateSearchIndex (dream) {
     dream = dream || new Dream();
 
@@ -207,6 +227,6 @@
     //insert();
     //selectJoin();
     //loadViaLoop();
-    //doTestSearch();
+    doTestSearch("The Who");
   });
 </script>
