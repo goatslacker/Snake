@@ -23,7 +23,6 @@ String.prototype.interpose = function (foreign) {
 };
 
 // TODO
-// remove window, replace with global var
 // addOr
 // refactor code
 // jsLint
@@ -95,7 +94,7 @@ String.prototype.interpose = function (foreign) {
 
 // base object
 var Snake = {
-  version: "0.0.12",
+  version: "0.0.13",
   _chain: [],
   db: false,
   config: {},
@@ -198,7 +197,6 @@ Snake.insertSql = function (drop_existing) {
 
   // execute onloads...
   for (var i = 0; i < self._chain.length; i = i + 1) {
-    console.log('hi');
     console.log(self._chain[i]);
     self._chain[i]();
   }
@@ -268,10 +266,9 @@ Snake.BasePeer.prototype = {
     });
   },
 
-  // TODO test!
   doDeleteRecord: function (model) {
     var criteria = new Snake.Criteria();
-    criteria.add(model.ID, model.id);
+    criteria.add(this.ID, model.id);
     this.doDelete(criteria);
   },
 
@@ -441,12 +438,6 @@ Snake.Criteria.prototype = {
       sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
     }
 
-    // reset results ??
-/*
-    this.select = [];
-    this.from = [];
-    this.where = [];
-*/
     var params = (this.whereQ.length > 0) ? this.whereQ : null;
 
     Snake.query(sql, params, function (transaction, results) {
@@ -536,6 +527,6 @@ Snake.Criteria.prototype = {
       sql = sql + " WHERE #{where}".interpose({ where: this.where });
     }
 
-    Snake.query(sql, null);
+    Snake.query(sql, this.whereQ);
   }
 };

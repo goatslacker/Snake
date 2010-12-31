@@ -310,12 +310,19 @@
     });
   }
 
+  function deleteMe () {
+    DreamPeer.doSelectOne(new Snake.Criteria(), function (dream) {
+      dream.remove();
+    });
+  }
+
   Snake.ready(function () {
     //insert(); //Ok
     //selectJoin(); //Ok for LEFT_JOIN
     //loadViaLoop(); //Ok
     //performSearches(); //Ok
     //update(); //Ok
-    selectWhere(); //Ok FIXME - needs addOr
+    //selectWhere(); //Ok FIXME - needs addOr
+    deleteMe();
   });
 </script>

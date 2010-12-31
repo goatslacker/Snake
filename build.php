@@ -15,7 +15,7 @@
 
   $o = $decoded['snake'];
   
-  $jsfile = $o['database']['fileName'] . ".js";
+  $jsfile = $o['fileName'] . ".js";
   if (file_exists($jsfile)) {
     unlink($jsfile);
   }
