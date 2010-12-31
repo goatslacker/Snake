@@ -8,6 +8,14 @@ Array.prototype.in_array = function (val) {
   return false;
 };
 
+// TODO
+// framework independence
+// remove window, replace with global var
+// addOr
+// refactor code
+// jsLint
+// cleaner implementation of executeSelect and query building
+
 /* Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.
@@ -74,7 +82,7 @@ Array.prototype.in_array = function (val) {
 
 // base object
 var Snake = {
-  version: "0.0.9",
+  version: "0.0.11",
   _chain: [],
   db: false,
   config: {},
@@ -396,7 +404,6 @@ Snake.Criteria.prototype = {
       from: this.from
     });
 
-    // join FIXME
     if (this.join.length > 0) {
       for (var i = 0; i < this.join.length; i = i + 1) {
         sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpolate({
@@ -518,10 +525,6 @@ Snake.Criteria.prototype = {
       sql = sql + " WHERE #{where}".interpolate({ where: this.where });
     }
 
-    // reset results
-    this.from = [];
-    this.where = [];
-
-    console.log(sql);
+    Snake.query(sql, null);
   }
 };

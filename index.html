@@ -301,25 +301,21 @@
   }
 
   function selectJoin () {
-
     // LEFT_JOIN
     var c = new Snake.Criteria();
     c.add(DreamTagPeer.TAG, "school");
     c.addJoin(DreamPeer.ID, DreamTagPeer.DREAM_ID);
-    DreamPeer.doSelect(c, function (dreams) { // TODO a doSelectJoinTags ?
+    DreamPeer.doSelect(c, function (dreams) {
       console.log(dreams);
     });
-
-    // RIGHT_JOIN
-    // TODO can HTML5 SQLite do RIGHT & INNER? What's the Syntax?
   }
 
   Snake.ready(function () {
-    //insert(); Ok
-    //selectJoin(); Ok for LEFT_JOIN
-    //loadViaLoop(); Ok
-    //performSearches(); Ok
-    //update(); Ok
-    //selectWhere(); Ok FIXME - needs addOr
+    //insert(); //Ok
+    //selectJoin(); //Ok for LEFT_JOIN
+    //loadViaLoop(); //Ok
+    //performSearches(); //Ok
+    //update(); //Ok
+    selectWhere(); //Ok FIXME - needs addOr
   });
 </script>
