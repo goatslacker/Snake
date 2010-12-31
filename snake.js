@@ -8,8 +8,21 @@ Array.prototype.in_array = function (val) {
   return false;
 };
 
+String.prototype.interpose = function (foreign) {
+  var str = this.toString()
+    , regexpx = null
+    , value = null;
+  for (i in foreign) {
+    if (foreign.hasOwnProperty(i)) {
+      regexpx = eval("/#{" + i + "}/g");
+      value = (Object.prototype.toString.call(foreign[i]) === '[object Array]') ? foreign[i].join(", ") : foreign[i];
+      str = str.replace(regexpx, value)
+    }
+  }
+  return str;
+};
+
 // TODO
-// framework independence
 // remove window, replace with global var
 // addOr
 // refactor code
@@ -82,7 +95,7 @@ Array.prototype.in_array = function (val) {
 
 // base object
 var Snake = {
-  version: "0.0.11",
+  version: "0.0.12",
   _chain: [],
   db: false,
   config: {},
@@ -99,7 +112,6 @@ Snake.init = function (o) {
   }
 
   self.loadSchema(o);
-  //Snake.buildSql();
 
   self.connect(function () {
     self.insertSql();
@@ -120,7 +132,6 @@ Snake.ready = function (func) {
 // load all items into a config file
 Snake.loadSchema = function (o) {
   var self = Snake;
-  // TODO need to load defaults...
   self.config = o;
 };
 
@@ -312,7 +323,7 @@ Snake.Criteria.prototype = {
   add: function (field, value, selector) {
     selector = this[selector] || this["EQUAL"];
 
-    var where = "#{field} #{selector} ?".interpolate({
+    var where = "#{field} #{selector} ?".interpose({
       field: field,
       selector: selector
     });
@@ -323,7 +334,7 @@ Snake.Criteria.prototype = {
 
     // TODO addOr
 /*
-    var where = "#{field} #{selector} '#{value}'".interpolate({
+    var where = "#{field} #{selector} '#{value}'".interpose({
       field: field,
       selector: selector,
       value: value
@@ -399,14 +410,14 @@ Snake.Criteria.prototype = {
     // what happens if there are multiple froms???
 
     // build select
-    var sql = "SELECT #{select} FROM #{from}".interpolate({
+    var sql = "SELECT #{select} FROM #{from}".interpose({
       select: this.select,
       from: this.from
     });
 
     if (this.join.length > 0) {
       for (var i = 0; i < this.join.length; i = i + 1) {
-        sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpolate({
+        sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpose({
           method: this.join[i].method,
           reference: this.join[i].from.table + "." + this.join[i].from.field,
           table: this.join[i].to.table,
@@ -423,11 +434,11 @@ Snake.Criteria.prototype = {
 
     // order by
     if (this.order.length > 0) {
-      sql = sql + " ORDER BY #{order}".interpolate({ order: this.order });
+      sql = sql + " ORDER BY #{order}".interpose({ order: this.order });
     }
 
     if (this.limit) {
-      sql = sql + " LIMIT #{limit}".interpolate({ limit: this.limit });
+      sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
     }
 
     // reset results ??
@@ -474,7 +485,7 @@ Snake.Criteria.prototype = {
       q.push("?");
     }
 
-    var sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpolate({
+    var sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpose({
       table: peer.tableName,
       columns: peer.columns,
       q: q
@@ -503,7 +514,7 @@ Snake.Criteria.prototype = {
       }
     }
 
-    var sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpolate({
+    var sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpose({
       table: peer.tableName,
       conditions: conditions,
       id: model.id
@@ -516,13 +527,13 @@ Snake.Criteria.prototype = {
     this.from = peer.tableName;  
 
     // build select
-    var sql = "DELETE FROM #{from}".interpolate({
+    var sql = "DELETE FROM #{from}".interpose({
       from: this.from
     });
 
     // where
     if (this.where.length > 0) {
-      sql = sql + " WHERE #{where}".interpolate({ where: this.where });
+      sql = sql + " WHERE #{where}".interpose({ where: this.where });
     }
 
     Snake.query(sql, null);
