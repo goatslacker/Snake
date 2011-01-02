@@ -1,5 +1,15 @@
-/*global window openDatabase Class */
+/*global window openDatabase Snake.Class */
 /*jslint white: true, browser: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2 */
+
+// base object
+var Snake = {
+  version: "0.0.21",
+  $nk_chain: [],
+  db: false,
+  config: {},
+  debug: true,
+  has_loaded: false
+};
 
 // Prototype functions
 Array.prototype.in_array = function (val) {
@@ -43,11 +53,11 @@ String.prototype.interpose = function (foreign) {
 // Inspired by base2 and Prototype
 (function(){
   var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
-  // The base Class implementation (does nothing)
-  this.Class = function(){};
+  // The base Snake.Class implementation (does nothing)
+  Snake.Class = function(){};
   
-  // Create a new Class that inherits from this class
-  Class.extend = function(prop) {
+  // Create a new Snake.Class that inherits from this class
+  Snake.Class.extend = function(prop) {
     var _super = this.prototype;
     
     // Instantiate a base class (but only create the instance,
@@ -81,34 +91,24 @@ String.prototype.interpose = function (foreign) {
     }
     
     // The dummy class constructor
-    function Class() {
+    Snake.Class = function () {
       // All construction is actually done in the init method
       if ( !initializing && this.init )
         this.init.apply(this, arguments);
     }
     
     // Populate our constructed prototype object
-    Class.prototype = prototype;
+    Snake.Class.prototype = prototype;
     
     // Enforce the constructor to be what we expect
-    Class.constructor = Class;
+    Snake.Class.constructor = Snake.Class;
 
     // And make this class extendable
-    Class.extend = arguments.callee;
+    Snake.Class.extend = arguments.callee;
     
-    return Class;
+    return Snake.Class;
   };
 })();
-
-// base object
-var Snake = {
-  version: "0.0.20",
-  $nk_chain: [],
-  db: false,
-  config: {},
-  debug: true,
-  has_loaded: false
-};
 
 /*
   Initializes Snake with a schema, connects to the database and creates necessary tables.
@@ -260,7 +260,7 @@ Snake.insertSql = function () {
 /*
   Base Class for the ORM
 */
-Snake.Base = Class.extend({
+Snake.Base = Snake.Class.extend({
 
   // adds the peer to the model
   init: function (peer) {
@@ -529,9 +529,6 @@ Snake.Criteria.prototype = {
     // where
     if (this.where.hasWhere) {
       where = this.where.and.join(" AND ");
-      if (this.where.or.length > 0) {
-        where = where + this.where.or.join(" OR ");
-      }
       sql = sql + " WHERE " + where;
       params = this.where.params;
     }
