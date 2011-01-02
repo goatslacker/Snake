@@ -4,6 +4,38 @@ Snake is English for Orm in Swedish. Snake is inspired by Propel & Criteria.
 
 ## Examples ##
 
+The following examples derive from this example schema:
+
+    {
+      "snake": {
+        "fileName": "dreamcatcher",
+        "database": {
+          "name": "dreamcatcher",
+          "version": "0.1",
+          "displayName": "Dreamcatcher Database",
+          "size": 1000000
+        },
+        "schema": {
+          "dream": {
+            "jsName": "Dream",
+            "columns": {
+              "title": { "type": "text" },
+              "summary": { "type": "text" },
+              "dream_date": { "type": "text" }
+            }
+          },
+          "dream_tag": {
+            "jsName": "DreamTag",
+            "columns": {
+              "dream_id": { "type": "integer", "foreign": "dream.id" },
+              "tag": { "type": "text" },
+              "normalized": { "type": "text" }
+            }
+          }
+        }
+      }
+    }
+
 ### Selecting All Records ###
 
     DreamPeer.doSelect(new Snake.Criteria(), function (dreams) {
@@ -33,7 +65,7 @@ Snake is English for Orm in Swedish. Snake is inspired by Propel & Criteria.
     });
 
 
-### Creating queries ###
+### Select Queries ###
 
 Query will read: SELECT * FROM dream WHERE id = 1;
 
@@ -69,6 +101,13 @@ Query will read: SELECT * FROM dream WHERE created_at > 1293581218811 AND create
     c.addJoin(DreamPeer.ID, DreamTagPeer.DREAM_ID);
     DreamPeer.doSelect(c, function (dreams) {
       console.log(dreams);
+    });
+
+### Custom Queries ###
+
+    var query = "SELECT * FROM dream WHERE 1";
+    Snake.query(query, params, function (transaction, results) {
+      console.log(results);
     });
 
 ### Deleting Records ###
