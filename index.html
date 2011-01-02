@@ -274,6 +274,17 @@
 
   function selectWhere () {
 
+/*
+    // or
+    // TODO criterion
+    var c = new Snake.Criteria();
+    c.addOr(DreamPeer.ID, 44);
+    c.addOr(DreamPeer.ID, 47);
+    c.add(DreamPeer.CREATED_AT, 1293692146859);
+    DreamPeer.doSelect(c, function (dream) {
+      console.log(dream);
+    });
+*/
     // single column where
     var c = new Snake.Criteria();
     c.add(DreamPeer.ID, 1);
@@ -322,7 +333,7 @@
     //loadViaLoop(); //Ok
     //performSearches(); //Ok
     //update(); //Ok
-    //selectWhere(); //Ok FIXME - needs addOr
+    selectWhere(); //Ok FIXME - needs addOr
     //deleteMe();
   });
 </script>

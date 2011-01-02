@@ -34,9 +34,6 @@ String.prototype.interpose = function (foreign) {
 
 // TODO
 // document
-// addOr
-// refactor code
-// cleaner implementation of executeSelect and query building
 
 // jslint comply this?
 /* Simple JavaScript Inheritance
@@ -105,7 +102,7 @@ String.prototype.interpose = function (foreign) {
 
 // base object
 var Snake = {
-  version: "0.0.16",
+  version: "0.0.20",
   $nk_chain: [],
   db: false,
   config: {},
@@ -394,8 +391,11 @@ Snake.Criteria = function () {
   this.select = [];
   this.from = [];
   this.join = [];
-  this.where = [];
-  this.whereQ = [];
+  this.where = {
+    hasWhere: false,
+    and: [],
+    params: []
+  };
   this.order = [];
   this.limit = false;
   this.group = [];
@@ -420,23 +420,25 @@ Snake.Criteria.prototype = {
       selector: selector
     });
 
-    // where
-    this.where.push(where);
-    this.whereQ.push(value);
-
-    // TODO addOr
-/*
-    var where = "#{field} #{selector} '#{value}'".interpose({
-      field: field,
-      selector: selector,
-      value: value
-    });
-
-    // where
-    this.where.push(where);
-*/
+    this.where.hasWhere = true;
+    this.where.and.push(where);
+    this.where.params.push(value);
   },
 
+/*
+  addOr: function (field, value, selector) {
+    selector = this[selector] || this.EQUAL;
+
+    var where = "#{field} #{selector} ?".interpose({
+      field: field,
+      selector: selector
+    });
+
+    this.where.hasWhere = true;
+    this.where.or.push(where);
+    this.where.params.push(value);
+  },
+*/
   addJoin: function (join1, join2, join_method) {
     join_method = this[join_method] || this.LEFT_JOIN;
 
@@ -505,7 +507,7 @@ Snake.Criteria.prototype = {
         this.from.push(from[0]);
       }
     }
-    // what happens if there are multiple froms???
+    // what happens if there are multiple froms??? FIXME/test
 
     // build select
     sql = "SELECT #{select} FROM #{from}".interpose({
@@ -525,9 +527,13 @@ Snake.Criteria.prototype = {
     }
 
     // where
-    if (this.where.length > 0) {
-      where = this.where.join(" AND ");
+    if (this.where.hasWhere) {
+      where = this.where.and.join(" AND ");
+      if (this.where.or.length > 0) {
+        where = where + this.where.or.join(" OR ");
+      }
       sql = sql + " WHERE " + where;
+      params = this.where.params;
     }
 
     // order by
@@ -535,11 +541,10 @@ Snake.Criteria.prototype = {
       sql = sql + " ORDER BY #{order}".interpose({ order: this.order });
     }
 
+    // limiter
     if (this.limit) {
       sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
     }
-
-    params = (this.whereQ.length > 0) ? this.whereQ : null;
 
     Snake.query(sql, params, function (transaction, results) {
       var arr = []
@@ -629,18 +634,24 @@ Snake.Criteria.prototype = {
   },
 
   executeDelete: function (peer) {
+    var sql = ""
+      , where = ""
+      , params = null;
+
     this.from = peer.tableName;  
 
     // build select
-    var sql = "DELETE FROM #{from}".interpose({
+    sql = "DELETE FROM #{from}".interpose({
       from: this.from
     });
 
     // where
-    if (this.where.length > 0) {
-      sql = sql + " WHERE #{where}".interpose({ where: this.where });
+    if (this.where.hasWhere) {
+      where = this.where.and.join(" AND ");
+      sql = sql + " WHERE " + where;
+      params = this.where.params;
     }
 
-    Snake.query(sql, this.whereQ);
+    Snake.query(sql, params);
   }
 };
