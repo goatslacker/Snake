@@ -1,0 +1,13 @@
+{
+  "snake": {
+    "fileName": "",
+    "database": {
+      "name": "MyDB",
+      "version": "0.1",
+      "displayName": "My Database",
+      "size": 200000
+    },
+    "schema": {
+    }
+  }
+}

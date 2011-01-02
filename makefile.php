@@ -3,7 +3,7 @@
   // TODO - error handling
   // TODO - params
 
-  $filename = "test/schema.json";
+  $filename = "schema.json";
   $handle = fopen($filename, "r");
   $json = fread($handle, filesize($filename));
   fclose($handle);
