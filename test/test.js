@@ -1,17 +1,19 @@
 // execute setup
 // should build all classes and maps...
+
+// TODO create in Node.
+// TODO finish card examples
 var schema = {
   database: {
-    name: "MyDB",
+    name: "Cards",
     version: "0.1", // default this
-    displayName: "My Mojo-Driven database", // optional
+    displayName: "cards", // optional
     size: 200000 // default this
   },
   schema: {
     card: {
       jsName: "Card",
       columns: {
-        id: { type: "integer", primaryKey: true }, // TODO make it so you don't have to include this
         card: { type: "text" },
         type: { type: "text" }
       }
@@ -19,7 +21,6 @@ var schema = {
     card_in_stack: {
       jsName: "CardInStack",
       columns: {
-        id: { type: "integer", primaryKey: true },
         stack_id: { type: "integer", index: true, foreign: "stack.id" },
         card_id: { type: "integer", foreign: "card.id" }
       }
@@ -27,38 +28,17 @@ var schema = {
     stack: {
       jsName: "Stack",
       columns: {
-        id: { type: "integer", primaryKey: true },
         player_id: { type: "integer", foreign: "player.id" }
       }
     },
     player: {
       jsName: "Player",
       columns: {
-        id: { type: "integer", primaryKey: true },
-        name: { type: "text" },
-        created_at: { type: "integer" }
+        name: { type: "text" }
       }
     }
   }
 };
-
-// initialize the snake
-// loads the schema, builds the objects and builds the sql
-Snake.init(schema);
-
-/*
-// load schema into config
-Snake.loadSchema(schema);
-
-// build on the fly objects
-Snake.buildModel();
-
-//build sql
-Snake.buildSql();
-*/
-
-
-// TEST CASES
 
 // execute query ?
 function executeQuery () {

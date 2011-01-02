@@ -1,8 +1,9 @@
 <?php
 
   // TODO - error handling
+  // TODO - params
 
-  $filename = "schema.json";
+  $filename = "test/schema.json";
   $handle = fopen($filename, "r");
   $json = fread($handle, filesize($filename));
   fclose($handle);
@@ -15,7 +16,7 @@
 
   $o = $decoded['snake'];
   
-  $jsfile = $o['fileName'] . ".js";
+  $jsfile = "build/" . $o['fileName'] . ".js";
   if (file_exists($jsfile)) {
     unlink($jsfile);
   }
