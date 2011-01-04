@@ -3,7 +3,7 @@
 
 // base object
 var Snake = {
-  version: "0.0.21",
+  version: "0.0.22",
   $nk_chain: [],
   db: false,
   config: {},
@@ -370,7 +370,7 @@ Snake.BasePeer.prototype = {
     if (model.id === null) {
       criteria.executeInsert(model, this, onSuccess, onFailure);
     } else {
-      criteria.executeUpdate(model, this);
+      criteria.executeUpdate(model, this, onSuccess, onFailure);
     }
   },
 
@@ -605,7 +605,7 @@ Snake.Criteria.prototype = {
     }, onFailure);
   },
 
-  executeUpdate: function (model, peer) {
+  executeUpdate: function (model, peer, onSuccess, onFailure) {
     var conditions = []
       , values = []
       , val = null
@@ -627,7 +627,7 @@ Snake.Criteria.prototype = {
       id: model.id
     });
 
-    Snake.query(sql, values);
+    Snake.query(sql, values, onSuccess, onFailure);
   },
 
   executeDelete: function (peer) {
