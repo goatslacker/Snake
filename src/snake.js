@@ -3,7 +3,7 @@
 
 // base object
 var Snake = {
-  version: "0.0.22",
+  version: "0.0.23",
   $nk_chain: [],
   db: false,
   config: {},
@@ -285,8 +285,8 @@ Snake.Base = Snake.Class.extend({
   },
 
   // deletes a record from the database
-  remove: function () {
-    this.peer.doDeleteRecord(this);
+  remove: function (onSuccess, onFailure) {
+    this.peer.doDeleteRecord(this, onSuccess, onFailure);
   }
 });
 
@@ -352,16 +352,16 @@ Snake.BasePeer.prototype = {
   },
 
   // deletes 1 record
-  doDeleteRecord: function (model) {
+  doDeleteRecord: function (model, onSuccess, onFailure) {
     var criteria = new Snake.Criteria();
     criteria.add(this.ID, model.id);
-    this.doDelete(criteria);
+    this.doDelete(criteria, onSuccess, onFailure);
   },
 
   // deletes multiple records
-  doDelete: function (criteria) {
+  doDelete: function (criteria, onSuccess, onFailure) {
     criteria = criteria || new Snake.Criteria();
-    criteria.executeDelete(this);
+    criteria.executeDelete(this, onSuccess, onFailure);
   },
 
   // executes an INSERT || UPDATE depending on the model
@@ -630,7 +630,7 @@ Snake.Criteria.prototype = {
     Snake.query(sql, values, onSuccess, onFailure);
   },
 
-  executeDelete: function (peer) {
+  executeDelete: function (peer, onSuccess, onFailure) {
     var sql = ""
       , where = ""
       , params = null;
@@ -649,6 +649,6 @@ Snake.Criteria.prototype = {
       params = this.where.params;
     }
 
-    Snake.query(sql, params);
+    Snake.query(sql, params, onSuccess, onFailure);
   }
 };
