@@ -3,7 +3,7 @@
 
 // base object
 var Snake = {
-  version: "0.0.23",
+  version: "0.0.24",
   $nk_chain: [],
   db: false,
   config: {},
@@ -627,7 +627,11 @@ Snake.Criteria.prototype = {
       id: model.id
     });
 
-    Snake.query(sql, values, onSuccess, onFailure);
+    Snake.query(sql, values, function (transaction, results) {
+      if (onSuccess) {
+        onSuccess(model);
+      }
+    }, onFailure);
   },
 
   executeDelete: function (peer, onSuccess, onFailure) {
