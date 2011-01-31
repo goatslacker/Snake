@@ -3,7 +3,7 @@
 
 // base object
 var Snake = {
-  version: "0.0.24",
+  version: "0.0.25",
   $nk_chain: [],
   db: false,
   config: {},
@@ -43,7 +43,7 @@ String.prototype.interpose = function (foreign) {
 };
 
 // TODO
-// document
+// jsDoc
 
 // jslint comply this?
 /* Simple JavaScript Inheritance
@@ -320,7 +320,6 @@ Snake.hydrateRS = function (peer, callback, transaction, results) {
 /*
   The peer class of an object. Handles multiple records of items.
   @param obj Object
-  TODO doCount
 */
 Snake.BasePeer = function (obj) {
   for (var i in obj) {
@@ -333,6 +332,11 @@ Snake.BasePeer = function (obj) {
 };
 
 Snake.BasePeer.prototype = {
+
+  doCount: function (criteria, callback) {
+    criteria = criteria || new Snake.Criteria();
+    criteria.executeCount(this, callback);
+  },
 
   // executes a SELECT query
   doSelect: function (criteria, callback) {
@@ -480,6 +484,65 @@ Snake.Criteria.prototype = {
     if (limit) {
       this.limit = limit;
     }
+  },
+
+  executeCount: function (peer, callback) {
+    var i = 0
+      , sql = ""
+      , field = null
+      , from = null
+      , where = null
+      , params = null;
+
+    if (this.select.length === 0) {
+      this.select.push(peer.tableName + "." + peer.columns[0]);
+    }
+
+    // add the from
+    for (i = 0; i < this.select.length; i = i + 1) {
+      field = this.select[i];
+
+      from = field.split(".");
+      // tables to select from
+      if (!this.from.in_array(from[0])) {
+        this.from.push(from[0]);
+      }
+    }
+
+    // build select
+    sql = "SELECT COUNT(*) AS count FROM #{from}".interpose({
+      from: this.from
+    });
+
+    if (this.join.length > 0) {
+      for (i = 0; i < this.join.length; i = i + 1) {
+        sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpose({
+          method: this.join[i].method,
+          reference: this.join[i].from.table + "." + this.join[i].from.field,
+          table: this.join[i].to.table,
+          key: this.join[i].to.field
+        });
+      }
+    }
+
+    // where
+    if (this.where.hasWhere) {
+      where = this.where.and.join(" AND ");
+      sql = sql + " WHERE " + where;
+      params = this.where.params;
+    }
+
+    // order by
+    if (this.order.length > 0) {
+      sql = sql + " ORDER BY #{order}".interpose({ order: this.order });
+    }
+
+    Snake.query(sql, params, function (transaction, results) {
+      if (callback) {
+        var obj = results.rows.item(0);
+        callback(obj.count);
+      }
+    });
   },
 
   executeSelect: function (peer, callback) {
