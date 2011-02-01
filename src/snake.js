@@ -1,8 +1,9 @@
-/* global window openDatabase Snake.Class */
+/* global openDatabase Snake.Class */
 /* jslint white: true, browser: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2 */
 
 // base object
 var Snake = {
+  global: this,
   version: "0.0.25",
   $nk_chain: [],
   db: false,
@@ -240,7 +241,7 @@ Snake.hydrateRS = function (peer, callback, transaction, results) {
   for (i = 0; i < results.rows.length; i = i + 1) {
 
     // creates a new model
-    model = new window[peer.jsName]();
+    model = new Snake.global[peer.jsName]();
 
     // hydrates the model
     model.hydrate(results.rows.item(i)); // YAY for hydrate
@@ -536,7 +537,7 @@ Snake.Criteria.prototype = {
         for (i = 0; i < results.rows.length; i = i + 1) {
 
           obj = results.rows.item(i);
-          tmp = new window[peer.jsName]();
+          tmp = new Snake.global[peer.jsName]();
 
           for (prop in obj) {
             if (obj.hasOwnProperty(prop)) {
