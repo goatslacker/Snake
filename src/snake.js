@@ -1,5 +1,5 @@
-/* global openDatabase Snake.Class */
-/* jslint white: true, browser: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2 */
+/* jslint white: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2, maxerr: 1 */
+/* global openDatabase */
 
 // base object
 var Snake = {
@@ -14,7 +14,8 @@ var Snake = {
 
 // Prototype functions
 Array.prototype.in_array = function (val) {
-  for (var i = 0; i < this.length; i = i + 1) {
+  var i = 0;
+  for (i = 0; i < this.length; i = i + 1) {
     if (this[i] === val) {
       return true;
     }
@@ -194,8 +195,9 @@ Snake.insertSql = function () {
   Base Class for the ORM
 */
 Snake.Base = function (peer, prop) {
+  var name = null
+    , Model = function () { };
 
-  var Model = function () { };
   Model.prototype = {
 
     peer: peer,
@@ -206,7 +208,8 @@ Snake.Base = function (peer, prop) {
     },
 
     hydrate: function (obj) {
-      for (var i in obj) {
+      var i = null;
+      for (i in obj) {
         if (obj.hasOwnProperty(i)) {
           this[i] = obj[i];
         }
@@ -220,8 +223,10 @@ Snake.Base = function (peer, prop) {
   };
 
   // Copy the properties over onto the new prototype
-  for (var name in prop) {
-    Model.prototype[name] = prop[name];
+  for (name in prop) {
+    if (prop.hasOwnProperty(name)) {
+      Model.prototype[name] = prop[name];
+    }
   }
    
   return Model;
@@ -259,8 +264,11 @@ Snake.hydrateRS = function (peer, callback, transaction, results) {
   @param obj Object
 */
 Snake.BasePeer = function (prop) {
-  for (var name in prop) {
-    this[name] = prop[name];
+  var name = null;
+  for (name in prop) {
+    if (prop.hasOwnProperty(name)) {
+      this[name] = prop[name];
+    }
   }
    
   return this;
@@ -639,3 +647,5 @@ Snake.Criteria.prototype = {
     Snake.query(sql, params, onSuccess, onFailure);
   }
 };
+
+"Criteria" in Snake.global || (Snake.global.Criteria = Snake.Criteria);
