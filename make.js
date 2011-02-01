@@ -5,6 +5,8 @@ var sys = require("sys")
 fs.readFile("schema.js", 'utf8', function (err, data) {
   var json = JSON.parse(data)
     , o = null
+    , Model = []
+    , Peer = []
     , jsFile = "build/#{fileName}.js"
     , sql = []
     , columns = []
@@ -85,142 +87,20 @@ fs.readFile("schema.js", 'utf8', function (err, data) {
       if (foreign.length > 0) {
         innerSql = innerSql + ", " + foreign.join(", ");
       }
-/*
-var {$table['jsName']}Peer = new Snake.BasePeer({
-  tableName: '$tableName',
-  jsName: '{$table['jsName']}',
-  ID: '$tableName.id',
-  CREATED_AT: '$tableName.created_at',
-  " . implode(",\n  ", $innerCodePeer) . "
-});
-{$model}
 
-var Dream = Snake.Base.extend({
-  init: function () {
-    this._super(DreamPeer);
-  },
-  id: null,
-  created_at: null,
-  title: null,
-  summary: null,
-  dream_date: null
-});
-*/
-
-//var test = objName + "Peer = new Snake.BasePeer({});";
-//TODO
-var Peer = "var " + objName + "Peer = new Snake.BasePeer({" + JSON.stringify(json.peer) + "})";
-var Model = "var " + objName + " = new Snake.Base.extend({ init: function () { this._super(" + objName + "Peer); }, " + JSON.stringify(json.model) + "})";
-console.log(Model);
+      Peer.push("var " + objName + "Peer = new Snake.BasePeer(" + JSON.stringify(json.peer) + ");");
+      Model.push("var " + objName + " = new Snake.Base(" + objName + "Peer," + JSON.stringify(json.model) + ");");
 
       // push into sql Array
       sql.push(_sql + "(" + innerSql + ")");
     }
   }
 
+  // Add the init sql queries to the object
+  o.sql = sql;
 
-  //console.log(sql);
+  // TODO create BaseOM classes and other model classes that can be user written.
+  console.log("Snake.init(" + JSON.stringify(o) + ");");
+  console.log(Peer.join("\n"));
+  console.log(Model.join("\n"));
 });
-
-
-/*
-  $jsfile = "build/" . $o['fileName'] . ".js";
-  if (file_exists($jsfile)) {
-    unlink($jsfile);
-  }
-  $handle = fopen($jsfile, 'w');
-
-  $code = array();
-  $sql = array();
-
-  foreach ($o['schema'] as $tableName => $table) {
-
-    $_sql = "CREATE TABLE IF NOT EXISTS '$tableName' ";
-
-    $innerCode = array();
-    $innerCodePeer = array();
-
-    $columns = array();
-    $columnTypes = array();
-    $fields = array();
-
-    $sqlColumns = array();
-
-    $foreign = array();
-
-    $foreignObj = array();
-
-
-
-    $fields[] = "id: { type: 'INTEGER' }, created_at: { TYPE: 'INTEGER' }"; 
-
-    foreach ($table['columns'] as $columnName => $column) {
-
-      $columns[] = "'" . $columnName . "'";
-
-      $columnTypes[$columnName] = array();
-    
-      $sqlColumns[] = "$columnName " . strtoupper($column['type']);
-
-      if (array_key_exists('foreign', $column)) {
-        list($foreign_table, $foreign_reference) = explode(".", $column['foreign']);
-
-        $foreign[] = "FOREIGN KEY ({$columnName}) REFERENCES {$foreign_table}({$foreign_reference})";
-        $foreignObj[] = $foreign_table . ": {}";
-      }
->>>>>>>>>>POINTER     >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-      $innerCode[] = "{$columnName}: null";
-      $innerCodePeer[] = strtoupper($columnName) . ": '{$tableName}.{$columnName}'";
-      $fields[] = "{$columnName}: { type: '{$column['type']}' }";
-    }
-
-$model = "var {$table['jsName']} = Snake.Base.extend({
-  init: function () {
-    this._super({$table['jsName']}Peer);
-  },
-  id: null,
-  created_at: null,
-  " . implode(",\n  ", $innerCode);
-  if (count($foreignObj) > 0) { $model .= ",
-  " . implode(",\n ", $foreignObj);
-  }
-$model .= "
-});";
-
-$innerCodePeer[] = "
-  fields: {
-    " . implode(",\n    ", $fields) . "
-  }";
-
-    $innerCodePeer[] = "columns: [ 'id', " . implode(", ", $columns) . ", 'created_at' ]";
-
-    //$sql[] = "DROP TABLE '$tableName'"; // TODO add flag for drop existing
-    if (count($foreign)) {
-      $foreign = ", " . implode(", ", $foreign);
-    }
-    $sql[] = $_sql . "(id INTEGER PRIMARY KEY, " . implode(", ", $sqlColumns) . ", created_at INTEGER{$foreign})";
-
-$code[] = "
-var {$table['jsName']}Peer = new Snake.BasePeer({
-  tableName: '$tableName',
-  jsName: '{$table['jsName']}',
-  ID: '$tableName.id',
-  CREATED_AT: '$tableName.created_at',
-  " . implode(",\n  ", $innerCodePeer) . "
-});
-{$model}
-";
-
-  }
-
-
-  $o['sql'] = $sql;
-  $new_json = json_encode($o);
-
-$data = "Snake.init({$new_json});
-" . implode("", $code);
-
-  fwrite($handle, $data);
-  fclose($handle);
-*/
