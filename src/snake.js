@@ -322,6 +322,7 @@ Snake.BasePeer.prototype = {
 /*
   Criteria Class
   Handles all the dirty SQL work
+  // TODO addOr: add should accept Array for addOr.
 */
 Snake.Criteria = function () {
   this.select = [];
@@ -361,20 +362,6 @@ Snake.Criteria.prototype = {
     this.where.params.push(value);
   },
 
-/*
-  addOr: function (field, value, selector) {
-    selector = this[selector] || this.EQUAL;
-
-    var where = "#{field} #{selector} ?".interpose({
-      field: field,
-      selector: selector
-    });
-
-    this.where.hasWhere = true;
-    this.where.or.push(where);
-    this.where.params.push(value);
-  },
-*/
   addJoin: function (join1, join2, join_method) {
     join_method = this[join_method] || this.LEFT_JOIN;
 
