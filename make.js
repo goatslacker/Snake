@@ -3,18 +3,26 @@ var sys = require("sys")
   , fs = require("fs");
 
 fs.readFile("schema.js", 'utf8', function (err, data) {
+  if (err) {
+    throw err;
+  }
+
   var json = JSON.parse(data)
     , o = null
+    , code = []
     , Model = []
     , Peer = []
     , jsFile = "build/#{fileName}.js"
     , sql = []
+    , _sql = ""
+    , innerSql = ""
     , columns = []
     , objName = ""
     , tableName = ""
     , table = null
     , columnName = ""
     , column = null
+    , table_id = ""
     , foreign = []
     , foreignTable = ""
     , foreignKey = "";
@@ -23,18 +31,12 @@ fs.readFile("schema.js", 'utf8', function (err, data) {
 
   jsFile = jsFile.replace(/#{fileName}/g, o.fileName);
  
-  // if file exists, unlink
-
-  // open handle to write to file? Not yet.
-
-  var sql = [];
-
   for (tableName in o.schema) {
     if (o.schema.hasOwnProperty(tableName)) {
       table = o.schema[tableName];
       objName = table.jsName;
 
-      var _sql = "";
+      _sql = "";
       _sql = "CREATE TABLE IF NOT EXISTS '" + tableName + "'";
 
       // create the JS file obj
@@ -74,7 +76,7 @@ fs.readFile("schema.js", 'utf8', function (err, data) {
           // TODO test multiple foreigns
           // adds any foreign references
           if ('foreign' in column) {
-            var table_id = column.foreign.split(".");
+            table_id = column.foreign.split(".");
             foreignTable = table_id[0];
             foreignKey = table_id[1];
             foreign.push("FOREIGN KEY (" + columnName + ") REFERENCES " + foreignTable + "(" + foreignKey + ")");
@@ -83,7 +85,7 @@ fs.readFile("schema.js", 'utf8', function (err, data) {
       }
 
       // joins the columns to the sql
-      var innerSql = columns.join(", ");
+      innerSql = columns.join(", ");
       if (foreign.length > 0) {
         innerSql = innerSql + ", " + foreign.join(", ");
       }
@@ -99,8 +101,20 @@ fs.readFile("schema.js", 'utf8', function (err, data) {
   // Add the init sql queries to the object
   o.sql = sql;
 
-  // TODO create BaseOM classes and other model classes that can be user written.
-  console.log("Snake.init(" + JSON.stringify(o) + ");");
-  console.log(Peer.join("\n"));
-  console.log(Model.join("\n"));
+  // push into the code output
+  code.push("Snake.init(" + JSON.stringify(o) + ");");
+  code.push("\n" + Peer.join("\n"));
+  code.push("\n" + Model.join("\n"));
+
+  // delete the file first
+  fs.unlink(jsFile);
+
+  // write to the file
+  fs.writeFile(jsFile, code.join(""), 'utf8', function (err) {
+    if (err) {
+      throw err;
+    }
+  });
+  
 });
+// TODO create BaseOM classes and other model classes that can be user written.

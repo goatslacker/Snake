@@ -201,8 +201,7 @@ Snake.Base = function (peer, prop) {
 
     // saves a record in the database
     save: function (onSuccess, onFailure) {
-      console.log(this);
-      //this.peer.doUpdate(this, onSuccess, onFailure);
+      this.peer.doUpdate(this, onSuccess, onFailure);
     },
 
     hydrate: function (obj) {
@@ -265,15 +264,18 @@ Snake.hydrateRS = function (peer, callback, transaction, results) {
 */
 Snake.BasePeer = function (obj) {
 
-  var Peer = { };
+  //var Peer = { };
 
   for (var i in obj) {
     if (obj.hasOwnProperty(i)) {
-      Peer[i] = obj[i];
+      this[i] = obj[i];
     }
   }
 
-  return Peer;
+  // set the Peer's prototype
+  //Peer.prototype = Snake.BasePeer.prototype;
+
+  return this;
 };
 
 Snake.BasePeer.prototype = {
