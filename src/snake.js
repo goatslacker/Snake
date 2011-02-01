@@ -1,5 +1,5 @@
-/*global window openDatabase Snake.Class */
-/*jslint white: true, browser: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2 */
+/* global window openDatabase Snake.Class */
+/* jslint white: true, browser: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2 */
 
 // base object
 var Snake = {
