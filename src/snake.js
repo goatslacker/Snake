@@ -218,16 +218,11 @@ Snake.Base = function (peer, prop) {
     }
   };
 
-  var prototype = new Model();
-    
   // Copy the properties over onto the new prototype
   for (var name in prop) {
-    prototype[name] = prop[name];
+    Model.prototype[name] = prop[name];
   }
    
-  // Populate our constructed prototype object
-  Model.prototype = prototype;
-
   return Model;
 };
 
@@ -262,24 +257,15 @@ Snake.hydrateRS = function (peer, callback, transaction, results) {
   The peer class of an object. Handles multiple records of items.
   @param obj Object
 */
-Snake.BasePeer = function (obj) {
-
-  //var Peer = { };
-
-  for (var i in obj) {
-    if (obj.hasOwnProperty(i)) {
-      this[i] = obj[i];
-    }
+Snake.BasePeer = function (prop) {
+  for (var name in prop) {
+    this[name] = prop[name];
   }
-
-  // set the Peer's prototype
-  //Peer.prototype = Snake.BasePeer.prototype;
-
+   
   return this;
 };
 
 Snake.BasePeer.prototype = {
-
   doCount: function (criteria, callback) {
     criteria = criteria || new Snake.Criteria();
     criteria.executeCount(this, callback);
@@ -331,7 +317,6 @@ Snake.BasePeer.prototype = {
     c.add(this.ID, pk);
     this.doSelect(c, callback);
   }
-
 };
 
 /*
