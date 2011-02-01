@@ -1,0 +1,20 @@
+{
+  "snake": {
+    "fileName": "cardsExample",
+    "database": {
+      "name": "cards",
+      "version": "0.1",
+      "displayName": "Playing Cards",
+      "size": 20000
+    },
+    "schema": {
+      "card": {
+        "jsName": "Card",
+        "columns": {
+          "number": { "type": "integer" },
+          "suit": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

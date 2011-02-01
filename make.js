@@ -1,8 +1,10 @@
 var sys = require("sys")
   , path = require("path")
-  , fs = require("fs");
+  , fs = require("fs")
+  , inputFile = process.argv[2] || "schema.js"
+  , outputFile = process.argv[3] || "build/#{fileName}.js";
 
-fs.readFile("schema.js", 'utf8', function (err, data) {
+fs.readFile(inputFile, 'utf8', function (err, data) {
   if (err) {
     throw err;
   }
@@ -12,7 +14,6 @@ fs.readFile("schema.js", 'utf8', function (err, data) {
     , code = []
     , Model = []
     , Peer = []
-    , jsFile = "build/#{fileName}.js"
     , sql = []
     , _sql = ""
     , innerSql = ""
@@ -29,7 +30,7 @@ fs.readFile("schema.js", 'utf8', function (err, data) {
 
   o = json.snake;
 
-  jsFile = jsFile.replace(/#{fileName}/g, o.fileName);
+  outputFile = outputFile.replace(/#{fileName}/g, o.fileName);
  
   for (tableName in o.schema) {
     if (o.schema.hasOwnProperty(tableName)) {
@@ -107,10 +108,10 @@ fs.readFile("schema.js", 'utf8', function (err, data) {
   code.push("\n" + Model.join("\n"));
 
   // delete the file first
-  fs.unlink(jsFile);
+  fs.unlink(outputFile);
 
   // write to the file
-  fs.writeFile(jsFile, code.join(""), 'utf8', function (err) {
+  fs.writeFile(outputFile, code.join(""), 'utf8', function (err) {
     if (err) {
       throw err;
     }
