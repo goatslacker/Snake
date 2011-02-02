@@ -4,7 +4,7 @@
 // base object
 var Snake = {
   global: this,
-  version: "0.0.25",
+  version: "0.0.27",
   $nk_chain: [],
   db: false,
   config: {},
@@ -13,6 +13,10 @@ var Snake = {
 };
 
 // Prototype functions
+Snake.is_array = function (arrayInQuestion) {
+  return (Object.prototype.toString.call(arrayInQuestion) === '[object Array]');
+};
+
 Array.prototype.in_array = function (val) {
   var i = 0;
   for (i = 0; i < this.length; i = i + 1) {
@@ -37,7 +41,7 @@ String.prototype.interpose = function (foreign) {
   for (i in foreign) {
     if (foreign.hasOwnProperty(i)) {
       regexpx = eval("/#{" + i + "}/g");
-      value = (Object.prototype.toString.call(foreign[i]) === '[object Array]') ? foreign[i].join(", ") : foreign[i];
+      value = (Snake.is_array(foreign[i])) ? foreign[i].join(", ") : foreign[i];
       str = str.replace(regexpx, value);
     }
   }
@@ -331,14 +335,13 @@ Snake.BasePeer.prototype = {
 /*
   Criteria Class
   Handles all the dirty SQL work
-  // TODO addOr: add should accept Array for addOr.
+  // TODO have a buildWhere, buildFrom, buildLimit functions. Separate them into another Object other than Criteria.
 */
 Snake.Criteria = function () {
   this.select = [];
   this.from = [];
   this.join = [];
   this.where = {
-    hasWhere: false,
     and: [],
     params: []
   };
@@ -361,14 +364,33 @@ Snake.Criteria.prototype = {
   add: function (field, value, selector) {
     selector = this[selector] || this.EQUAL;
 
-    var where = "#{field} #{selector} ?".interpose({
-      field: field,
-      selector: selector
-    });
+    var i = 0
+      , or = []
+      , where = "#{field} #{selector} ?";
 
-    this.where.hasWhere = true;
-    this.where.and.push(where);
-    this.where.params.push(value);
+    if (Snake.is_array(field) && Snake.is_array(value)) {
+      for (i = 0; i < field.length; i = i + 1) {
+        where = "#{field} #{selector} ?".interpose({
+          field: field[i],
+          selector: selector
+        });
+        or.push(where);
+      }
+
+      this.where.and.push(or);
+
+      for (i = 0; i < value.length; i = i + 1) {
+        this.where.params.push(value[i]);
+      }
+    } else {
+      where = "#{field} #{selector} ?".interpose({
+        field: field,
+        selector: selector
+      });
+
+      this.where.and.push(where);
+      this.where.params.push(value);
+    }
   },
 
   addJoin: function (join1, join2, join_method) {
@@ -454,8 +476,15 @@ Snake.Criteria.prototype = {
     }
 
     // where
-    if (this.where.hasWhere) {
+    if (this.where.and.length > 0) {
+      for (i = 0; i < this.where.and.length; i = i + 1) {
+        if (Snake.is_array(this.where.and[i])) {
+          this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
+        }
+      }
+
       where = this.where.and.join(" AND ");
+
       sql = sql + " WHERE " + where;
       params = this.where.params;
     }
@@ -518,8 +547,15 @@ Snake.Criteria.prototype = {
     }
 
     // where
-    if (this.where.hasWhere) {
+    if (this.where.and.length > 0) {
+      for (i = 0; i < this.where.and.length; i = i + 1) {
+        if (Snake.is_array(this.where.and[i])) {
+          this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
+        }
+      }
+
       where = this.where.and.join(" AND ");
+
       sql = sql + " WHERE " + where;
       params = this.where.params;
     }
@@ -533,6 +569,9 @@ Snake.Criteria.prototype = {
     if (this.limit) {
       sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
     }
+
+    console.log(sql);
+    return false;
 
     Snake.query(sql, params, function (transaction, results) {
       var arr = []
@@ -638,8 +677,15 @@ Snake.Criteria.prototype = {
     });
 
     // where
-    if (this.where.hasWhere) {
+    if (this.where.and.length > 0) {
+      for (i = 0; i < this.where.and.length; i = i + 1) {
+        if (Snake.is_array(this.where.and[i])) {
+          this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
+        }
+      }
+
       where = this.where.and.join(" AND ");
+
       sql = sql + " WHERE " + where;
       params = this.where.params;
     }
