@@ -570,9 +570,6 @@ Snake.Criteria.prototype = {
       sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
     }
 
-    console.log(sql);
-    return false;
-
     Snake.query(sql, params, function (transaction, results) {
       var arr = []
         , i = 0
