@@ -54,6 +54,8 @@ fs.readFile(inputFile, 'utf8', function (err, data) {
       table.columns.id = { type: "INTEGER" };
       table.columns.created_at = { type: "INTEGER" };
 
+      columns = [];
+
       // loop through each column
       for (columnName in table.columns) {
 
