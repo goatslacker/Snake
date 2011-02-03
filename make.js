@@ -23,7 +23,7 @@ fs.readFile(inputFile, 'utf8', function (err, data) {
     , table = null
     , columnName = ""
     , column = null
-    , table_id = ""
+    , tmp = ""
     , foreign = []
     , foreignTable = ""
     , foreignKey = "";
@@ -51,7 +51,7 @@ fs.readFile(inputFile, 'utf8', function (err, data) {
 
       // Adding id and created_at to all tables
       // TODO add ID to beginning and created_at to end.
-      table.columns.id = { type: "INTEGER" };
+      table.columns.id = { type: "INTEGER", primaryKey: true };
       table.columns.created_at = { type: "INTEGER" };
 
       columns = [];
@@ -72,17 +72,22 @@ fs.readFile(inputFile, 'utf8', function (err, data) {
           json.peer.fields[columnName] = {};
           json.peer.fields[columnName].type = column.type;
 
-          // push into fields && columns
+          // add the primary key
+          if ('primaryKey' in column) {
+            tmp = " PRIMARY KEY";
+          } else {
+            tmp = "";
+          }
 
           // push for sql
-          columns.push(columnName + " " + column.type);
+          columns.push(columnName + " " + column.type + tmp);
 
           // TODO test multiple foreigns
           // adds any foreign references
           if ('foreign' in column) {
-            table_id = column.foreign.split(".");
-            foreignTable = table_id[0];
-            foreignKey = table_id[1];
+            tmp = column.foreign.split(".");
+            foreignTable = tmp[0];
+            foreignKey = tmp[1];
             foreign.push("FOREIGN KEY (" + columnName + ") REFERENCES " + foreignTable + "(" + foreignKey + ")");
           }
         }
