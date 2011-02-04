@@ -8,7 +8,7 @@ var Snake = {
   $nk_chain: [],
   db: false,
   config: {},
-  debug: true,
+  debug: false,
   has_loaded: false
 };
 
@@ -156,10 +156,13 @@ Snake.query = function (query, params, onSuccess, onFailure) {
         if (params) {
           console.log(params);
         }
-      }
 
-      // perform query
-      transaction.executeSql(query, params, onSuccess, onFailure);
+        // return the query
+        return query;
+      } else {
+        // perform query
+        transaction.executeSql(query, params, onSuccess, onFailure);
+      }
     });
   }
 };
@@ -361,6 +364,36 @@ Snake.Criteria.prototype = {
   RIGHT_JOIN: "RIGHT_JOIN",
   INNER_JOIN: "INNER_JOIN",
 
+  buildQuery: function (q) {
+    var sql = "";
+
+    if (q.select) {
+      sql = sql + "SELECT #{select}";
+    }
+    
+    if (q.from) {
+      sql = sql + " " + "FROM #{from}";
+    }
+
+    if (q.join) {
+      sql = sql + " " + "#{joinMethod} #{table} ON {#reference} = #{table}.#{key}";
+    }
+
+    if (q.where) {
+      sql = sql + " " + "WHERE #{where}";
+    }
+
+    if (q.orderBy) {
+      sql = sql + " " + "ORDER BY #{orderBy}";
+    }
+
+    if (q.limit) {
+      sql = sql + " " + "LIMIT #{limit}";
+    }
+
+    return sql.interpose(q);
+  },
+
   add: function (field, value, selector) {
     selector = this[selector] || this.EQUAL;
 
@@ -529,11 +562,6 @@ Snake.Criteria.prototype = {
     }
     // what happens if there are multiple froms??? FIXME/test
 
-    // build select
-    sql = "SELECT #{select} FROM #{from}".interpose({
-      select: this.select,
-      from: this.from
-    });
 
     if (this.join.length > 0) {
       for (i = 0; i < this.join.length; i = i + 1) {
@@ -555,9 +583,6 @@ Snake.Criteria.prototype = {
       }
 
       where = this.where.and.join(" AND ");
-
-      sql = sql + " WHERE " + where;
-      params = this.where.params;
     }
 
     // order by
@@ -569,6 +594,14 @@ Snake.Criteria.prototype = {
     if (this.limit) {
       sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
     }
+
+    sql = this.buildQuery({
+      select: this.select,
+      from: this.from,
+      where: where,
+      orderBy: this.order,
+      limit: this.limit
+    });
 
     Snake.query(sql, params, function (transaction, results) {
       var arr = []
