@@ -1,7 +1,9 @@
+#!/usr/bin/env node
+
 var sys = require("sys")
   , path = require("path")
   , fs = require("fs")
-  , inputFile = process.argv[2] || "schema.js"
+  , inputFile = process.argv[2] || "schema.json"
   , outputFile = process.argv[3] || "build/#{fileName}.js";
 
 fs.readFile(inputFile, 'utf8', function (err, data) {
