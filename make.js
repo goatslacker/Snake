@@ -32,6 +32,7 @@ fs.readFile(inputFile, 'utf8', function (err, data) {
 
   outputFile = outputFile.replace(/#{fileName}/g, o.fileName);
  
+  // TODO future, SQL error handling.
   for (tableName in o.schema) {
     if (o.schema.hasOwnProperty(tableName)) {
       table = o.schema[tableName];
