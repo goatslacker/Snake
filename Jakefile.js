@@ -12,39 +12,51 @@ var jake = require("jake")
 
 task("default", [], function () {
 
-  var mergeCode = function (data) {
-    // join all the files
-    code.push(data);
+  var compressFile = function (outputFile) {
 
-    if (code.length === 4) {
-      writeFile();
-    }
-  }
-
-  , compressor = function (outputFile) {
-    // if uglify JS is installed (otherwise include it!)
-    
     console.log("Compressing " + outputFile + " using UglifyJS");
     child = exec('uglifyjs -o build/snake.min.js build/snake.js', function (error, stdout, stderr) {
 
-      console.log("Successfully compressed " + outputFile);
-
-      fs.stat(outputFile, function (err, stats) {
-        var preCompressedSize = stats.size;
-        fs.stat('build/snake.min.js', function (err, stats) {
-          var compressedSize = stats.size
-            , ratio = Math.round((compressedSize / preCompressedSize) * 100);
-
-          console.log("Original size: " + preCompressedSize);
-          console.log("Compressed size: " + compressedSize);
-          console.log("Compression ratio: " + ratio + "%");
-        });
-      });
-
-      // TODO gzip it as well!
-
       if (error !== null) {
-        console.log('exec error: ' + error);
+        throw error;
+      } else {
+        console.log("Successfully compressed " + outputFile);
+
+        fs.stat(outputFile, function (err, stats) {
+          var preCompressedSize = stats.size;
+          fs.stat('build/snake.min.js', function (err, stats) {
+            var compressedSize = stats.size
+              , ratio = Math.round((compressedSize / preCompressedSize) * 100);
+
+            // TODO gzip it as well!
+            console.log("Original size: " + preCompressedSize);
+            console.log("Compressed size: " + compressedSize);
+            console.log("Compression ratio: " + ratio + "%");
+          });
+        });
+      }
+    });
+  }
+  , compressor = function (outputFile) {
+    // check if uglify is installed
+
+    child = exec('type -P foo &>/dev/null || { echo "false" >&2; }', function (error, stdout, stderr) {
+      if (error !== null) {
+        throw error;
+      }
+
+      // uglify is not installed, install via npm
+      if (stdout === "false") {
+        child = exec('npm install vendor/UglifyJS', function (error, stdout, stderr) {
+          if (error !== null) {
+            throw error;
+          } else {
+            // compress file
+            compressFile(outputFile);
+          }
+        });
+      } else {
+        compressFile(outputFile);
       }
     });
   }
@@ -66,19 +78,30 @@ task("default", [], function () {
       // run compressor
       compressor(outputFile);
     });
+  }
+
+  , readFile = function () {
+    if (code.length === 4) {
+      writeFile();
+    } else {
+      var inputFile = "src/" + files[i] + ".js";
+      console.log("Merging " + inputFile);
+
+      fs.readFile(inputFile, 'utf8', function (err, data) {
+        if (err) {
+          throw err;
+        }
+
+        // join all the files
+        code.push(data);
+
+        // read the next file...
+        readFile();
+      });
+
+      i = i + 1;
+    }
   };
 
-  for (i = 0; i < files.length; i = i + 1) {
-    var inputFile = "src/" + files[i] + ".js";
-    console.log("Merging " + inputFile);
- 
-    fs.readFile(inputFile, 'utf8', function (err, data) {
-      if (err) {
-        throw err;
-      }
-
-      mergeCode(data);
-    });
-
-  }
-});
+  readFile();
+}, true);
