@@ -5,7 +5,7 @@ var Snake = {
   $nk_chain: [],
   db: false,
   config: {},
-  debug: true,
+  debug: false,
   has_loaded: false
 };
 
