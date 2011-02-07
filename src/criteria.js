@@ -171,54 +171,90 @@ Snake.Criteria.prototype = {
     }
   },
 
-  executeCount: function (peer, callback) {
+  executeCount: function (peer, onSuccess, onFailure) {
     this.select.push("COUNT(*) AS count");
     this.from.push(peer.tableName);
-    this.buildQuery("SELECT", peer, callback);
+    this.buildQuery("SELECT", peer, onSuccess, onFailure); // TODO fix
   },
 
-  executeSelect: function (peer, callback) {
-    this.buildQuery("SELECT", peer, callback);
+  executeSelect: function (peer, onSuccess, onFailure) {
+    this.buildQuery("SELECT", peer, onSuccess, onFailure); // TODO fix
+  },
+
+  executeInsert: function (model, peer, onSuccess, onFailure) {
+    var values = []
+      , q = []
+      , i = 0
+      , val = null
+      , sql = "";
+
+    for (i = 0; i < peer.columns.length; i = i + 1) {
+      val = model[peer.columns[i]] || null;
+
+      if (peer.columns[i] === 'created_at' && val === null) {
+        val = Date.now();
+      }
+
+      values.push(val);
+      q.push("?");
+    }
+
+    sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpose({
+      table: peer.tableName,
+      columns: peer.columns,
+      q: q
+    });
+
+    Snake.query(sql, values, function (transaction, results) {
+      // set an ID
+      model.id = results.insertId;
+
+      if (onSuccess) {
+        onSuccess(model);
+      }
+    }, onFailure);
+  },
+
+  executeUpdate: function (model, peer, onSuccess, onFailure) {
+    var conditions = []
+      , values = []
+      , val = null
+      , i = 0
+      , sql = "";
+
+    for (i = 0; i < peer.columns.length; i = i + 1) {
+      if (model[peer.columns[i]] !== model['$nk_' + peer.columns[i]]) {
+        val = model[peer.columns[i]] || null;
+        values.push(val);
+
+        conditions.push(peer.columns[i] + " = ?");
+      }
+    }
+
+    sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpose({
+      table: peer.tableName,
+      conditions: conditions,
+      id: model.id
+    });
+
+    Snake.query(sql, values, function (transaction, results) {
+      if (onSuccess) {
+        onSuccess(model);
+      }
+    }, onFailure);
   },
 
   buildQuery: function (operation, peer, onSuccess, onFailure) {
-    // INSERT
-    if (operation === "INSERT") {
-/*
-      var values = []
-        , q = []
-        , i = 0
-        , val = null
-        , sql = "";
+    var i = 0
+      , sql = ""
+      , field = null
+      , from = null
+      , where = null
+      , params = null
+      , interposableObj = {};
 
-      for (i = 0; i < peer.columns.length; i = i + 1) {
-        val = model[peer.columns[i]] || null;
-  
-        if (peer.columns[i] === 'created_at' && val === null) {
-          val = Date.now();
-        }
-
-        values.push(val);
-        q.push("?");
-      }
-
-      sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpose({
-        table: peer.tableName,
-        columns: peer.columns,
-        q: q
-      });
-*/
-
-    // SELECT || UPDATE || DELETE
-    } else {
-
-      var i = 0
-        , sql = ""
-        , field = null
-        , from = null
-        , where = null
-        , params = null;
-
+    switch (operation) {
+    case "SELECT":
       // add select columns
       if (this.select.length === 0) {
         for (i = 0; i < peer.columns.length; i = i + 1) {
@@ -239,14 +275,12 @@ Snake.Criteria.prototype = {
         }
       }
 
-      var interposableObj = {};
-
       // build select statement
       sql = "SELECT #{select} FROM #{from}";
       interposableObj.select = this.select;
       interposableObj.from = this.from;
 
-      // joins if any
+      // JOIN
       if (this.join.length > 0) {
         for (i = 0; i < this.join.length; i = i + 1) {
           sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpose({
@@ -257,41 +291,48 @@ Snake.Criteria.prototype = {
           });
         }
       }
+      break;
 
-      // where
-      if (this.where.and.length > 0) {
-        for (i = 0; i < this.where.and.length; i = i + 1) {
-          if (Snake.is_array(this.where.and[i])) {
-            this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
-          }
+    case "DELETE":
+      sql = "DELETE FROM #{from}";    
+      interposableObj.from = peer.tableName;
+      break;
+    }
+
+    // WHERE
+    if (this.where.and.length > 0) {
+      for (i = 0; i < this.where.and.length; i = i + 1) {
+        if (Snake.is_array(this.where.and[i])) {
+          this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
         }
-
-        where = this.where.and.join(" AND ");
-
-        sql = sql + " WHERE " + where;
-        params = this.where.params;
       }
 
-      // order by
-      if (this.order.length > 0) {
-        sql = sql + " ORDER BY #{order}";
-        interposableObj.order = this.order;
+      where = this.where.and.join(" AND ");
+
+      sql = sql + " WHERE " + where;
+      params = this.where.params;
+    }
+
+    // ORDER BY
+    if (this.order.length > 0) {
+      sql = sql + " ORDER BY #{order}";
+      interposableObj.order = this.order;
+    }
+
+    // LIMIT && OFFSET
+    if (this.limit) {
+      if (this.offset) {
+        sql = sql + " LIMIT #{offset}, #{limit}";
+        interposableObj.offset = this.offset;
+      } else {
+        sql = sql + " LIMIT #{limit}";
       }
 
-      // limiter
-      if (this.limit) {
-        if (this.offset) {
-          sql = sql + " LIMIT #{offset}, #{limit}";
-          interposableObj.offset = this.offset;
-        } else {
-          sql = sql + " LIMIT #{limit}";
-        }
+      interposableObj.limit = this.limit;
+    }
 
-        interposableObj.limit = this.limit;
-      }
-
-      sql = sql.interpose(interposableObj);
-    }    
+    // Generate query
+    sql = sql.interpose(interposableObj);
 
     if (Snake.debug === true) {
       onSuccess(sql, params);
