@@ -7,30 +7,36 @@ describe("Snake", function () {
   // Criteria Obj
   describe("Criteria", function () {
 
-    // Run the actual queries on the browser. TODO - only test on a Webkit browser
+    // Run the actual queries on the browser. TODO
     describe("Criteria - Run Queries", function () {
-      Snake.runSql = true;
-      Snake.createTables(true);
+      //Snake.debug = false;
+      //Snake.createTables(true);
     });
 
 
     // Run through Criteria and return the SQL query
     describe("Criteria - Return Queries", function () {
-      Snake.runSql = false;
+      Snake.debug = true;
+
+      var c = null;
 
       // SELECT statements
       describe("doSelect", function () {
 
+        beforeEach(function () {
+          c = new Criteria();
+          c.returnQuery = true;
+        });
+
         // Select All
         it("SELECT * FROM card", function () {
-          CardPeer.doSelect(new Criteria(), function (query) {
+          CardPeer.doSelect(c, function (query) {
             expect(query).toEqual("SELECT card.deck_id, card.face, card.suit, card.id, card.created_at FROM card");;
           });
         });
 
         // Single Where
         it("SELECT * FROM card WHERE", function () {
-          var c = new Criteria();
           c.add(CardPeer.FACE, "A");
           CardPeer.doSelect(c, function (query, params) {
             expect(query).toEqual("SELECT card.deck_id, card.face, card.suit, card.id, card.created_at FROM card WHERE card.face = ?");
@@ -40,7 +46,6 @@ describe("Snake", function () {
 
         // Custom columns
         it("SELECT card.suit FROM card WHERE face = 'A'", function () {
-          var c = new Criteria();
           c.addSelectColumn(CardPeer.SUIT);
           c.add(CardPeer.FACE, 'A');
           CardPeer.doSelect(c, function (query, params) {
@@ -51,7 +56,6 @@ describe("Snake", function () {
 
         // Multiple Where
         it("SELECT * FROM card WHERE J of Spades", function () {
-          var c = new Criteria();
           c.add(CardPeer.FACE, "J");
           c.add(CardPeer.SUIT, "spades");
           CardPeer.doSelect(c, function (query, params) {
@@ -64,7 +68,6 @@ describe("Snake", function () {
         // Where And & Or
   /*
         it("SELECT * FROM card WHERE K of Hearts OR Q of Diamonds", function () {
-          var c = new Criteria();
           c.add([CardPeer.FACE, "K"], [Card.FACE, "Q"]);
           CardPeer.doSelect(c, function (query, params) {
             console.log(query);
@@ -74,7 +77,6 @@ describe("Snake", function () {
 
         // IS NULL
         it("SELECT * FROM player WHERE name IS NULL", function () {
-          var c = new Criteria();
           c.add(PlayerPeer.NAME, "ISNULL");
           PlayerPeer.doSelect(c, function (query, params) {
             expect(query).toEqual("SELECT player.name, player.chips, player.id, player.created_at FROM player WHERE player.name IS NULL");
@@ -83,7 +85,6 @@ describe("Snake", function () {
 
         // IS NOT NULL
         it("SELECT * FROM player WHERE name IS NOT NULL", function () {
-          var c = new Criteria();
           c.add(PlayerPeer.NAME, "ISNOTNULL");
           PlayerPeer.doSelect(c, function (query, params) {
             expect(query).toEqual("SELECT player.name, player.chips, player.id, player.created_at FROM player WHERE player.name IS NOT NULL");
@@ -92,7 +93,6 @@ describe("Snake", function () {
 
         // LIKE
         it("SELECT * FROM player WHERE name LIKE", function () {
-          var c = new Criteria();
           c.add(PlayerPeer.NAME, '%josh%', "LIKE");
           PlayerPeer.doSelect(c, function (query, params) {
             expect(query).toEqual("SELECT player.name, player.chips, player.id, player.created_at FROM player WHERE player.name LIKE ?");
@@ -103,7 +103,6 @@ describe("Snake", function () {
   /*
         // IN
         it("SELECT * FROM card WHERE face IN", function () {
-          var c = new Criteria();
           c.add(CardPeer.FACE, [6, 7, 8, 9, 10], "IN");
           CardPeer.doSelect(c, function (query, params) {
             // TODO does this query execute properly?
@@ -115,7 +114,6 @@ describe("Snake", function () {
 
         // joins. grab all the cards in a deck
         it("SELECT * FROM card LEFT JOIN deck", function () {
-          var c = new Criteria();
           c.add(DeckPeer.ID, 2);
           c.addJoin(CardPeer.DECK_ID, DeckPeer.ID);
           CardPeer.doSelect(c, function (query, params) {
@@ -127,7 +125,6 @@ describe("Snake", function () {
   /*
         // multiple joins. select all of a player's cards
         it("Multiple joins", function () {
-          var c = new Criteria();
           c.addJoin(PlayerCardPeer.CARD_ID, CardPeer.ID);
           c.addJoin(PlayerCardPeer.PLAYER_ID, PlayerPeer.ID);
           c.add(PlayerPeer.ID, 1);
@@ -140,7 +137,6 @@ describe("Snake", function () {
 
         // LIMIT
         it("SELECT * FROM card LIMIT 10", function () {
-          var c = new Criteria();
           c.setLimit(10);
           CardPeer.doSelect(c, function (query, params) {
             expect(query).toEqual("SELECT card.deck_id, card.face, card.suit, card.id, card.created_at FROM card LIMIT 10");
@@ -149,7 +145,6 @@ describe("Snake", function () {
 
         // LIMIT and OFFSET
         it("SELECT * FROM card LIMIT 10, 10", function () {
-          var c = new Criteria();
           c.setOffset(10);
           c.setLimit(10);
           CardPeer.doSelect(c, function (query, params) {
@@ -161,16 +156,21 @@ describe("Snake", function () {
 
       describe("doCount", function () {
 
+        beforeEach(function () {
+          c = new Criteria();
+          c.returnQuery = true;
+        });
+
         // Count
         it("SELECT COUNT(*) FROM card", function () {
-          CardPeer.doCount(new Criteria(), function (query) {
+          CardPeer.doCount(c, function (query) {
             expect(query).toEqual("SELECT COUNT(*) AS count FROM card");;
           });
         });
 
         // DISTINCT Count
         it("SELECT DISTINCT COUNT(*) FROM card", function () {
-          CardPeer.doCount(new Criteria(), true, function (query) {
+          CardPeer.doCount(c, true, function (query) {
             expect(query).toEqual("SELECT DISTINCT COUNT(*) AS count FROM card");;
           });
         });
@@ -179,16 +179,20 @@ describe("Snake", function () {
 
       describe("doDelete", function () {
 
+        beforeEach(function () {
+          c = new Criteria();
+          c.returnQuery = true;
+        });
+
         // delete all cards
         it("DELETE FROM card", function () {
-          CardPeer.doDelete(new Criteria(), function (query) {
+          CardPeer.doDelete(c, function (query) {
             expect(query).toEqual("DELETE FROM card");
           });
         });
 
         // delete a deck
         it("DELETE FROM deck", function () {
-          var c = new Criteria();
           c.add(DeckPeer.ID, 3);
           DeckPeer.doDelete(c, function (query, params) {
             expect(query).toEqual("DELETE FROM deck WHERE deck.id = ?");
@@ -198,7 +202,6 @@ describe("Snake", function () {
 
         // delete 15 players
         it("DELETE FROM player LIMIT 15", function () {
-          var c = new Criteria();
           c.setLimit(15);
           PlayerPeer.doDelete(c, function (query) {
             expect(query).toEqual("DELETE FROM player LIMIT 15");
@@ -207,7 +210,6 @@ describe("Snake", function () {
 
         // delete 20 players with an offset of 10, but only players beginning with the letter J
         it("DELETE FROM player WHERE name LIKE 'j%' LIMIT 10, 20", function () {
-          var c = new Criteria();
           c.add(PlayerPeer.NAME, "j%", "LIKE");
           c.setOffset(10);
           c.setLimit(20);
@@ -219,7 +221,6 @@ describe("Snake", function () {
 
         // delete the queen of herats
         it("DELETE FROM card WHERE face = 'Q' AND suit = 'hearts'", function () {
-          var c = new Criteria();
           c.add(CardPeer.FACE, 'Q');
           c.add(CardPeer.SUIT, 'hearts');
           CardPeer.doDelete(c, function (query, params) {

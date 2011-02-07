@@ -35,16 +35,16 @@ Snake.query = function (query, params, onSuccess, onFailure) {
   params = params || null;
 
   onSuccess = onSuccess || function (transaction, results) {
-    console.log(transaction);
-    console.log(results);
+    self.log(transaction);
+    self.log(results);
   };
   onFailure = onFailure || function (transaction, error) {
-    console.log(transaction);
-    console.log(error);
+    self.log(transaction);
+    self.log(error);
   };
 
   if (!self.db) {
-    console.log("Database not connected");
+    self.log("Database not connected");
     return false;
   } else {
   
@@ -56,9 +56,9 @@ Snake.query = function (query, params, onSuccess, onFailure) {
 
       // debugging
       if (self.debug) {
-        console.log(query);
+        self.log(query);
         if (params) {
-          console.log(params);
+          self.log(params);
         }
       } else {
         // perform query
@@ -80,7 +80,7 @@ Snake.createTables = function (drop_existing) {
 
   drop_existing = drop_existing || false;
 
-  if (self.runSql && self.config.sql.length > 0) {
+  if (!self.debug && self.config.sql.length > 0) {
 
     if (drop_existing) {
       for (table in self.config.schema) {

@@ -1,11 +1,13 @@
 // base object
 var Snake = {
-  global: this,
   version: "0.0.27",
+  global: this,
   db: false,
   config: {},
-  debug: false,
-  runSql: true
+  log: function (msg) {
+    console.log(msg);
+  },
+  debug: false
 };
 
 // Prototype functions
@@ -53,7 +55,7 @@ Snake.init = function (o) {
   var self = Snake;  
 
   if (!o) {
-    console.log("Error, configuration file not loaded");
+    self.log("Error, configuration file not loaded");
     return false;
   }
 
@@ -65,7 +67,7 @@ Snake.init = function (o) {
   self.connect(function () {
     self.createTables();
   }, function (errorText) {
-    console.log(errorText);
+    self.log(errorText);
   });
 };
 

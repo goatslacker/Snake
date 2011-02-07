@@ -3,6 +3,8 @@
   Handles all the dirty SQL work
 */
 Snake.Criteria = function () {
+  this.returnQuery = false;
+
   this.select = [];
   this.from = [];
   this.join = [];
@@ -179,8 +181,10 @@ Snake.Criteria.prototype = {
     this.select.push(distinct + "COUNT(*) AS count");
     this.from.push(peer.tableName);
 
+    var criteria = this;
+
     this.buildQuery("SELECT", peer, function (sql, params) {
-      if (!Snake.runSql) {
+      if (criteria.returnQuery) {
         onSuccess(sql, params)
       } else {
         Snake.query(sql, params, function (transaction, results) {
@@ -194,8 +198,10 @@ Snake.Criteria.prototype = {
   },
 
   executeSelect: function (peer, onSuccess, onFailure) {
+    var criteria = this;
+
     this.buildQuery("SELECT", peer, function (sql, params) {
-      if (!Snake.runSql) {
+      if (criteria.returnQuery) {
         onSuccess(sql, params)
       } else {
         Snake.query(sql, params, function (transaction, results) {
@@ -229,8 +235,10 @@ Snake.Criteria.prototype = {
   },
 
   executeDelete: function (peer, onSuccess, onFailure) {
+    var criteria = this;
+
     this.buildQuery("DELETE", peer, function (sql, params) {
-      if (!Snake.runSql) {
+      if (criteria.returnQuery) {
         onSuccess(sql, params)
       } else {
         Snake.query(sql, params, onSuccess, onFailure);
