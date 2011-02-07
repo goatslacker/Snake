@@ -239,11 +239,12 @@ Snake.Criteria.prototype = {
         }
       }
 
+      var interposableObj = {};
+
       // build select statement
-      sql = "SELECT #{select} FROM #{from}".interpose({
-        select: this.select,
-        from: this.from
-      });
+      sql = "SELECT #{select} FROM #{from}";
+      interposableObj.select = this.select;
+      interposableObj.from = this.from;
 
       // joins if any
       if (this.join.length > 0) {
@@ -273,23 +274,29 @@ Snake.Criteria.prototype = {
 
       // order by
       if (this.order.length > 0) {
-        sql = sql + " ORDER BY #{order}".interpose({ order: this.order });
+        sql = sql + " ORDER BY #{order}";
+        interposableObj.order = this.order;
       }
 
       // limiter
       if (this.limit) {
         if (this.offset) {
-          sql = sql + " LIMIT #{offset}, #{limit}".interpose({ offset: this.offset, limit: this.limit });
+          sql = sql + " LIMIT #{offset}, #{limit}";
+          interposableObj.offset = this.offset;
         } else {
-          sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
+          sql = sql + " LIMIT #{limit}";
         }
+
+        interposableObj.limit = this.limit;
       }
 
+      sql = sql.interpose(interposableObj);
     }    
 
     if (Snake.debug === true) {
       onSuccess(sql, params);
     }
+
   }
 };
 
