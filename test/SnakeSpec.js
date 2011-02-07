@@ -150,12 +150,21 @@ describe("Snake", function () {
     });
 
     describe("doCount", function () {
+
       // Count
       it("SELECT COUNT(*) FROM card", function () {
         CardPeer.doCount(new Criteria(), function (query) {
           expect(query).toEqual("SELECT COUNT(*) AS count FROM card");;
         });
       });
+
+      // DISTINCT Count
+      it("SELECT DISTINCT COUNT(*) FROM card", function () {
+        CardPeer.doCount(new Criteria(), true, function (query) {
+          expect(query).toEqual("SELECT DISTINCT COUNT(*) AS count FROM card");;
+        });
+      });
+
     });
 
     describe("doDelete", function () {

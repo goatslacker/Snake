@@ -56,26 +56,34 @@ Snake.BasePeer = function (prop) {
 };
 
 Snake.BasePeer.prototype = {
-  doCount: function (criteria, callback) {
+  doCount: function (criteria, distinct, onSuccess, onFailure) {
+    if (typeof(distinct) === "function") {
+      onSuccess = distinct;
+      onFailure = onSuccess;
+      distinct = false;
+    } else {
+      distinct = distinct || false;
+    }
+
     criteria = criteria || new Snake.Criteria();
-    criteria.executeCount(this, callback);
+    criteria.executeCount(this, distinct, onSuccess, onFailure);
   },
 
   // executes a SELECT query
-  doSelect: function (criteria, callback) {
+  doSelect: function (criteria, onSuccess, onFailure) {
     criteria = criteria || new Snake.Criteria();
-    criteria.executeSelect(this, callback);
+    criteria.executeSelect(this, onSuccess, onFailure);
   },
 
   // executes a SELECT query and returns 1 result
-  doSelectOne: function (criteria, callback) {
+  doSelectOne: function (criteria, onSuccess, onFailure) {
     criteria = criteria || new Snake.Criteria();
     criteria.setLimit(1);
     criteria.executeSelect(this, function (result) {
-      if (callback && result.length >= 0) {
-        callback(result[0]);
+      if (onSuccess && result.length >= 0) {
+        onSuccess(result[0]);
       }
-    });
+    }, onFailure);
   },
 
   // deletes 1 record
@@ -102,9 +110,9 @@ Snake.BasePeer.prototype = {
   },
 
   // retrieves an item by it's PRIMARY KEY
-  retrieveByPK: function (pk, callback) {
+  retrieveByPK: function (pk, onSuccess, onFailure) {
     var c = new Snake.Criteria();
     c.add(this.ID, pk);
-    this.doSelect(c, callback);
+    this.doSelect(c, onSuccess, onFailure);
   }
 };

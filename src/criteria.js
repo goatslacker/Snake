@@ -173,8 +173,10 @@ Snake.Criteria.prototype = {
 
   /* executes */
 
-  executeCount: function (peer, onSuccess, onFailure) {
-    this.select.push("COUNT(*) AS count");
+  executeCount: function (peer, distinct, onSuccess, onFailure) {
+    distinct = distinct ? "DISTINCT " : "";
+
+    this.select.push(distinct + "COUNT(*) AS count");
     this.from.push(peer.tableName);
 
     this.buildQuery("SELECT", peer, function (sql, params) {
