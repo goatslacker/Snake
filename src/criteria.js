@@ -171,60 +171,69 @@ Snake.Criteria.prototype = {
     }
   },
 
+  /* executes */
+
   executeCount: function (peer, onSuccess, onFailure) {
     this.select.push("COUNT(*) AS count");
     this.from.push(peer.tableName);
 
-
-    // TODO run this when the query finishes building...
-/*
-    Snake.query(sql, params, function (transaction, results) {
-      if (onSuccess) {
-        var obj = results.rows.item(0);
-        onSuccess(obj.count);
+    this.buildQuery("SELECT", peer, function (sql, params) {
+      if (Snake.debug) {
+        onSuccess(sql, params)
+      } else {
+        Snake.query(sql, params, function (transaction, results) {
+          if (onSuccess) {
+            var obj = results.rows.item(0);
+            onSuccess(obj.count);
+          }
+        }, onFailure);
       }
     });
-*/
-    this.buildQuery("SELECT", peer, onSuccess, onFailure);
   },
 
   executeSelect: function (peer, onSuccess, onFailure) {
-    // TODO run this when the query finishes building
-/*
-    Snake.query(sql, params, function (transaction, results) {
-      var arr = []
-        , i = 0
-        , obj = null
-        , tmp = null
-        , prop = null;
+    this.buildQuery("SELECT", peer, function (sql, params) {
+      if (Snake.debug) {
+        onSuccess(sql, params)
+      } else {
+        Snake.query(sql, params, function (transaction, results) {
+          var arr = []
+            , i = 0
+            , obj = null
+            , tmp = null
+            , prop = null;
 
-      if (results.rows.length > 0) {
-        for (i = 0; i < results.rows.length; i = i + 1) {
+          if (results.rows.length > 0) {
+            for (i = 0; i < results.rows.length; i = i + 1) {
 
-          obj = results.rows.item(i);
-          tmp = new Snake.global[peer.jsName]();
+              obj = results.rows.item(i);
+              tmp = new Snake.global[peer.jsName]();
 
-          for (prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-              tmp[prop] = obj[prop];
-              tmp['$nk_' + prop] = obj[prop];
+              for (prop in obj) {
+                if (obj.hasOwnProperty(prop)) {
+                  tmp[prop] = obj[prop];
+                  tmp['$nk_' + prop] = obj[prop];
+                }
+              }
+
+              arr.push(tmp);
             }
           }
 
-          arr.push(tmp);
-        }
+          onSuccess(arr);
+        });
       }
-
-      onSuccess(arr);
     });
-*/
-    this.buildQuery("SELECT", peer, onSuccess, onFailure);
   },
 
   executeDelete: function (peer, onSuccess, onFailure) {
-    //Snake.query(sql, params, onSuccess, onFailure);
-
-    this.buildQuery("DELETE", peer, onSuccess, onFailure);
+    this.buildQuery("DELETE", peer, function (sql, params) {
+      if (Snake.debug) {
+        onSuccess(sql, params)
+      } else {
+        Snake.query(sql, params, onSuccess, onFailure);
+      }
+    });
   },
 
   executeInsert: function (model, peer, onSuccess, onFailure) {
@@ -290,7 +299,7 @@ Snake.Criteria.prototype = {
     }, onFailure);
   },
 
-  buildQuery: function (operation, peer, onSuccess, onFailure) {
+  buildQuery: function (operation, peer, callback) {
     var i = 0
       , sql = ""
       , field = null
@@ -377,13 +386,8 @@ Snake.Criteria.prototype = {
       interposableObj.limit = this.limit;
     }
 
-    // Generate query
-    sql = sql.interpose(interposableObj);
-
-    if (Snake.debug === true) {
-      onSuccess(sql, params);
-    }
-
+    // Generate query and run callback
+    callback(sql.interpose(interposableObj), params);
   }
 };
 
