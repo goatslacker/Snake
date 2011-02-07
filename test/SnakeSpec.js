@@ -28,6 +28,17 @@ describe("Snake", function () {
         });
       });
 
+      // Custom columns
+      it("SELECT card.suit FROM card WHERE face = 'A'", function () {
+        var c = new Criteria();
+        c.addSelectColumn(CardPeer.SUIT);
+        c.add(CardPeer.FACE, 'A');
+        CardPeer.doSelect(c, function (query, params) {
+          expect(query).toEqual("SELECT card.suit FROM card WHERE card.face = ?");
+          expect(params[0]).toEqual("A");
+        });
+      });
+
       // Multiple Where
       it("SELECT * FROM card WHERE J of Spades", function () {
         var c = new Criteria();
@@ -91,6 +102,51 @@ describe("Snake", function () {
         });
       });
 */
+
+      // joins. grab all the cards in a deck
+      it("SELECT * FROM card LEFT JOIN deck", function () {
+        var c = new Criteria();
+        c.add(DeckPeer.ID, 2);
+        c.addJoin(CardPeer.DECK_ID, DeckPeer.ID);
+        CardPeer.doSelect(c, function (query, params) {
+          expect(query).toEqual("SELECT card.deck_id, card.face, card.suit, card.id, card.created_at FROM card LEFT JOIN deck ON card.deck_id = deck.id WHERE deck.id = ?");
+          expect(params[0]).toEqual(2);
+        });
+      });
+
+/*
+      // multiple joins. select all of a player's cards
+      it("Multiple joins", function () {
+        var c = new Criteria();
+        c.addJoin(PlayerCardPeer.CARD_ID, CardPeer.ID);
+        c.addJoin(PlayerCardPeer.PLAYER_ID, PlayerPeer.ID);
+        c.add(PlayerPeer.ID, 1);
+        CardPeer.doSelect(c, function (query, params) {
+          // TODO test this query
+          expect(query).toEqual("SELECT card.deck_id, card.face, card.suit, card.id, card.created_at FROM card LEFT JOIN card ON player_card.card_id = card.id LEFT JOIN player ON player_card.player_id = player.id WHERE player.id = ?");
+        });
+      });
+*/
+
+      // LIMIT
+      it("SELECT * FROM card LIMIT 10", function () {
+        var c = new Criteria();
+        c.setLimit(10);
+        CardPeer.doSelect(c, function (query, params) {
+          expect(query).toEqual("SELECT card.deck_id, card.face, card.suit, card.id, card.created_at FROM card LIMIT 10");
+        });
+      });
+
+      // LIMIT and OFFSET
+      it("SELECT * FROM card LIMIT 10, 10", function () {
+        var c = new Criteria();
+        c.setOffset(10);
+        c.setLimit(10);
+        CardPeer.doSelect(c, function (query, params) {
+          expect(query).toEqual("SELECT card.deck_id, card.face, card.suit, card.id, card.created_at FROM card LIMIT 10, 10");
+        });
+      });
+
     });
 
     describe("doCount", function () {

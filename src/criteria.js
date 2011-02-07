@@ -17,36 +17,50 @@ Snake.Criteria = function () {
 };
 
 Snake.Criteria.prototype = {
-  NOT_EQUAL: "<>",
-  EQUAL: "=", 
-  GREATER_THAN: ">", 
-  LESS_THAN: "<", 
-  GREATER_EQUAL: ">=", 
-  LESS_EQUAL: "<=",
-  LEFT_JOIN: "LEFT JOIN",
-  RIGHT_JOIN: "RIGHT_JOIN",
-  INNER_JOIN: "INNER_JOIN",
-  ISNULL: "IS NULL",
-  ISNOTNULL: "IS NOT NULL",
-  LIKE: "LIKE",
-  NOTLIKE: "NOT LIKE",
-  "IN": "IN",
-  NOTIN: "NOT IN",
+  selectors: {
+    NOT_EQUAL: "<>",
+    EQUAL: "=", 
+    GREATER_THAN: ">", 
+    LESS_THAN: "<", 
+    GREATER_EQUAL: ">=", 
+    LESS_EQUAL: "<=",
+    ISNULL: "IS NULL",
+    ISNOTNULL: "IS NOT NULL",
+    LIKE: "LIKE",
+    NOTLIKE: "NOT LIKE",
+    "IN": "IN",
+    NOTIN: "NOT IN"
+  },
+
+  joins: {
+    LEFT_JOIN: "LEFT JOIN",
+    RIGHT_JOIN: "RIGHT_JOIN",
+    INNER_JOIN: "INNER_JOIN"
+  },
+
+  addSelectColumn: function (field) {
+    var table_field = field.split(".");
+
+    this.select.push(field);
+    this.from.push(table_field[0]);
+  },
 
   add: function (field, value, selector) {
-    // check if value is a selector
-    if (value in this) {
-      selector = this[value]; 
-    } else {
-      selector = this[selector] || this.EQUAL;
-    }
-
     var i = 0
       , or = []
-      , where = "#{field} #{selector} ?";
+      , where = "";
+
+    // check if value (2nd param) is a selector
+    if (value in this.selectors) {
+      selector = this.selectors[value];
+
+    // use the selector specified
+    } else {
+      selector = this.selectors[selector] || this.selectors.EQUAL;
+    }
 
     // handles IS NULL || IS NOT NULL
-    if (selector === this.ISNULL || selector === this.ISNOTNULL) {
+    if (selector === this.selectors.ISNULL || selector === this.selectors.ISNOTNULL) {
       where = "#{field} #{selector}".interpose({
         field: field,
         selector: selector
@@ -64,7 +78,7 @@ Snake.Criteria.prototype = {
         }
 
         // IN || NOT IN
-        if (selector === this["IN"] || selector === this.NOTIN) {
+        if (selector === this.selectors.IN || selector === this.selectors.NOTIN) {
           where = "#{field} #{selector} (#{rsIn})".interpose({
             field: field[i],
             selector: selector,
@@ -94,7 +108,7 @@ Snake.Criteria.prototype = {
       } else {
         // TODO - if it's the same column and the selector is EQUAL, perform an or
 
-        where = where.interpose({
+        where = "#{field} #{selector} ?".interpose({
           field: field,
           selector: selector
         });
@@ -107,7 +121,7 @@ Snake.Criteria.prototype = {
   },
 
   addJoin: function (join1, join2, join_method) {
-    join_method = this[join_method] || this.LEFT_JOIN;
+    join_method = this.joins[join_method] || this.joins.LEFT_JOIN;
 
     var db1 = join1.split(".")
       , db2 = join2.split(".")
@@ -168,10 +182,9 @@ Snake.Criteria.prototype = {
   },
 
   buildQuery: function (operation, peer, onSuccess, onFailure) {
-    var sql = "";
-
     // INSERT
     if (operation === "INSERT") {
+/*
       var values = []
         , q = []
         , i = 0
@@ -194,6 +207,7 @@ Snake.Criteria.prototype = {
         columns: peer.columns,
         q: q
       });
+*/
 
     // SELECT || UPDATE || DELETE
     } else {
@@ -212,26 +226,26 @@ Snake.Criteria.prototype = {
         }
       }
 
-      if (this.from.length === 0) {
       // add the from
-      for (i = 0; i < this.select.length; i = i + 1) {
-        field = this.select[i];
+      if (this.from.length === 0) {
+        for (i = 0; i < this.select.length; i = i + 1) {
+          field = this.select[i];
 
-        from = field.split(".");
-        // tables to select from
-        if (!this.from.in_array(from[0])) {
-          this.from.push(from[0]);
+          from = field.split(".");
+          // tables to select from
+          if (!this.from.in_array(from[0])) {
+            this.from.push(from[0]);
+          }
         }
       }
-      }
-      // what happens if there are multiple froms??? FIXME/test
 
-      // build select
+      // build select statement
       sql = "SELECT #{select} FROM #{from}".interpose({
         select: this.select,
         from: this.from
       });
 
+      // joins if any
       if (this.join.length > 0) {
         for (i = 0; i < this.join.length; i = i + 1) {
           sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpose({
@@ -264,7 +278,11 @@ Snake.Criteria.prototype = {
 
       // limiter
       if (this.limit) {
-        sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
+        if (this.offset) {
+          sql = sql + " LIMIT #{offset}, #{limit}".interpose({ offset: this.offset, limit: this.limit });
+        } else {
+          sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
+        }
       }
 
     }    
@@ -272,18 +290,6 @@ Snake.Criteria.prototype = {
     if (Snake.debug === true) {
       onSuccess(sql, params);
     }
-
-    // select || update || delete
-
-    // add the froms
-
-    // joins
-
-    // where
-
-    // orderby
-
-    // offset/limit
   }
 };
 
