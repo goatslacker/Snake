@@ -10,6 +10,6 @@
   "licenses": ["MIT"],
   "dependencies": [],
   "bin": { 
-    "snakemake": "./bin/snakemake.js"
+    "snake-make": "./bin/snake-make.js"
   }
 }
