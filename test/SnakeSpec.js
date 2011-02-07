@@ -158,6 +158,61 @@ describe("Snake", function () {
       });
     });
 
+    describe("doDelete", function () {
+
+      // delete all cards
+      it("DELETE FROM card", function () {
+        CardPeer.doDelete(new Criteria(), function (query) {
+          expect(query).toEqual("DELETE FROM card");
+        });
+      });
+
+      // delete a deck
+      it("DELETE FROM deck", function () {
+        var c = new Criteria();
+        c.add(DeckPeer.ID, 3);
+        DeckPeer.doDelete(c, function (query, params) {
+          expect(query).toEqual("DELETE FROM deck WHERE deck.id = ?");
+          expect(params[0]).toEqual(3);
+        });
+      });
+
+      // delete 15 players
+      it("DELETE FROM player LIMIT 15", function () {
+        var c = new Criteria();
+        c.setLimit(15);
+        PlayerPeer.doDelete(c, function (query) {
+          expect(query).toEqual("DELETE FROM player LIMIT 15");
+        });
+      });
+
+      // delete 20 players with an offset of 10, but only players beginning with the letter J
+      it("DELETE FROM player WHERE name LIKE 'j%' LIMIT 10, 20", function () {
+        var c = new Criteria();
+        c.add(PlayerPeer.NAME, "j%", "LIKE");
+        c.setOffset(10);
+        c.setLimit(20);
+        PlayerPeer.doDelete(c, function (query, params) {
+          expect(query).toEqual("DELETE FROM player WHERE player.name LIKE ? LIMIT 10, 20");
+          expect(params[0]).toEqual("j%");
+        });
+      });
+
+      // delete the queen of herats
+      it("DELETE FROM card WHERE face = 'Q' AND suit = 'hearts'", function () {
+        var c = new Criteria();
+        c.add(CardPeer.FACE, 'Q');
+        c.add(CardPeer.SUIT, 'hearts');
+        CardPeer.doDelete(c, function (query, params) {
+          expect(query).toEqual("DELETE FROM card WHERE card.face = ? AND card.suit = ?");
+          expect(params[0]).toEqual("Q");
+          expect(params[1]).toEqual("hearts");
+        });
+      });
+
+
+    });
+
   });
 
 });
