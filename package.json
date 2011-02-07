@@ -1,0 +1,15 @@
+{
+  "name": "snakemake",
+  "version": "0.0.1",
+  "description": "builds a snake schema.json file into a javascript file",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goatslacker/Snake.git"
+  },
+  "author": "Josh Perez <josh@goatslacker.com>",
+  "licenses": ["MIT"],
+  "dependencies": [],
+  "bin": { 
+    "snakemake": "./bin/snakemake.js"
+  }
+}
