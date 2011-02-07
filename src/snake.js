@@ -2,11 +2,9 @@
 var Snake = {
   global: this,
   version: "0.0.27",
-  $nk_chain: [],
   db: false,
   config: {},
-  debug: false,
-  has_loaded: false
+  debug: false
 };
 
 // Prototype functions
@@ -59,34 +57,40 @@ Snake.init = function (o) {
   }
 
   // loads the schema into Snake
-  self.loadSchema(o);
+  self.config = o;
 
   // connects to database
   // onSuccess, inserts the Sql from the loaded schema
   self.connect(function () {
-    self.insertSql();
+    self.createTables();
   }, function (errorText) {
     console.log(errorText);
   });
 };
 
 /*
-  Functions to execute when Snake is ready.
-  @param func Object function
+  Hydrates a recordset from the database into it's respective models
+  @param peer Object
+  @param callback Object
 */
-Snake.ready = function (func) {
-  var self = Snake;
-  if (self.has_loaded) {
-    func();
-  } else {
-    self.$nk_chain.push(func);
-  }
-};
+Snake.hydrateRS = function (peer, callback, transaction, results) {
+  var model = null
+    , i = 0
+    , model_rs = [];
 
-/*
-  Loads the schema into Snake
-*/
-Snake.loadSchema = function (o) {
-  var self = Snake;
-  self.config = o;
+  // loops through all results in the row
+  for (i = 0; i < results.rows.length; i = i + 1) {
+
+    // creates a new model
+    model = new Snake.global[peer.jsName]();
+
+    // hydrates the model
+    model.hydrate(results.rows.item(i)); // YAY for hydrate
+
+    // pushes the results onto an array
+    model_rs.push(model);
+  }
+
+  // executes callback with array
+  callback(model_rs);
 };

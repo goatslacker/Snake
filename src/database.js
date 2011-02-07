@@ -72,7 +72,7 @@ Snake.query = function (query, params, onSuccess, onFailure) {
   Inserts specified SQL on init
   TODO drop_existing flag?
 */
-Snake.insertSql = function () {
+Snake.createTables = function () {
   var self = Snake
     , i = 0
     , query = null;
@@ -86,13 +86,4 @@ Snake.insertSql = function () {
       self.query(query);
     }
   }
-
-  // execute onloads...
-  for (i = 0; i < self.$nk_chain.length; i = i + 1) {
-    self.$nk_chain[i]();
-  }
-  self.$nk_chain = [];
-
-  // set Snake to already loaded.
-  self.has_loaded = true;
 };

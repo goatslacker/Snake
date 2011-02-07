@@ -41,33 +41,6 @@ Snake.Base = function (peer, prop) {
 };
 
 /*
-  Hydrates a recordset from the database into it's respective models
-  @param peer Object
-  @param callback Object
-*/
-Snake.hydrateRS = function (peer, callback, transaction, results) {
-  var model = null
-    , i = 0
-    , model_rs = [];
-
-  // loops through all results in the row
-  for (i = 0; i < results.rows.length; i = i + 1) {
-
-    // creates a new model
-    model = new Snake.global[peer.jsName]();
-
-    // hydrates the model
-    model.hydrate(results.rows.item(i)); // YAY for hydrate
-
-    // pushes the results onto an array
-    model_rs.push(model);
-  }
-
-  // executes callback with array
-  callback(model_rs);
-};
-
-/*
   The peer class of an object. Handles multiple records of items.
   @param obj Object
 */
