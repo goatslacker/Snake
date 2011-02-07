@@ -12,6 +12,8 @@ var jake = require("jake")
   , i = 0
   , code = []
   , outputFile = "build/snake.js"
+  , outputDevFile = "build/snake.dev.js"
+  , jslintComments = "/* jslint white: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2, maxerr: 1 */\n/* global openDatabase */\n"
   , uglifyOptions = {
     ast: false,
     mangle: true,
@@ -51,6 +53,7 @@ task("default", [], function () {
     fs.stat(preMin, function (err, stats) {
       preMin = stats;
       fs.stat(postMin, function (err, stats) {
+        // TODO sometimes this doesn't work :(
         postMin = stats;
         var ratio = Math.round((postMin.size / preMin.size) * 100);
 
@@ -88,6 +91,11 @@ task("default", [], function () {
 
       // run compressor
       compressFile();
+    });
+
+    // write files into a dev version with jslint comments
+    fs.writeFile(outputDevFile, jslintComments + code.join("\n") + "\n(function () { Snake.debug = true; })();", 'utf8', function (err) {
+      console.log("Wrote to " + outputDevFile);
     });
   }
 
@@ -140,7 +148,8 @@ task("default", [], function () {
   // --------- main ends here.
 
   function show_copyright(comments) {
-          var ret = "";
+    var ret = "";
+    if (comments) {
           for (var i = 0; i < comments.length; ++i) {
                   var c = comments[i];
                   if (c.type == "comment1") {
@@ -149,6 +158,7 @@ task("default", [], function () {
                           ret += "/*" + c.value + "*/";
                   }
           }
+    }
           return ret;
   };
 

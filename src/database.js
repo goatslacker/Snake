@@ -60,10 +60,10 @@ Snake.query = function (query, params, onSuccess, onFailure) {
         if (params) {
           console.log(params);
         }
+      } else {
+        // perform query
+        transaction.executeSql(query, params, onSuccess, onFailure);
       }
-
-      // perform query
-      transaction.executeSql(query, params, onSuccess, onFailure);
     });
   }
 };

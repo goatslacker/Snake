@@ -1,8 +1,5 @@
 describe("Snake", function () {
 
-  // set Snake to debug, don't run the queries just output them to the console
-  Snake.debug = true;
-
   it("Snake is version 0.0.27", function () {
     expect(Snake.version).toEqual("0.0.27");
   });
