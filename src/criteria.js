@@ -1,7 +1,6 @@
 /*
   Criteria Class
   Handles all the dirty SQL work
-  // TODO have a buildWhere, buildFrom, buildLimit functions. Separate them into another Object other than Criteria.
 */
 Snake.Criteria = function () {
   this.select = [];
@@ -53,6 +52,8 @@ Snake.Criteria.prototype = {
         selector: selector
       });
 
+      this.where.and.push(where);
+
     // all other queries
     } else {
 
@@ -74,7 +75,7 @@ Snake.Criteria.prototype = {
         } else {
 
           for (i = 0; i < field.length; i = i + 1) {
-            where = where.interpose({
+            where = "#{field} #{selector} ?".interpose({
               field: field[i],
               selector: selector
             });
@@ -91,6 +92,8 @@ Snake.Criteria.prototype = {
 
       // handles And
       } else {
+        // TODO - if it's the same column and the selector is EQUAL, perform an or
+
         where = where.interpose({
           field: field,
           selector: selector

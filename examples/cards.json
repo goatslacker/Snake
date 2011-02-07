@@ -25,8 +25,8 @@
         "jsName": "Card",
         "columns": {
           "deck_id": { "type": "integer", "foreign": "deck.id" },
-          "number": { "type": "integer" },
-          "suit": { "type": "integer" }
+          "face": { "type": "text" },
+          "suit": { "type": "text" }
         }
       },
       "player_card": {
