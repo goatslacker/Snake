@@ -72,17 +72,30 @@ Snake.query = function (query, params, onSuccess, onFailure) {
   Inserts specified SQL on init
   TODO drop_existing flag?
 */
-Snake.createTables = function () {
+Snake.createTables = function (drop_existing) {
   var self = Snake
     , i = 0
+    , table = null
     , query = null;
 
-  if (self.config.sql.length > 0) {
+  drop_existing = drop_existing || false;
+
+  if (self.runSql && self.config.sql.length > 0) {
+
+    if (drop_existing) {
+      for (table in self.config.schema) {
+        if (self.config.schema.hasOwnProperty(table)) {
+          query = "DROP TABLE IF EXISTS '#{table}'".interpose({ table: table });
+          self.query(query);
+        }
+      }
+    }
 
     // loop through SQL statements
     for (i = 0; i < self.config.sql.length; i = i + 1) {
       query = self.config.sql[i];
-      // run the queries
+
+      // run the query
       self.query(query);
     }
   }

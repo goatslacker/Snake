@@ -4,7 +4,8 @@ var Snake = {
   version: "0.0.27",
   db: false,
   config: {},
-  debug: false
+  debug: false,
+  runSql: true
 };
 
 // Prototype functions

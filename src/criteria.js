@@ -180,7 +180,7 @@ Snake.Criteria.prototype = {
     this.from.push(peer.tableName);
 
     this.buildQuery("SELECT", peer, function (sql, params) {
-      if (Snake.debug) {
+      if (!Snake.runSql) {
         onSuccess(sql, params)
       } else {
         Snake.query(sql, params, function (transaction, results) {
@@ -195,7 +195,7 @@ Snake.Criteria.prototype = {
 
   executeSelect: function (peer, onSuccess, onFailure) {
     this.buildQuery("SELECT", peer, function (sql, params) {
-      if (Snake.debug) {
+      if (!Snake.runSql) {
         onSuccess(sql, params)
       } else {
         Snake.query(sql, params, function (transaction, results) {
@@ -230,7 +230,7 @@ Snake.Criteria.prototype = {
 
   executeDelete: function (peer, onSuccess, onFailure) {
     this.buildQuery("DELETE", peer, function (sql, params) {
-      if (Snake.debug) {
+      if (!Snake.runSql) {
         onSuccess(sql, params)
       } else {
         Snake.query(sql, params, onSuccess, onFailure);

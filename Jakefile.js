@@ -94,7 +94,7 @@ task("default", [], function () {
     });
 
     // write files into a dev version with jslint comments
-    fs.writeFile(outputDevFile, jslintComments + code.join("\n") + "\n(function () { Snake.debug = true; })();", 'utf8', function (err) {
+    fs.writeFile(outputDevFile, jslintComments + code.join("\n") + "\n(function () { Snake.debug = true; Snake.runSql = false; })();", 'utf8', function (err) {
       console.log("Wrote to " + outputDevFile);
     });
   }
