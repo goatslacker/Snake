@@ -13,6 +13,7 @@ Snake.Criteria = function () {
   };
   this.order = [];
   this.limit = false;
+  this.offset = false;
   this.group = [];
 };
 
@@ -26,36 +27,79 @@ Snake.Criteria.prototype = {
   LEFT_JOIN: "LEFT JOIN",
   RIGHT_JOIN: "RIGHT_JOIN",
   INNER_JOIN: "INNER_JOIN",
+  ISNULL: "IS NULL",
+  ISNOTNULL: "IS NOT NULL",
+  LIKE: "LIKE",
+  NOTLIKE: "NOT LIKE",
+  "IN": "IN",
+  NOTIN: "NOT IN",
 
   add: function (field, value, selector) {
-    selector = this[selector] || this.EQUAL;
+    // check if value is a selector
+    if (value in this) {
+      selector = this[value]; 
+    } else {
+      selector = this[selector] || this.EQUAL;
+    }
 
     var i = 0
       , or = []
       , where = "#{field} #{selector} ?";
 
-    if (Snake.is_array(field) && Snake.is_array(value)) {
-      for (i = 0; i < field.length; i = i + 1) {
-        where = "#{field} #{selector} ?".interpose({
-          field: field[i],
-          selector: selector
-        });
-        or.push(where);
-      }
-
-      this.where.and.push(or);
-
-      for (i = 0; i < value.length; i = i + 1) {
-        this.where.params.push(value[i]);
-      }
-    } else {
-      where = "#{field} #{selector} ?".interpose({
+    // handles IS NULL || IS NOT NULL
+    if (selector === this.ISNULL || selector === this.ISNOTNULL) {
+      where = "#{field} #{selector}".interpose({
         field: field,
         selector: selector
       });
 
-      this.where.and.push(where);
-      this.where.params.push(value);
+    // all other queries
+    } else {
+
+      // handles Or || IN || NOT IN
+      if (Snake.is_array(field) && Snake.is_array(value)) {
+        for (i = 0; i < field.length; i = i + 1) {
+          or.push("?");
+        }
+
+        // IN || NOT IN
+        if (selector === this["IN"] || selector === this.NOTIN) {
+          where = "#{field} #{selector} (#{rsIn})".interpose({
+            field: field[i],
+            selector: selector,
+            rsIn: q
+          });
+
+        // Or
+        } else {
+
+          for (i = 0; i < field.length; i = i + 1) {
+            where = where.interpose({
+              field: field[i],
+              selector: selector
+            });
+            or.push(where);
+          }
+
+          this.where.and.push(or);
+        }
+
+        // push the params into an Array
+        for (i = 0; i < value.length; i = i + 1) {
+          this.where.params.push(value[i]);
+        }
+
+      // handles And
+      } else {
+        where = where.interpose({
+          field: field,
+          selector: selector
+        });
+
+        this.where.and.push(where);
+        this.where.params.push(value);
+      }
+
     }
   },
 
@@ -102,258 +146,141 @@ Snake.Criteria.prototype = {
     }
   },
 
+  setOffset: function (offset) {
+    offset = offset || false;
+
+    if (offset) {
+      this.offset = offset;
+    }
+  },
+
   executeCount: function (peer, callback) {
-    var i = 0
-      , sql = ""
-      , field = null
-      , from = null
-      , where = null
-      , params = null;
-
-    if (this.select.length === 0) {
-      this.select.push(peer.tableName + "." + peer.columns[0]);
-    }
-
-    // add the from
-    for (i = 0; i < this.select.length; i = i + 1) {
-      field = this.select[i];
-
-      from = field.split(".");
-      // tables to select from
-      if (!this.from.in_array(from[0])) {
-        this.from.push(from[0]);
-      }
-    }
-
-    // build select
-    sql = "SELECT COUNT(*) AS count FROM #{from}".interpose({
-      from: this.from
-    });
-
-    if (this.join.length > 0) {
-      for (i = 0; i < this.join.length; i = i + 1) {
-        sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpose({
-          method: this.join[i].method,
-          reference: this.join[i].from.table + "." + this.join[i].from.field,
-          table: this.join[i].to.table,
-          key: this.join[i].to.field
-        });
-      }
-    }
-
-    // where
-    if (this.where.and.length > 0) {
-      for (i = 0; i < this.where.and.length; i = i + 1) {
-        if (Snake.is_array(this.where.and[i])) {
-          this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
-        }
-      }
-
-      where = this.where.and.join(" AND ");
-
-      sql = sql + " WHERE " + where;
-      params = this.where.params;
-    }
-
-    // order by
-    if (this.order.length > 0) {
-      sql = sql + " ORDER BY #{order}".interpose({ order: this.order });
-    }
-
-    Snake.query(sql, params, function (transaction, results) {
-      if (callback) {
-        var obj = results.rows.item(0);
-        callback(obj.count);
-      }
-    });
+    this.select.push("COUNT(*) AS count");
+    this.from.push(peer.tableName);
+    this.buildQuery("SELECT", peer, callback);
   },
 
   executeSelect: function (peer, callback) {
-    var i = 0
-      , sql = ""
-      , field = null
-      , from = null
-      , where = null
-      , params = null;
+    this.buildQuery("SELECT", peer, callback);
+  },
 
-    // add select columns
-    if (this.select.length === 0) {
-      for (i = 0; i < peer.columns.length; i = i + 1) {
-        this.select.push(peer.tableName + "." + peer.columns[i]);
-      }
-    }
+  buildQuery: function (operation, peer, onSuccess, onFailure) {
+    var sql = "";
 
-    // add the from
-    for (i = 0; i < this.select.length; i = i + 1) {
-      field = this.select[i];
-
-      from = field.split(".");
-      // tables to select from
-      if (!this.from.in_array(from[0])) {
-        this.from.push(from[0]);
-      }
-    }
-    // what happens if there are multiple froms??? FIXME/test
-
-    // build select
-    sql = "SELECT #{select} FROM #{from}".interpose({
-      select: this.select,
-      from: this.from
-    });
-
-    if (this.join.length > 0) {
-      for (i = 0; i < this.join.length; i = i + 1) {
-        sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpose({
-          method: this.join[i].method,
-          reference: this.join[i].from.table + "." + this.join[i].from.field,
-          table: this.join[i].to.table,
-          key: this.join[i].to.field
-        });
-      }
-    }
-
-    // where
-    if (this.where.and.length > 0) {
-      for (i = 0; i < this.where.and.length; i = i + 1) {
-        if (Snake.is_array(this.where.and[i])) {
-          this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
-        }
-      }
-
-      where = this.where.and.join(" AND ");
-
-      sql = sql + " WHERE " + where;
-      params = this.where.params;
-    }
-
-    // order by
-    if (this.order.length > 0) {
-      sql = sql + " ORDER BY #{order}".interpose({ order: this.order });
-    }
-
-    // limiter
-    if (this.limit) {
-      sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
-    }
-
-    Snake.query(sql, params, function (transaction, results) {
-      var arr = []
+    // INSERT
+    if (operation === "INSERT") {
+      var values = []
+        , q = []
         , i = 0
-        , obj = null
-        , tmp = null
-        , prop = null;
+        , val = null
+        , sql = "";
 
-      if (results.rows.length > 0) {
-        for (i = 0; i < results.rows.length; i = i + 1) {
+      for (i = 0; i < peer.columns.length; i = i + 1) {
+        val = model[peer.columns[i]] || null;
+  
+        if (peer.columns[i] === 'created_at' && val === null) {
+          val = Date.now();
+        }
 
-          obj = results.rows.item(i);
-          tmp = new Snake.global[peer.jsName]();
+        values.push(val);
+        q.push("?");
+      }
 
-          for (prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-              tmp[prop] = obj[prop];
-              tmp['$nk_' + prop] = obj[prop];
-            }
-          }
+      sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpose({
+        table: peer.tableName,
+        columns: peer.columns,
+        q: q
+      });
 
-          arr.push(tmp);
+    // SELECT || UPDATE || DELETE
+    } else {
+
+      var i = 0
+        , sql = ""
+        , field = null
+        , from = null
+        , where = null
+        , params = null;
+
+      // add select columns
+      if (this.select.length === 0) {
+        for (i = 0; i < peer.columns.length; i = i + 1) {
+          this.select.push(peer.tableName + "." + peer.columns[i]);
         }
       }
 
-      callback(arr);
-    });
-  },
+      if (this.from.length === 0) {
+      // add the from
+      for (i = 0; i < this.select.length; i = i + 1) {
+        field = this.select[i];
 
-  executeInsert: function (model, peer, onSuccess, onFailure) {
-    var values = []
-      , q = []
-      , i = 0
-      , val = null
-      , sql = "";
+        from = field.split(".");
+        // tables to select from
+        if (!this.from.in_array(from[0])) {
+          this.from.push(from[0]);
+        }
+      }
+      }
+      // what happens if there are multiple froms??? FIXME/test
 
-    for (i = 0; i < peer.columns.length; i = i + 1) {
-      val = model[peer.columns[i]] || null;
+      // build select
+      sql = "SELECT #{select} FROM #{from}".interpose({
+        select: this.select,
+        from: this.from
+      });
 
-      if (peer.columns[i] === 'created_at' && val === null) {
-        val = Date.now();
+      if (this.join.length > 0) {
+        for (i = 0; i < this.join.length; i = i + 1) {
+          sql = sql + " #{method} #{table} ON #{reference} = #{table}.#{key}".interpose({
+            method: this.join[i].method,
+            reference: this.join[i].from.table + "." + this.join[i].from.field,
+            table: this.join[i].to.table,
+            key: this.join[i].to.field
+          });
+        }
       }
 
-      values.push(val);
-      q.push("?");
+      // where
+      if (this.where.and.length > 0) {
+        for (i = 0; i < this.where.and.length; i = i + 1) {
+          if (Snake.is_array(this.where.and[i])) {
+            this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
+          }
+        }
+
+        where = this.where.and.join(" AND ");
+
+        sql = sql + " WHERE " + where;
+        params = this.where.params;
+      }
+
+      // order by
+      if (this.order.length > 0) {
+        sql = sql + " ORDER BY #{order}".interpose({ order: this.order });
+      }
+
+      // limiter
+      if (this.limit) {
+        sql = sql + " LIMIT #{limit}".interpose({ limit: this.limit });
+      }
+
+    }    
+
+    if (Snake.debug === true) {
+      onSuccess(sql, params);
     }
 
-    sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpose({
-      table: peer.tableName,
-      columns: peer.columns,
-      q: q
-    });
+    // select || update || delete
 
-    Snake.query(sql, values, function (transaction, results) {
-      // set an ID
-      model.id = results.insertId;
+    // add the froms
 
-      if (onSuccess) {
-        onSuccess(model);
-      }
-    }, onFailure);
-  },
-
-  executeUpdate: function (model, peer, onSuccess, onFailure) {
-    var conditions = []
-      , values = []
-      , val = null
-      , i = 0
-      , sql = "";
-
-    for (i = 0; i < peer.columns.length; i = i + 1) {
-      if (model[peer.columns[i]] !== model['$nk_' + peer.columns[i]]) {
-        val = model[peer.columns[i]] || null;
-        values.push(val);
-
-        conditions.push(peer.columns[i] + " = ?");
-      }
-    }
-
-    sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpose({
-      table: peer.tableName,
-      conditions: conditions,
-      id: model.id
-    });
-
-    Snake.query(sql, values, function (transaction, results) {
-      if (onSuccess) {
-        onSuccess(model);
-      }
-    }, onFailure);
-  },
-
-  executeDelete: function (peer, onSuccess, onFailure) {
-    var sql = ""
-      , where = ""
-      , params = null;
-
-    this.from = peer.tableName;  
-
-    // build select
-    sql = "DELETE FROM #{from}".interpose({
-      from: this.from
-    });
+    // joins
 
     // where
-    if (this.where.and.length > 0) {
-      for (i = 0; i < this.where.and.length; i = i + 1) {
-        if (Snake.is_array(this.where.and[i])) {
-          this.where.and[i] = "(" + this.where.and[i].join(" OR ") + ")";
-        }
-      }
 
-      where = this.where.and.join(" AND ");
+    // orderby
 
-      sql = sql + " WHERE " + where;
-      params = this.where.params;
-    }
-
-    Snake.query(sql, params, onSuccess, onFailure);
+    // offset/limit
   }
 };
 
