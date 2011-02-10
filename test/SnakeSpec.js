@@ -65,15 +65,20 @@ describe("Snake", function () {
           });
         });
 
+        // TODO
         // Where And & Or
-  /*
+/*
         it("SELECT * FROM card WHERE K of Hearts OR Q of Diamonds", function () {
-          c.add([CardPeer.FACE, "K"], [Card.FACE, "Q"]);
+          c.addssssssOr([CardPeer.FACE, "K"], [CardPeer.SUIT, "hearts"]);
+          c.addssssssOr([CardPeer.FACE, "Q"], [CardPeer.SUIT, "diamonds"]);
           CardPeer.doSelect(c, function (query, params) {
             console.log(query);
+            console.log(params);
           });
         });
-  */
+*/
+
+        // TODO test addOr
 
         // IS NULL
         it("SELECT * FROM player WHERE name IS NULL", function () {

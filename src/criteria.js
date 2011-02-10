@@ -47,10 +47,14 @@ Snake.Criteria.prototype = {
     this.from.push(table_field[0]);
   },
 
-  add: function (field, value, selector) {
+  add: function (field, value, selector) { // TODO replace with arguments
     var i = 0
       , or = []
       , where = "";
+
+    // 1st param is the field
+    // 2nd param can be a selector or a value...
+    // 3rd param is usually a selector
 
     // check if value (2nd param) is a selector
     if (value in this.selectors) {
@@ -73,7 +77,7 @@ Snake.Criteria.prototype = {
     // all other queries
     } else {
 
-      // handles Or || IN || NOT IN
+      // handles IN || NOT IN
       if (Snake.is_array(field) && Snake.is_array(value)) {
         for (i = 0; i < field.length; i = i + 1) {
           or.push("?");
@@ -88,18 +92,7 @@ Snake.Criteria.prototype = {
           });
 
         // Or
-        } else {
-
-          for (i = 0; i < field.length; i = i + 1) {
-            where = "#{field} #{selector} ?".interpose({
-              field: field[i],
-              selector: selector
-            });
-            or.push(where);
-          }
-
-          this.where.and.push(or);
-        }
+        } 
 
         // push the params into an Array
         for (i = 0; i < value.length; i = i + 1) {
@@ -120,6 +113,36 @@ Snake.Criteria.prototype = {
       }
 
     }
+  },
+
+  addOr: function () {
+    var i = 0
+      , z = 0
+      , field = null
+      , value = null
+      , selector = null
+      , or = [];
+
+    for (i; i < arguments.length; i = i + 1) {
+      if (Snake.is_array(arguments[i])) {
+
+        // TODO make dynamic
+        field = arguments[i][0];
+        value = arguments[i][1];
+        selector = this.selectors[selector] || this.selectors.EQUAL;
+
+        where = "#{field} #{selector} ?".interpose({
+          field: field,
+          selector: selector
+        });
+        or.push(where);
+
+      } // TODO else
+    }
+
+    // TODO add the params
+
+    this.where.and.push(or);
   },
 
   addJoin: function (join1, join2, join_method) {
