@@ -44,6 +44,7 @@ Snake.VQL = {
         if (self.sql.select.length === 0) {
           query.select = "*";
 /*
+// this adds all the columns
           query.select = [];
           for (var column in schema.columns) {
             query.select.push(table + "." + column);
@@ -120,11 +121,24 @@ Snake.VQL = {
             , selector = null;
 
         if (arguments.length > 1) {
-          field = arguments[0]
-          value = arguments[1]
-          selector = arguments[2] || Snake.VQL.EQUAL;
+          field = arguments[0];
+          value = arguments[1];
+
+          if (value in Snake.VQL) {
+            selector = Snake.VQL[value];
+          } else {
+            selector = Snake.VQL[arguments[2]] || Snake.VQL.EQUAL;
+          }
+
+          if (field in schema.columns) {
+            field = table + "." + field;
+          }
   
-          VQL.sql.where.push(field + " " + selector + " ?");
+          if (selector === Snake.VQL.ISNULL || selector === Snake.VQL.ISNOTNULL) {
+            VQL.sql.where.push(field + " " + selector);
+          } else {
+            VQL.sql.where.push(field + " " + selector + " ?");
+          }
         } else {
           for (field in arguments[0]) {
             value = arguments[0][field];
@@ -149,8 +163,17 @@ Snake.VQL = {
                 q.push("?");
               }
 
+              if (field in schema.columns) {
+                field = table + "." + field;
+              }
+
               VQL.sql.where.push(field + " " + selector + " (" + q.join(", ") + ")");
             } else {
+
+              if (field in schema.columns) { // TODO refactor
+                field = table + "." + field;
+              }
+
               VQL.sql.where.push(field + " " + selector + " ?");
             }
 
@@ -176,62 +199,4 @@ Snake.VQL = {
   }
 };
 
-
-/*
-if (!"venom" in Snake.global) {
-  Snake.global.venom = Snake.VQL;
-}
-
-if (!"vql" in Snake.global) {
-  Snake.global.venom = Snake.VQL;
-}
-*/
-
-var Player = {"name":null,"chips":null,"id":null,"created_at":null};
-var Deck = {"name":null,"id":null,"created_at":null};
-var Card = {"deck_id":null,"face":null,"suit":null,"id":null,"created_at":null};
-var PlayerCard = {"player_id":null,"card_id":null,"id":null,"created_at":null};
-
-(function () {
-  var Venom = vql = Snake.VQL;
-
-  Venom._createPeer({"player":{"jsName":"Player","columns":{"name":{"type":"text"},"chips":{"type":"integer"},"id":{"type":"INTEGER","primaryKey":true},"created_at":{"type":"INTEGER"}}},"deck":{"jsName":"Deck","columns":{"name":{"type":"text"},"id":{"type":"INTEGER","primaryKey":true},"created_at":{"type":"INTEGER"}}},"card":{"jsName":"Card","columns":{"deck_id":{"type":"integer","foreign":"deck.id"},"face":{"type":"text"},"suit":{"type":"text"},"id":{"type":"INTEGER","primaryKey":true},"created_at":{"type":"INTEGER"}}},"player_card":{"jsName":"PlayerCard","columns":{"player_id":{"type":"integer","foreign":"player.id"},"card_id":{"type":"integer","foreign":"card.id"},"id":{"type":"INTEGER","primaryKey":true},"created_at":{"type":"INTEGER"}}}}, function () {
-
-    //console.log(Venom.Player.find({ name: 'Josh' }).orderBy({ name: 'desc' }).limit(5).toSQL());
-    //console.log(Venom.Card.limit(10).toSQL());
-
-    // SELECT * FROM card WHERE face = 'A' LIMIT 10; // should clear limit
-    console.log(vql.Card.find('face', 'A').limit(10).toSQL());
-
-    // SELECT * FROM card WHERE face = 'A';
-    console.log(vql.Card.find({ face: 'A' }).toSQL());
-
-    // SELECT * FROM card WHERE face > 'A';
-    console.log(vql.Card.find('face', 'A', vql.GREATER_THAN).toSQL());
-
-    // SELECT * FROM card WHERE face = 'A' AND suit = 'hearts';
-    console.log(vql.Card.find({ face: 'A', suit: 'hearts' }).toSQL());
-
-    // SELECT * FROM card WHERE face IN ('A', 'J');
-    console.log(vql.Card.find({ face: ['A', 'J'] }).toSQL());
-
-    // SELECT * FROM player WHERE name LIKE 'josh'; // FIXME
-    console.log(vql.Player.find({ name: /Josh/ }).toSQL());
-
-/*
-// SELECT * FROM card WHERE (face = 'A' and suit = 'hearts') OR (face = 'J' and suit = 'spades');
-console.log(vql.Card.find({
-  or: {
-    and: [{
-      face: 'a',
-      suit: 'hearts'
-    }, {
-      face: 'j',
-      suit: 'spades'
-    }]
-  }
-}).toSQL())
-*/
-
-  });
-})();
+var Venom = vql = Snake.VQL;

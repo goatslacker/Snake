@@ -8,7 +8,10 @@ var jake = require("jake")
   , pro = uglify.uglify
 //  , exec  = require('child_process').exec
 //  , child = null
-  , files = ['snake', 'database', 'base', 'criteria']
+
+
+  , files = ['snake', 'database', 'vql']
+//  , files = ['snake', 'database', 'base', 'criteria']
   , i = 0
   , code = []
   , outputFile = "build/snake.js"
@@ -100,7 +103,7 @@ task("default", [], function () {
   }
 
   , readFile = function () {
-    if (code.length === 4) {
+    if (code.length === files.length) {
       writeFile();
     } else {
       var inputFile = "src/" + files[i] + ".js";
