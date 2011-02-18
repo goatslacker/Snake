@@ -151,6 +151,10 @@ Snake.VQL = {
               selector = Snake.VQL.LIKE;
               //console.log(value.toString()); // TODO
               break;
+            case "[object Object]":
+              // need to loop through each item and set it
+              //console.log(value[0]); // TODO
+              break;
             default:
               selector = Snake.VQL.EQUAL
             }

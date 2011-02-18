@@ -31,10 +31,10 @@ Array.prototype.in_array = function (val) {
   @return String
 */
 String.prototype.interpose = function (foreign) {
-  var str = this.toString()
-    , regexpx = null
-    , value = null
-    , i = false;
+  var str = this.toString(),
+      regexpx = null,
+      value = null,
+      i = false;
 
   for (i in foreign) {
     if (foreign.hasOwnProperty(i)) {
@@ -77,9 +77,9 @@ Snake.init = function (o) {
   @param callback Object
 */
 Snake.hydrateRS = function (peer, callback, transaction, results) {
-  var model = null
-    , i = 0
-    , model_rs = [];
+  var model = null,
+      i = 0,
+      model_rs = [];
 
   // loops through all results in the row
   for (i = 0; i < results.rows.length; i = i + 1) {

@@ -3,8 +3,8 @@
   Base Class for the ORM
 */
 Snake.Base = function (peer, prop) {
-  var name = null
-    , Model = function () { };
+  var name = null,
+      Model = function () { };
 
   Model.prototype = {
 

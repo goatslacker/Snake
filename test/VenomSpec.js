@@ -32,6 +32,10 @@ describe("Snake", function () {
           expect(vql.Card.find('face', 'A', 'GREATER_THAN').toSQL()).toEqual("SELECT * FROM card WHERE card.face > ?");
         });
 
+        it("SELECT * FROM card WHERE face > 'A'", function () {
+          expect(vql.Card.find({ face: { 'GREATER_THAN': 'A' }}).toSQL()).toEqual("SELECT * FROM card WHERE card.face > ?");
+        });
+
         it("SELECT * FROM card WHERE face = 'A' AND suit = 'hearts'", function () {
           expect(vql.Card.find({ face: 'A', suit: 'hearts' }).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ? AND card.suit = ?");
         });

@@ -67,6 +67,7 @@ task("default", [], function () {
       });
     });
   }
+
   , compressFile = function () {
     // Uglify JS
     fs.readFile(outputFile, "utf8", function (err, text) {

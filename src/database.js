@@ -73,10 +73,10 @@ Snake.query = function (query, params, onSuccess, onFailure) {
   TODO drop_existing flag?
 */
 Snake.createTables = function (drop_existing) {
-  var self = Snake
-    , i = 0
-    , table = null
-    , query = null;
+  var self = Snake,
+      i = 0,
+      table = null,
+      query = null;
 
   drop_existing = drop_existing || false;
 
