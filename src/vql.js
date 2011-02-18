@@ -18,6 +18,12 @@ Snake.VQL = {
     var Model = {
     
       add: function () {
+        var field = arguments[0],
+            value = arguments[1],
+            selector = arguments[2];
+
+        // TODO refactor this, run all of the finds through here.
+        this.sql.where.push(field + " " + selector + " ?");
       },
 
       find: function () {
@@ -60,9 +66,12 @@ Snake.VQL = {
                 break;
               case "[object Object]":
                 // FIXME only works for the last item
+                // TODO put this in parenthesis ()()()()
                 for (var isdf in value) {
                   selector = Snake.VQL[isdf] || Snake.VQL.EQUAL;
                   value = isdf[value];
+
+                  this.add(field, value, selector); // not working :(
                 }
                 // need to loop through each item and set it
                 //console.log(value[0]); // TODO
