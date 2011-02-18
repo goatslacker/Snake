@@ -9,7 +9,11 @@ var jake = require("jake")
 //  , exec  = require('child_process').exec
 //  , child = null
 
-
+//  , orm = {
+//    criteria: ['snake', 'database', 'base', 'criteria'],
+//    venom: ['snake', 'database', 'vql']
+//  }
+  
   , files = ['snake', 'database', 'vql']
 //  , files = ['snake', 'database', 'base', 'criteria']
   , i = 0

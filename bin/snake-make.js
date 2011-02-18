@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// FIXME - should work with vql
+
 var sys = require("sys")
   , path = require("path")
   , fs = require("fs")
