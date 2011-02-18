@@ -16,6 +16,9 @@ Snake.VQL = {
   _venom: function (table, schema) {
 
     var Model = {
+    
+      add: function () {
+      },
 
       find: function () {
         var field = null,
@@ -56,6 +59,11 @@ Snake.VQL = {
                 //console.log(value.toString()); // TODO
                 break;
               case "[object Object]":
+                // FIXME only works for the last item
+                for (var isdf in value) {
+                  selector = Snake.VQL[isdf] || Snake.VQL.EQUAL;
+                  value = isdf[value];
+                }
                 // need to loop through each item and set it
                 //console.log(value[0]); // TODO
                 break;

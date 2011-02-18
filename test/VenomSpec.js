@@ -10,7 +10,7 @@ describe("Snake", function () {
     // Run through Venom and return the SQL query
     describe("Venom - Return Queries", function () {
 
-        it("SELECT * FROM card LIMIT 10", function () {
+        it("SELECT * FROM card LIMIT 5", function () {
           expect(Venom.Card.limit(5).toSQL()).toEqual("SELECT * FROM card LIMIT 5");
         });
 
@@ -18,30 +18,28 @@ describe("Snake", function () {
           expect(vql.Card.toSQL()).toEqual("SELECT * FROM card");
         });
 
-        it("SELECT * FROM card WHERE face = 'A' LIMIT 10", function () {
-          expect(vql.Card.find('face', 'A').limit(10).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ? LIMIT 10");
+        it("SELECT * FROM card WHERE face = '2' LIMIT 4", function () {
+          expect(vql.Card.find('face', '2').limit(4).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ? LIMIT 4");
         });
 
-        it("SELECT * FROM card WHERE face = 'A'", function () {
-          expect(vql.Card.find({ face: 'A' }).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ?");
+        it("SELECT * FROM card WHERE face = '5'", function () {
+          expect(vql.Card.find({ face: '5' }).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ?");
         });
 
         it("SELECT * FROM card WHERE face > 'A'", function () {
           expect(vql.Card.find('face', 'A', 'GREATER_THAN').toSQL()).toEqual("SELECT * FROM card WHERE card.face > ?");
         });
 
-/*
         it("SELECT * FROM card WHERE face > 'A'", function () {
           expect(vql.Card.find({ face: { 'GREATER_THAN': 'A' }}).toSQL()).toEqual("SELECT * FROM card WHERE card.face > ?");
         });
-*/
 
-        it("SELECT * FROM card WHERE face = 'A' AND suit = 'hearts'", function () {
-          expect(vql.Card.find({ face: 'A', suit: 'hearts' }).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ? AND card.suit = ?");
+        it("SELECT * FROM card WHERE face = '7' AND suit = 'hearts'", function () {
+          expect(vql.Card.find({ face: '7', suit: 'hearts' }).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ? AND card.suit = ?");
         });
 
-        it("SELECT * FROM card WHERE face IN ('A', 'J')", function () {
-          expect(vql.Card.find({ face: ['A', 'J'] }).toSQL()).toEqual("SELECT * FROM card WHERE card.face IN (?, ?)");
+        it("SELECT * FROM card WHERE face IN ('Q', 'J')", function () {
+          expect(vql.Card.find({ face: ['Q', 'J'] }).toSQL()).toEqual("SELECT * FROM card WHERE card.face IN (?, ?)");
         });
 
         it("SELECT * FROM player WHERE name IS NULL", function () {
