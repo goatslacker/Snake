@@ -15,110 +15,12 @@ Snake.VQL = {
 
   _venom: function (table, schema) {
 
-    var Base = {
-      limit: function (context, limit) {
-        context.sql.limit = limit;
-        return context;
-      },
+    var Model = {
 
-      offset: function (context, offset) {
-        context.sql.offset = offset;
-        return context;
-      },
-
-      orderBy: function (context, obj) {
-        for (var column in obj) {
-          context.sql.orderBy.push(column + " " + obj[column].toUpperCase());
-        }
-
-        return context;
-      },
-
-      toSQL: function (self) {
-        var sql = "SELECT #{select} FROM #{from}"
-          , query = {};
-
-        // SELECT
-        query.select = "*";
-
-        if (self.sql.select.length === 0) {
-          query.select = "*";
-/*
-// this adds all the columns
-          query.select = [];
-          for (var column in schema.columns) {
-            query.select.push(table + "." + column);
-          }
-        } else {
-*/
-        } else {
-          query.select = self.sql.select;
-        }
-
-        // FROM
-        query.from = table;
-
-        // WHERE
-        if (self.sql.where.length > 0) {
-          sql = sql + " WHERE #{where}";
-          query.where = self.sql.where.join(" AND ");
-        }
-    
-        // ORDER BY
-        if (self.sql.orderBy.length > 0) {
-          sql = sql + " ORDER BY #{orderBy}";
-          query.orderBy = self.sql.orderBy;
-        }
-
-        // LIMIT && OFFSET
-        if (self.sql.limit) {
-          if (self.sql.offset) {
-            sql = sql + " LIMIT #{offset}, #{limit}";
-            query.offset = self.sql.offset;
-          } else {
-            sql = sql + " LIMIT #{limit}";
-          }
-
-          query.limit = self.sql.limit;
-        }
-
-        return sql.interpose(query);
-      }
-
-    };
-
-    var methods = {
       find: function () {
-
-        var VQL = {
-          sql: {
-            select: [],
-            from: table,
-            where: [],
-            orderBy: [],
-            limit: false
-          },
-
-          orderBy: function (obj) {
-            return Base.orderBy(this, obj);
-          },
-  
-          offset: function (offset) {
-            return Base.offset(this, offset);
-          },
-
-          limit: function (limit) {
-            return Base.limit(this, limit);
-          },
-
-          toSQL: function () {
-            return Base.toSQL(this);
-          }
-        };
-
-          var field = null
-            , value = null
-            , selector = null;
+        var field = null,
+            value = null,
+            selector = null;
 
         if (arguments.length > 1) {
           field = arguments[0];
@@ -135,66 +37,158 @@ Snake.VQL = {
           }
   
           if (selector === Snake.VQL.ISNULL || selector === Snake.VQL.ISNOTNULL) {
-            VQL.sql.where.push(field + " " + selector);
+            this.sql.where.push(field + " " + selector);
           } else {
-            VQL.sql.where.push(field + " " + selector + " ?");
+            this.sql.where.push(field + " " + selector + " ?");
           }
+
         } else {
           for (field in arguments[0]) {
-            value = arguments[0][field];
+            if (arguments.hasOwnProperty(field)) {
+              value = arguments[0][field];
 
-            switch (Object.prototype.toString.call(value)) {
-            case "[object Array]":
-              selector = Snake.VQL.IN;
-              break;
-            case "[object RegExp]":
-              selector = Snake.VQL.LIKE;
-              //console.log(value.toString()); // TODO
-              break;
-            case "[object Object]":
-              // need to loop through each item and set it
-              //console.log(value[0]); // TODO
-              break;
-            default:
-              selector = Snake.VQL.EQUAL
+              switch (Object.prototype.toString.call(value)) {
+              case "[object Array]":
+                selector = Snake.VQL.IN;
+                break;
+              case "[object RegExp]":
+                selector = Snake.VQL.LIKE;
+                //console.log(value.toString()); // TODO
+                break;
+              case "[object Object]":
+                // need to loop through each item and set it
+                //console.log(value[0]); // TODO
+                break;
+              default:
+                selector = Snake.VQL.EQUAL;
+              }
+
+              // IN || NOT IN
+              if (selector === Snake.VQL.IN || selector === Snake.VQL.NOTIN) {
+                var q = [];
+
+                for (var i = 0; i < value.length; i = i + 1) {
+                  q.push("?");
+                }
+
+                if (field in schema.columns) {
+                  field = table + "." + field;
+                }
+
+                this.sql.where.push(field + " " + selector + " (" + q.join(", ") + ")");
+              } else {
+
+                if (field in schema.columns) { // TODO refactor
+                  field = table + "." + field;
+                }
+
+                this.sql.where.push(field + " " + selector + " ?");
+              }
             }
-
-            // IN || NOT IN
-            if (selector === Snake.VQL.IN || selector === Snake.VQL.NOTIN) {
-              var q = [];
-
-              for (var i = 0; i < value.length; i = i + 1) {
-                q.push("?");
-              }
-
-              if (field in schema.columns) {
-                field = table + "." + field;
-              }
-
-              VQL.sql.where.push(field + " " + selector + " (" + q.join(", ") + ")");
-            } else {
-
-              if (field in schema.columns) { // TODO refactor
-                field = table + "." + field;
-              }
-
-              VQL.sql.where.push(field + " " + selector + " ?");
-            }
-
           }
         }
 
-        return VQL;
+        return this;
+      },
+
+      orderBy: function (obj) {
+        var column = null;
+        for (column in obj) {
+          if (obj.hasOwnProperty(column)) {
+            this.sql.orderBy.push(column + " " + obj[column].toUpperCase());
+          }
+        }
+
+        return this;
+      },
+
+      offset: function (offset) {
+        this.sql.offset = offset;
+        return this;
+      },
+
+      limit: function (limit) {
+        this.sql.limit = limit;
+        return this;
+      },
+
+      toSQL: function () { // TODO - pass onSuccess, onFailure
+        var sql = "SELECT #{select} FROM #{from}",
+            query = {};
+
+        // SELECT
+        query.select = "*";
+
+        if (this.sql.select.length === 0) {
+          query.select = "*";
+/*
+// this adds all the columns
+          query.select = [];
+          for (var column in schema.columns) {
+            query.select.push(table + "." + column);
+          }
+        } else {
+*/
+        } else {
+          query.select = this.sql.select;
+        }
+
+        // FROM
+        query.from = table;
+
+        // WHERE
+        if (this.sql.where.length > 0) {
+          sql = sql + " WHERE #{where}";
+          query.where = this.sql.where.join(" AND ");
+        }
+    
+        // ORDER BY
+        if (this.sql.orderBy.length > 0) {
+          sql = sql + " ORDER BY #{orderBy}";
+          query.orderBy = this.sql.orderBy;
+        }
+
+        // LIMIT && OFFSET
+        if (this.sql.limit) {
+          if (this.sql.offset) {
+            sql = sql + " LIMIT #{offset}, #{limit}";
+            query.offset = this.sql.offset;
+          } else {
+            sql = sql + " LIMIT #{limit}";
+          }
+
+          query.limit = this.sql.limit;
+        }
+
+        this.resetQuery();
+
+        return sql.interpose(query); // TODO return query and params
+      },
+
+      resetQuery: function () {
+        this.sql = {
+          select: [],
+          from: table,
+          where: [],
+          orderBy: [],
+          limit: false
+        };
       }
 
     };
 
-    return methods;
+    Model.resetQuery();
+
+    return Model;
   },
 
   _createPeer: function (schema, onSuccess) {
-    for (var table in schema) {
-      this[schema[table].jsName] = new this._venom(table, schema[table]);
+    var table = null;
+
+    for (table in schema) {
+      if (schema.hasOwnProperty(table)) {
+        this[schema[table].jsName] = new this._venom(table, schema[table]);
+      }
     }
 
     if (onSuccess) {
@@ -203,4 +197,5 @@ Snake.VQL = {
   }
 };
 
-var Venom = vql = Snake.VQL;
+var Venom = Snake.VQL,
+    vql = Venom;

@@ -9,15 +9,13 @@ describe("Snake", function () {
 
     // Run through Venom and return the SQL query
     describe("Venom - Return Queries", function () {
-      Snake.debug = true;
-
-
-        it("SELECT * FROM card", function () {
-          expect(vql.Card.find().toSQL()).toEqual("SELECT * FROM card");
-        });
 
         it("SELECT * FROM card LIMIT 10", function () {
-          expect(Venom.Card.find().limit(5).toSQL()).toEqual("SELECT * FROM card LIMIT 5");
+          expect(Venom.Card.limit(5).toSQL()).toEqual("SELECT * FROM card LIMIT 5");
+        });
+
+        it("SELECT * FROM card", function () {
+          expect(vql.Card.toSQL()).toEqual("SELECT * FROM card");
         });
 
         it("SELECT * FROM card WHERE face = 'A' LIMIT 10", function () {
@@ -32,9 +30,11 @@ describe("Snake", function () {
           expect(vql.Card.find('face', 'A', 'GREATER_THAN').toSQL()).toEqual("SELECT * FROM card WHERE card.face > ?");
         });
 
+/*
         it("SELECT * FROM card WHERE face > 'A'", function () {
           expect(vql.Card.find({ face: { 'GREATER_THAN': 'A' }}).toSQL()).toEqual("SELECT * FROM card WHERE card.face > ?");
         });
+*/
 
         it("SELECT * FROM card WHERE face = 'A' AND suit = 'hearts'", function () {
           expect(vql.Card.find({ face: 'A', suit: 'hearts' }).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ? AND card.suit = ?");
