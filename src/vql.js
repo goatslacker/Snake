@@ -44,7 +44,7 @@ Snake.VQL = {
 
         } else {
           for (field in arguments[0]) {
-            if (arguments.hasOwnProperty(field)) {
+            if (arguments[0].hasOwnProperty(field)) {
               value = arguments[0][field];
 
               switch (Object.prototype.toString.call(value)) {
