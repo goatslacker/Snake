@@ -82,6 +82,27 @@ describe("Snake", function () {
           });
         });
 
+        it("LIKE", function () {
+          vql.Player.find({ name: /Josh/ }).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+            expect(params).toEqual('%Josh%');
+          });
+        });
+
+        it("LIKE first char", function () {
+          vql.Player.find({ name: /^Josh/ }).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+            expect(params).toEqual('Josh%');
+          });
+        });
+
+        it("LIKE last char", function () {
+          vql.Player.find({ name: /Perez$/ }).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+            expect(params).toEqual('%Perez');
+          });
+        });
+
         it("Multiple Obj Types: Greater Than + IN", function () {
           vql.Card.find({ face: { 'GREATER_THAN': 2 }, suit: ['hearts', 'spades']}).toSQL(function (query, params) {
             expect(query).toEqual("SELECT * FROM card WHERE card.face > ? AND card.suit IN (?, ?)");
@@ -89,7 +110,14 @@ describe("Snake", function () {
           });
         });
 
-
+/*
+        it("OR", function () {
+          vql.Card.find({ or: { face: 5, suit: 'clubs' } }).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face = ? OR card.suit = ?");
+            expect(params).toEqual([5, 'clubs']);
+          });
+        });
+*/
 
 /*
 // SELECT * FROM card WHERE (face = 'A' and suit = 'hearts') OR (face = 'J' and suit = 'spades');

@@ -41,6 +41,13 @@ Snake.VQL = {
           this.sql.where.criterion.push(field + " " + selector + " (" + q.join(", ") + ")");
           break;
 
+/*
+        case Snake.VQL.LIKE:
+        case Snake.VQL.NOTLIKE:
+          //console.log(value);
+          break;
+*/
+        
         default:
           this.sql.where.criterion.push(field + " " + selector + " ?");
         }
@@ -83,45 +90,66 @@ Snake.VQL = {
 
           // loop through each field
           for (field in arguments[0]) {
-            if (arguments[0].hasOwnProperty(field)) {
 
-              // the value is the property of the field
-              value = arguments[0][field];
+            if (field === 'or' || field === 'and') {
+              // do something
+              // if the field is an or then we have a problem, specially if there's nesting! :)
+              console.log(arguments[0][field]);
+              // if we have an and then we should run the code below like normal, except that arguments[0] needs to read arguments[0].and 
+            } else {
 
-              switch (Object.prototype.toString.call(value)) {
-              // if the value is an Array then we perform an IN query
-              case "[object Array]":
-                selector = Snake.VQL.IN;
-                this.add(field, value, selector);
-                break;
+              if (arguments[0].hasOwnProperty(field)) {
+                // the value is the property of the field
+                value = arguments[0][field];
 
-              // if the value is a Regular Expression then we perform a LIKE query
-              case "[object RegExp]":
-                selector = Snake.VQL.LIKE;
-                this.add(field, value, selector); // FIXME - need to use proper RegExp syntax
-                break;
+                switch (Object.prototype.toString.call(value)) {
+                // if the value is an Array then we perform an IN query
+                case "[object Array]":
+                  selector = Snake.VQL.IN;
+                  this.add(field, value, selector);
+                  break;
 
-              // if the value is an Object then we need to loop through all the items in the object and set them for the current field
-              case "[object Object]":
-                for (tmp in value) {
-                  if (value.hasOwnProperty(tmp)) {
-                    selector = Snake.VQL[tmp] || Snake.VQL.EQUAL;
+                // if the value is a Regular Expression then we perform a LIKE query
+                case "[object RegExp]":
+                  // TODO - NOT LIKE
+                  selector = Snake.VQL.LIKE;
+                  value = value.toString();
+                  // FIXME, need to strip out the // and ^ $
 
-                    this.add(field, value[tmp], selector);
+                  if (value.substr(1, 1) === '^') {
+                    value = value + '%';
+                  } else if (value.substr(-1, 1) === '$') {
+                    value = '%' + value;
+                  } else {
+                    value = '%' + value + '%';
                   }
-                }
-                break;
 
-              // by default the selector is =
-              default:
-                selector = Snake.VQL.EQUAL;
-                this.add(field, value, selector);
+                  this.add(field, value, selector);
+                  break;
+
+                // if the value is an Object then we need to loop through all the items in the object and set them for the current field
+                case "[object Object]":
+                  for (tmp in value) {
+                    if (value.hasOwnProperty(tmp)) {
+                      selector = Snake.VQL[tmp] || Snake.VQL.EQUAL;
+
+                      this.add(field, value[tmp], selector);
+                    }
+                  }
+                  break;
+
+                // by default the selector is =
+                default:
+                  selector = Snake.VQL.EQUAL;
+                  this.add(field, value, selector);
+                }
               }
 
-            }
-          }
+            } // endif OR || AND
 
-        }
+          } // loop
+
+        } // endif
 
         return this;
       },
