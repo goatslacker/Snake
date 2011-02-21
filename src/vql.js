@@ -13,96 +13,114 @@ Snake.VQL = {
   NOTIN: "NOT IN",
   LEFT_JOIN: "LEFT JOIN",
 
-  _venom: function (table, schema) {
-
+  VenomousObject: function (schema) {
     var Model = {
-    
       add: function () {
         var field = arguments[0],
             value = arguments[1],
             selector = arguments[2];
 
-        // TODO refactor this, run all of the finds through here.
-        this.sql.where.push(field + " " + selector + " ?");
+        if (field in schema.columns) {
+          field = schema.tableName + "." + field;
+        }
+
+        switch (selector) {
+        case Snake.VQL.ISNULL:
+        case Snake.VQL.ISNOTNULL:
+          this.sql.where.criterion.push(field + " " + selector);
+          break;
+    
+        case Snake.VQL.IN:
+        case Snake.VQL.NOTIN:
+          var q = [];
+
+          for (var i = 0; i < value.length; i = i + 1) {
+            q.push("?");
+          }
+
+          this.sql.where.criterion.push(field + " " + selector + " (" + q.join(", ") + ")");
+          break;
+
+        default:
+          this.sql.where.criterion.push(field + " " + selector + " ?");
+        }
+
+        if (value) {
+          if (Snake.is_array(value)) {
+            this.sql.where.params = this.sql.where.params.concat(value);
+          } else {
+            this.sql.where.params.push(value);
+          }
+        }
       },
 
       find: function () {
         var field = null,
             value = null,
-            selector = null;
+            selector = null,
+            tmp = null;
 
+        // if we're passing each argument
         if (arguments.length > 1) {
+          // first argument is the field
           field = arguments[0];
+          // second argument should be the value
           value = arguments[1];
 
+          // unless the value is actually a selector
           if (value in Snake.VQL) {
             selector = Snake.VQL[value];
+
+          // otherwise the third argument is the selector
           } else {
             selector = Snake.VQL[arguments[2]] || Snake.VQL.EQUAL;
           }
 
-          if (field in schema.columns) {
-            field = table + "." + field;
-          }
-  
-          if (selector === Snake.VQL.ISNULL || selector === Snake.VQL.ISNOTNULL) {
-            this.sql.where.push(field + " " + selector);
-          } else {
-            this.sql.where.push(field + " " + selector + " ?");
-          }
+          this.add(field, value, selector);
 
+        // we're not passing each argument
         } else {
+
+          // loop through each field
           for (field in arguments[0]) {
             if (arguments[0].hasOwnProperty(field)) {
+
+              // the value is the property of the field
               value = arguments[0][field];
 
               switch (Object.prototype.toString.call(value)) {
+              // if the value is an Array then we perform an IN query
               case "[object Array]":
                 selector = Snake.VQL.IN;
+                this.add(field, value, selector);
                 break;
+
+              // if the value is a Regular Expression then we perform a LIKE query
               case "[object RegExp]":
                 selector = Snake.VQL.LIKE;
-                //console.log(value.toString()); // TODO
+                this.add(field, value, selector); // FIXME - need to use proper RegExp syntax
                 break;
-              case "[object Object]":
-                // FIXME only works for the last item
-                // TODO put this in parenthesis ()()()()
-                for (var isdf in value) {
-                  selector = Snake.VQL[isdf] || Snake.VQL.EQUAL;
-                  value = isdf[value];
 
-                  this.add(field, value, selector); // not working :(
+              // if the value is an Object then we need to loop through all the items in the object and set them for the current field
+              case "[object Object]":
+                for (tmp in value) {
+                  if (value.hasOwnProperty(tmp)) {
+                    selector = Snake.VQL[tmp] || Snake.VQL.EQUAL;
+
+                    this.add(field, value[tmp], selector);
+                  }
                 }
-                // need to loop through each item and set it
-                //console.log(value[0]); // TODO
                 break;
+
+              // by default the selector is =
               default:
                 selector = Snake.VQL.EQUAL;
+                this.add(field, value, selector);
               }
 
-              // IN || NOT IN
-              if (selector === Snake.VQL.IN || selector === Snake.VQL.NOTIN) {
-                var q = [];
-
-                for (var i = 0; i < value.length; i = i + 1) {
-                  q.push("?");
-                }
-
-                if (field in schema.columns) {
-                  field = table + "." + field;
-                }
-
-                this.sql.where.push(field + " " + selector + " (" + q.join(", ") + ")");
-              } else {
-
-                if (field in schema.columns) { // TODO refactor
-                  field = table + "." + field;
-                }
-
-                this.sql.where.push(field + " " + selector + " ?");
-              }
             }
           }
+
         }
 
         return this;
@@ -129,9 +147,10 @@ Snake.VQL = {
         return this;
       },
 
-      toSQL: function () { // TODO - pass onSuccess, onFailure
+      toSQL: function (onComplete) { // TODO - pass onComplete
         var sql = "SELECT #{select} FROM #{from}",
-            query = {};
+            query = {},
+            params = null;
 
         // SELECT
         query.select = "*";
@@ -142,7 +161,7 @@ Snake.VQL = {
 // this adds all the columns
           query.select = [];
           for (var column in schema.columns) {
-            query.select.push(table + "." + column);
+            query.select.push(schema.tableName + "." + column);
           }
         } else {
 */
@@ -151,12 +170,15 @@ Snake.VQL = {
         }
 
         // FROM
-        query.from = table;
+        query.from = schema.tableName;
 
         // WHERE
-        if (this.sql.where.length > 0) {
+        if (this.sql.where.criterion.length > 0) {
           sql = sql + " WHERE #{where}";
-          query.where = this.sql.where.join(" AND ");
+          // build the where...
+          query.where = this.sql.where.criterion.join(" AND ");
+
+          params = this.sql.where.params;
         }
     
         // ORDER BY
@@ -179,14 +201,24 @@ Snake.VQL = {
 
         this.resetQuery();
 
-        return sql.interpose(query); // TODO return query and params
+        if (onComplete) {
+          onComplete(sql.interpose(query), params);
+        } else {
+          return {
+            query: sql.interpose(query),
+            params: params
+          };
+        }
       },
 
       resetQuery: function () {
         this.sql = {
           select: [],
-          from: table,
-          where: [],
+          from: schema.tableName,
+          where: {
+            criterion: [],
+            params: []
+          },
           orderBy: [],
           limit: false
         };
@@ -200,11 +232,14 @@ Snake.VQL = {
   },
 
   _createPeer: function (schema, onSuccess) {
-    var table = null;
+    var table = null,
+        model = null;
 
     for (table in schema) {
       if (schema.hasOwnProperty(table)) {
-        this[schema[table].jsName] = new this._venom(table, schema[table]);
+        model = schema[table];
+        model.tableName = table;
+        this[schema[table].jsName] = new this.VenomousObject(model);
       }
     }
 

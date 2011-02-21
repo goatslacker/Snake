@@ -10,49 +10,86 @@ describe("Snake", function () {
     // Run through Venom and return the SQL query
     describe("Venom - Return Queries", function () {
 
-        it("SELECT * FROM card LIMIT 5", function () {
-          expect(Venom.Card.limit(5).toSQL()).toEqual("SELECT * FROM card LIMIT 5");
+        it("Using Limit", function () {
+          Venom.Card.limit(5).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card LIMIT 5");
+            expect(params).toEqual(null);
+          });
         });
 
-        it("SELECT * FROM card", function () {
-          expect(vql.Card.toSQL()).toEqual("SELECT * FROM card");
+        it("Select. Nothing Special", function () {
+          expect(vql.Card.toSQL()).toEqual({ query : "SELECT * FROM card", params : null });
         });
 
-        it("SELECT * FROM card WHERE face = 2 LIMIT 4", function () {
-          expect(vql.Card.find('face', 2).limit(4).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ? LIMIT 4");
+        it("Single Where and Limit", function () {
+          vql.Card.find('face', 2).limit(4).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face = ? LIMIT 4");
+            expect(params).toEqual([2]);
+          });
         });
 
-        it("SELECT * FROM card WHERE face = 5", function () {
-          expect(vql.Card.find({ face: 5 }).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ?");
+        it("Where. No Limit", function () {
+          vql.Card.find({ face: 5 }).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face = ?");
+            expect(params).toEqual([5]);
+          });
         });
 
-        it("SELECT * FROM card WHERE face > 'A'", function () {
-          expect(vql.Card.find('face', 'A', 'GREATER_THAN').toSQL()).toEqual("SELECT * FROM card WHERE card.face > ?");
+        it("Greater Than", function () {
+          vql.Card.find('face', 'A', 'GREATER_THAN').toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face > ?");
+            expect(params).toEqual(['A']);
+          });
         });
 
-        it("SELECT * FROM card WHERE face > 'A'", function () {
-          expect(vql.Card.find({ face: { 'GREATER_THAN': 'A' }}).toSQL()).toEqual("SELECT * FROM card WHERE card.face > ?");
+        it("Greater Than 2", function () {
+          vql.Card.find({ face: { 'GREATER_THAN': 'A' }}).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face > ?");
+            expect(params).toEqual(['A']);
+          });
         });
 
-        it("SELECT * FROM card WHERE face > 2 AND face < 8", function () {
-          expect(vql.Card.find({ face: { 'GREATER_THAN': 2, 'LESS_THAN': 8 }}).toSQL()).toEqual("SELECT * FROM card WHERE card.face > ? AND face < ?");
+        it("Greater Than/Less Than", function () {
+          vql.Card.find({ face: { 'GREATER_THAN': 2, 'LESS_THAN': 8 }}).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face > ? AND card.face < ?");
+            expect(params).toEqual([2, 8]);
+          });
         });
 
-        it("SELECT * FROM card WHERE face = '7' AND suit = 'hearts'", function () {
-          expect(vql.Card.find({ face: '7', suit: 'hearts' }).toSQL()).toEqual("SELECT * FROM card WHERE card.face = ? AND card.suit = ?");
+        it("2 Wheres AND", function () {
+          vql.Card.find({ face: '7', suit: 'hearts' }).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face = ? AND card.suit = ?");
+            expect(params).toEqual(['7', 'hearts']);
+          });
         });
 
-        it("SELECT * FROM card WHERE face IN ('Q', 'J')", function () {
-          expect(vql.Card.find({ face: ['Q', 'J'] }).toSQL()).toEqual("SELECT * FROM card WHERE card.face IN (?, ?)");
+        it("IN", function () {
+          vql.Card.find({ face: ['Q', 'J'] }).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face IN (?, ?)");
+            expect(params).toEqual(['Q', 'J']);
+          });
         });
 
-        it("SELECT * FROM player WHERE name IS NULL", function () {
-          expect(vql.Player.find('name', 'ISNULL').toSQL()).toEqual("SELECT * FROM player WHERE player.name IS NULL");
+        it("IS NULL", function () {
+          vql.Player.find('name', 'ISNULL').toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM player WHERE player.name IS NULL");
+          });
         });
 
-        it("SELECT * FROM player WHERE name IS NOT NULL", function () {
-          expect(vql.Player.find('name', 'ISNOTNULL').toSQL()).toEqual("SELECT * FROM player WHERE player.name IS NOT NULL");
+        it("IS NOT NULL", function () {
+          vql.Player.find('name', 'ISNOTNULL').toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM player WHERE player.name IS NOT NULL");
+          });
         });
+
+        it("Multiple Obj Types: Greater Than + IN", function () {
+          vql.Card.find({ face: { 'GREATER_THAN': 2 }, suit: ['hearts', 'spades']}).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face > ? AND card.suit IN (?, ?)");
+            expect(params).toEqual([2, 'hearts', 'spades']);
+          });
+        });
+
+
 
 /*
 // SELECT * FROM card WHERE (face = 'A' and suit = 'hearts') OR (face = 'J' and suit = 'spades');
