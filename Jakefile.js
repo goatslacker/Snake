@@ -1,4 +1,5 @@
 var jake = require("jake")
+  , gzip = require('gzip')
   , sys = require("sys")
   , path = require("path")
   , fs = require("fs")
@@ -6,20 +7,12 @@ var jake = require("jake")
   , uglify = require("uglify-js")
   , jsp = uglify.parser
   , pro = uglify.uglify
-//  , exec  = require('child_process').exec
-//  , child = null
-
-//  , orm = {
-//    criteria: ['snake', 'database', 'base', 'criteria'],
-//    venom: ['snake', 'database', 'vql']
-//  }
-  
   , files = ['snake', 'base_vql', 'database', 'vql']
-//  , files = ['snake', 'database', 'base', 'criteria']
   , i = 0
   , code = []
   , outputFile = "build/snake.js"
   , outputDevFile = "build/snake.dev.js"
+  , gzippedFile = "build/snake.js.gz"
   , jshintComments = "/*jshint white: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2, maxerr: 1 */\n/* global openDatabase*/\n"
   , uglifyOptions = {
     ast: false,
@@ -44,13 +37,6 @@ var jake = require("jake")
     output: "./build/snake.min.js"
   };
 
-// for uglifyjs
-/*
-pro.set_logger(function(msg){
-  sys.debug(msg);
-});
-*/
-
 task("default", [], function () {
 
   var compressorDone = function (preMin, postMin) {
@@ -60,11 +46,9 @@ task("default", [], function () {
     fs.stat(preMin, function (err, stats) {
       preMin = stats;
       fs.stat(postMin, function (err, stats) {
-        // TODO sometimes this doesn't work :(
         postMin = stats;
         var ratio = Math.round((postMin.size / preMin.size) * 100);
 
-        // TODO gzip it as well!
         console.log("Original size: " + preMin.size);
         console.log("Compressed size: " + postMin.size);
         console.log("Compression ratio: " + ratio + "%");
@@ -82,6 +66,19 @@ task("default", [], function () {
       console.log("Compressing " + outputFile + " using UglifyJS");
 
       output(squeeze_it(text));
+
+      console.log("Compressing " + outputFile + " using node-gzip");
+
+      // NOTE: requires gzip (npm install gzip)
+      gzip(text, function (err, data) {
+        // Save gzip output to a file
+        fs.writeFile(gzippedFile, data, 'utf8', function (err) {
+          console.log("gzipped file: " + gzippedFile);
+          fs.stat(gzippedFile, function (err, stats) {
+            console.log("gzipped size: " + stats.size);
+          });
+        });
+      });
     });
   }
 
@@ -131,6 +128,13 @@ task("default", [], function () {
   };
 
   readFile();
+
+  // -------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
 
   // UglifyJS Functions
   function output(text) {
