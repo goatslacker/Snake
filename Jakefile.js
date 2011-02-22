@@ -20,7 +20,7 @@ var jake = require("jake")
   , code = []
   , outputFile = "build/snake.js"
   , outputDevFile = "build/snake.dev.js"
-  , jslintComments = "/* jslint white: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2, maxerr: 1 */\n/* global openDatabase */\n"
+  , jshintComments = "/*jshint white: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2, maxerr: 1 */\n/* global openDatabase*/\n"
   , uglifyOptions = {
     ast: false,
     mangle: true,
@@ -101,8 +101,8 @@ task("default", [], function () {
       compressFile();
     });
 
-    // write files into a dev version with jslint comments
-    fs.writeFile(outputDevFile, jslintComments + code.join("\n") + "\n(function () { Snake.debug = true; })();", 'utf8', function (err) {
+    // write files into a dev version with jshint comments
+    fs.writeFile(outputDevFile, jshintComments + code.join("\n") + "\n(function () { Snake.debug = true; })();", 'utf8', function (err) {
       console.log("Wrote to " + outputDevFile);
     });
   }
