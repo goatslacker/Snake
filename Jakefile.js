@@ -14,7 +14,7 @@ var jake = require("jake")
 //    venom: ['snake', 'database', 'vql']
 //  }
   
-  , files = ['snake', 'database', 'vql']
+  , files = ['snake', 'base_vql', 'database', 'vql']
 //  , files = ['snake', 'database', 'base', 'criteria']
   , i = 0
   , code = []

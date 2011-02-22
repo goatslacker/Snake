@@ -155,5 +155,27 @@ console.log(vql.Card.find({
     });
 
   });
+ 
+  // Model testing 
+  describe("Model testing", function () {
+    // set debugging to true so it doesn't run the queries
+    Snake.debug = true;
+
+    it("New Model", function () {
+      var player1 = new Player();
+      player1.name = "Mosuke Hiroshi-san";
+      expect(player1.name).toEqual("Mosuke Hiroshi-san");
+    });
+
+    it("Inserting a new item", function () {
+      var card = new Card();
+      card.face = 6;
+      card.suit = 'clubs';
+      card.save(function (query) {
+      });
+    });
+
+  });
+
 
 });

@@ -288,7 +288,8 @@ Snake.VQL = {
       if (schema.hasOwnProperty(table)) {
         model = schema[table];
         model.tableName = table;
-        this[schema[table].jsName] = new this.VenomousObject(model);
+        this[model.jsName] = new this.VenomousObject(model);
+        Snake.global[model.jsName].prototype.schema = model;
       }
     }
 
