@@ -1,23 +1,24 @@
-Snake.VQL = {
-  EQUAL: "=", 
-  NOT_EQUAL: "<>",
-  GREATER_THAN: ">", 
-  LESS_THAN: "<", 
-  GREATER_EQUAL: ">=", 
-  LESS_EQUAL: "<=",
-  ISNULL: "IS NULL",
-  ISNOTNULL: "IS NOT NULL",
-  LIKE: "LIKE",
-  NOTLIKE: "NOT LIKE",
-  "IN": "IN",
-  NOTIN: "NOT IN",
-  LEFT_JOIN: "LEFT JOIN"
-};
-
-Snake.Venom = {};
-
 Snake.VenomousObject = function (schema) {
-  var Model = {
+  var Selectors = {},
+      Model = {};
+
+  Selectors = {
+    EQUAL: "=", 
+    NOT_EQUAL: "<>",
+    GREATER_THAN: ">", 
+    LESS_THAN: "<", 
+    GREATER_EQUAL: ">=", 
+    LESS_EQUAL: "<=",
+    ISNULL: "IS NULL",
+    ISNOTNULL: "IS NOT NULL",
+    LIKE: "LIKE",
+    NOTLIKE: "NOT LIKE",
+    "IN": "IN",
+    NOTIN: "NOT IN",
+    LEFT_JOIN: "LEFT JOIN"
+  };
+
+  Model = {
     add: function () {
       var field = arguments[0],
           value = arguments[1],
@@ -28,13 +29,13 @@ Snake.VenomousObject = function (schema) {
       }
 
       switch (selector) {
-      case Snake.VQL.ISNULL:
-      case Snake.VQL.ISNOTNULL:
+      case Selectors.ISNULL:
+      case Selectors.ISNOTNULL:
         this.sql.where.criterion.push(field + " " + selector);
         break;
   
-      case Snake.VQL.IN:
-      case Snake.VQL.NOTIN:
+      case Selectors.IN:
+      case Selectors.NOTIN:
         var q = [];
 
         for (var i = 0; i < value.length; i = i + 1) {
@@ -45,8 +46,8 @@ Snake.VenomousObject = function (schema) {
         break;
 
 /*
-      case Snake.VQL.LIKE:
-      case Snake.VQL.NOTLIKE:
+      case Selectors.LIKE:
+      case Selectors.NOTLIKE:
         //console.log(value);
         break;
 */
@@ -78,12 +79,12 @@ Snake.VenomousObject = function (schema) {
         value = arguments[1];
 
         // unless the value is actually a selector
-        if (value in Snake.VQL) {
-          selector = Snake.VQL[value];
+        if (value in Selectors) {
+          selector = Selectors[value];
 
         // otherwise the third argument is the selector
         } else {
-          selector = Snake.VQL[arguments[2]] || Snake.VQL.EQUAL;
+          selector = Selectors[arguments[2]] || Selectors.EQUAL;
         }
 
         this.add(field, value, selector);
@@ -108,14 +109,14 @@ Snake.VenomousObject = function (schema) {
               switch (Object.prototype.toString.call(value)) {
               // if the value is an Array then we perform an IN query
               case "[object Array]":
-                selector = Snake.VQL.IN;
+                selector = Selectors.IN;
                 this.add(field, value, selector);
                 break;
 
               // if the value is a Regular Expression then we perform a LIKE query
               case "[object RegExp]": // TODO not 100% happy with this
                 // TODO - NOT LIKE
-                selector = Snake.VQL.LIKE;
+                selector = Selectors.LIKE;
                 tmp = value.toString();
                 value = tmp;
                 tmp = value.replace(/[^A-Za-z_]/g, "");
@@ -135,7 +136,7 @@ Snake.VenomousObject = function (schema) {
               case "[object Object]":
                 for (tmp in value) {
                   if (value.hasOwnProperty(tmp)) {
-                    selector = Snake.VQL[tmp] || Snake.VQL.EQUAL;
+                    selector = Selectors[tmp] || Selectors.EQUAL;
 
                     this.add(field, value[tmp], selector);
                   }
@@ -144,7 +145,7 @@ Snake.VenomousObject = function (schema) {
 
               // by default the selector is =
               default:
-                selector = Snake.VQL.EQUAL;
+                selector = Selectors.EQUAL;
                 this.add(field, value, selector);
               }
             }
@@ -300,6 +301,8 @@ Snake.createPeer = function (schema, onSuccess) {
     onSuccess();
   }
 };
+
+Snake.Venom = {};
 
 var Venom = Snake.Venom,
     vql = Venom;
