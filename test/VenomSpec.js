@@ -82,24 +82,38 @@ describe("Snake", function () {
           });
         });
 
-        it("LIKE", function () {
-          vql.Player.find({ name: /Josh/ }).toSQL(function (query, params) {
+        it("LIKE using params", function () {
+          vql.Player.find('name', '%Josh%', 'LIKE').toSQL(function (query, params) {
             expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
-            expect(params).toEqual('%Josh%');
+            expect(params).toEqual(['%Josh%']);
+          });
+        });
+
+        it("NOT LIKE using params", function () {
+          vql.Player.find('name', 'Serenity%', 'NOTLIKE').toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM player WHERE player.name NOT LIKE ?");
+            expect(params).toEqual(['Serenity%']);
+          });
+        });
+
+        it("LIKE via obj", function () {
+          vql.Player.find({ name: /Joshua/ }).toSQL(function (query, params) {
+            expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+            expect(params).toEqual(['%Joshua%']);
           });
         });
 
         it("LIKE first char", function () {
-          vql.Player.find({ name: /^Josh/ }).toSQL(function (query, params) {
+          vql.Player.find({ name: /^Serena/ }).toSQL(function (query, params) {
             expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
-            expect(params).toEqual('Josh%');
+            expect(params).toEqual(['Serena%']);
           });
         });
 
         it("LIKE last char", function () {
           vql.Player.find({ name: /Perez$/ }).toSQL(function (query, params) {
             expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
-            expect(params).toEqual('%Perez');
+            expect(params).toEqual(['%Perez']);
           });
         });
 

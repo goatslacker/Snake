@@ -110,18 +110,19 @@ Snake.VQL = {
                   break;
 
                 // if the value is a Regular Expression then we perform a LIKE query
-                case "[object RegExp]":
+                case "[object RegExp]": // TODO not 100% happy with this
                   // TODO - NOT LIKE
                   selector = Snake.VQL.LIKE;
-                  value = value.toString();
-                  // FIXME, need to strip out the // and ^ $
+                  tmp = value.toString();
+                  value = tmp;
+                  tmp = value.replace(/[^A-Za-z_]/g, "");
 
                   if (value.substr(1, 1) === '^') {
-                    value = value + '%';
-                  } else if (value.substr(-1, 1) === '$') {
-                    value = '%' + value;
+                    value = tmp + '%';
+                  } else if (value.substr(-2, 1) === '$') {
+                    value = '%' + tmp;
                   } else {
-                    value = '%' + value + '%';
+                    value = '%' + tmp + '%';
                   }
 
                   this.add(field, value, selector);
