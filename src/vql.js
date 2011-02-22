@@ -176,7 +176,27 @@ Snake.VQL = {
         return this;
       },
 
-      toSQL: function (onComplete) { // TODO - pass onComplete
+      // returns Array of objs
+      doSelect: function (onSuccess, onFailure) {
+      },
+
+      // limits 1, returns obj
+      doSelectOne: function (onSuccess, onFailure) {
+      },
+
+      // returns count
+      doCount: function (onSuccess, onFailure, useDistinct) {
+      },
+
+      // deletes objects
+      doDelete: function (onSuccess, onFailure) {
+      },
+
+      // retrieves by the current models primary key
+      retrieveByPk: function (pk) {
+      },
+
+      toSQL: function (onComplete) {
         var sql = "SELECT #{select} FROM #{from}",
             query = {},
             params = null;
