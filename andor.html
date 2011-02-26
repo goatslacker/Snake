@@ -1,4 +1,46 @@
 <script type="text/javascript">
+var Search = {
+
+  opened: [],
+  closed: [],
+  or: [],
+  and: [],
+
+  DFS: function (tree) {
+
+      var branch = tree;
+
+  if (Object.prototype.toString.call(branch) === '[object Array]') {
+    for (var i = 0; i < branch.length; i = i + 1) {
+      this.DFS(branch[i]);
+    }
+  } else {
+
+      if ('and' in branch) {
+        //tmpArr.push(branch.and);
+        this.and = this.and.concat(branch.and);
+        this.DFS(branch.and);
+      }
+
+      if ('or' in branch) {
+        this.or = this.or.concat(branch.or);
+        this.DFS(branch.or);
+      }
+
+      if (!('or' in branch) && !('and' in branch)) {
+        this.closed.push(branch);
+      }
+  }
+
+    //}
+   // console.log(this.or);
+   // console.log(this.and);
+  }
+}
+
+setTimeout(function () {
+console.log(and(Search.closed)) // this is wrong...
+});
 //WHERE (a = 1 and b = 2) or (c = 3 and d = 4);
 
 console.log(or(and({ a: 1 }, { b: 2 }), and({ c: 3 }, { d: 4 })));
@@ -51,9 +93,14 @@ find(testObj);
 function find () {
   var obj = arguments[0];
 
+  var dfs = [];
+
   // what happens when there are two in the obj, it can only be one or the other, right?
   // the and's get appended with and by the find method (hope this makes sense later)
   if ("or" in obj) {
+    
+    dfs = dfs.concat(obj.or);
+
     // TODO check to see if it's an array or a single object
     // for now we'll just assume its always an array and loop through it
 
@@ -67,8 +114,12 @@ function find () {
   }
 
   if ("and" in obj) {
+    dfs = dfs.concat(obj.or);
     // next step is to push this whole and into a dfs array
   }
+
+  //Search.opened = dfs;
+  Search.DFS(obj);
 
   // while loop goes here
 
@@ -77,6 +128,10 @@ function find () {
 
 function or () {
   var sql = [];
+
+  if (Object.prototype.toString.call(arguments[0]) === '[object Array]') {
+    arguments = arguments[0];
+  }
 
   for (var i = 0; i < arguments.length; i = i + 1) {
     if (typeof(arguments[i]) === "object") {
@@ -93,6 +148,10 @@ function or () {
 
 function and () {
   var sql = [];
+
+  if (Object.prototype.toString.call(arguments[0]) === '[object Array]') {
+    arguments = arguments[0];
+  }
 
   for (var i = 0; i < arguments.length; i = i + 1) {
     if (typeof(arguments[i]) === "object") {
@@ -114,4 +173,5 @@ function parseObj (obj) {
 
   return item;
 }
+
 </script>
