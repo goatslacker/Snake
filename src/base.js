@@ -9,40 +9,47 @@ Snake.Base = function (prop) {
 
   Model.prototype = {
 
-    schema: null,
+    peer: null,
 
     // saves a record in the database
     save: function (onSuccess, onFailure) {
-      // this.schema.doUpdate(this, onSuccess, onFailure);
+      // this.peer.doUpdate(this, onSuccess, onFailure);
 
       // insert
-      var schema = this.schema,
+      var peer = this.peer,
           values = [],
           q = [],
           i = 0,
           val = null,
           sql = "";
 
-      for (i = 0; i < schema.columns.length; i = i + 1) {
-        val = model[schema.columns[i]] || null;
+      // update
+      if (this.id) {
 
-        if (schema.columns[i] === 'created_at' && val === null) {
-          val = Date.now();
+      // insert
+      } else {
+
+        // TODO does this mean we can't name a column peer?
+        for (i = 0; i < peer.map.length; i = i + 1) {
+          val = this[peer.map[i]] || null;
+  
+          if (peer.map[i] === 'created_at' && val === null) {
+            val = Date.now();
+          }
+
+          values.push(val);
+          q.push("?");
         }
 
-        values.push(val);
-        q.push("?");
+        sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpose({
+          table: peer.tableName,
+          columns: peer.map,
+          q: q
+        });
+
+        console.log(sql);
+        console.log(values);
       }
-
-console.log(schema.columns);
-
-      sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpose({
-        table: schema.tableName,
-        columns: schema.columns,
-        q: q
-      });
-
-console.log(sql);
 /*
 
       Snake.query(sql, values, function (transaction, results) {
@@ -59,7 +66,7 @@ console.log(sql);
 
     // deletes a record from the database
     remove: function (onSuccess, onFailure) {
-      // this.schema.doDeleteRecord(this, onSuccess, onFailure);
+      // this.peer.doDeleteRecord(this, onSuccess, onFailure);
     },
 
     hydrate: function (obj) {

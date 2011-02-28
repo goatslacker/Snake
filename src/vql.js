@@ -291,6 +291,18 @@ Snake.createPeer = function (schema, onSuccess) {
   for (table in schema) {
     if (schema.hasOwnProperty(table)) {
       model = schema[table];
+      Snake.Venom[table] = new Snake.VenomousObject(model);
+      Snake.global[table].prototype.peer = model;
+    }
+  }
+
+/*
+  var table = null,
+      model = null;
+
+  for (table in schema) {
+    if (schema.hasOwnProperty(table)) {
+      model = schema[table];
       model.tableName = table;
       Snake.Venom[model.jsName] = new Snake.VenomousObject(model);
       Snake.global[model.jsName].prototype.schema = model;
@@ -300,6 +312,7 @@ Snake.createPeer = function (schema, onSuccess) {
   if (onSuccess) {
     onSuccess();
   }
+*/
 };
 
 Snake.Venom = {};

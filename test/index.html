@@ -20,12 +20,45 @@
 */
 
 
-var Player = new Snake.Base({"name":null,"chips":null,"id":null,"created_at":null});
-var Deck = new Snake.Base({"name":null,"id":null,"created_at":null});
-var Card = new Snake.Base({"deck_id":null,"face":null,"suit":null,"id":null,"created_at":null});
-var PlayerCard = new Snake.Base({"player_id":null,"card_id":null,"id":null,"created_at":null});
+var Player = new Snake.Base({"name":null,"chips":null,"id":null,"created_at":null}),
+    Deck = new Snake.Base({"name":null,"id":null,"created_at":null}),
+    Card = new Snake.Base({"deck_id":null,"face":null,"suit":null,"id":null,"created_at":null}),
+    PlayerCard = new Snake.Base({"player_id":null,"card_id":null,"id":null,"created_at":null});
 
-    Snake.createPeer({"player":{"jsName":"Player","columns":{"name":{"type":"text"},"chips":{"type":"integer"},"id":{"type":"INTEGER","primaryKey":true},"created_at":{"type":"INTEGER"}}},"deck":{"jsName":"Deck","columns":{"name":{"type":"text"},"id":{"type":"INTEGER","primaryKey":true},"created_at":{"type":"INTEGER"}}},"card":{"jsName":"Card","columns":{"deck_id":{"type":"integer","foreign":"deck.id"},"face":{"type":"text"},"suit":{"type":"text"},"id":{"type":"INTEGER","primaryKey":true},"created_at":{"type":"INTEGER"}}},"player_card":{"jsName":"PlayerCard","columns":{"player_id":{"type":"integer","foreign":"player.id"},"card_id":{"type":"integer","foreign":"card.id"},"id":{"type":"INTEGER","primaryKey":true},"created_at":{"type":"INTEGER"}}}});
+    Snake.createPeer({
+      Player: { 
+        tableName: 'player', 
+        map: ['name', 'chips', 'id', 'created_at'],
+        columns: {
+          "name": { "type": "text" },
+          "chips": { "type": "integer" }
+        }
+      },
+      Deck: { 
+        tableName: 'deck', 
+        map: ['name', 'id', 'created_at'],
+        columns: {
+          "name": { "type": "text" }
+        }
+      },
+      Card: { 
+        tableName: 'card', 
+        map: ['deck_id', 'face', 'suit', 'id', 'created_at'],
+        "columns": {
+          "deck_id": { "type": "integer", "foreign": "deck.id" },
+          "face": { "type": "text" },
+          "suit": { "type": "text" }
+        }
+      },
+      PlayerCard: { 
+        tableName: 'player_card', 
+        map: ['player_id', 'card_id', 'id', 'created_at'],
+        "columns": {
+          "player_id": { "type": "integer", "foreign": "player.id" },
+          "card_id": { "type": "integer", "foreign": "card.id" }
+        }
+      }
+    });
   </script>
 
   <!-- include spec files here... -->
