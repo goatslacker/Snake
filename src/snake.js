@@ -1,6 +1,6 @@
 // base object
 var Snake = {
-  version: "0.0.27",
+  version: "0.0.82",
   global: this,
   db: false,
   config: {},
