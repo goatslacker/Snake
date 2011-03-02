@@ -180,8 +180,10 @@ Snake.VenomousObject = function (schema) {
       return this;
     },
 
-    // returns Array of objs
-    doSelect: function (onSuccess, onFailure) {
+    // just outputs the sql
+    toSQL: function () {
+      this.sql.noQuery = true;
+      return this;
     },
 
     // limits 1, returns obj
@@ -200,7 +202,8 @@ Snake.VenomousObject = function (schema) {
     retrieveByPk: function (pk) {
     },
 
-    toSQL: function (onComplete) {
+    // returns Array of objs
+    doSelect: function (onSuccess, onFailure) {
       var sql = "SELECT #{select} FROM #{from}",
           query = {},
           params = null;
@@ -254,8 +257,9 @@ Snake.VenomousObject = function (schema) {
 
       this.resetQuery();
 
-      if (onComplete) {
-        onComplete(sql.interpose(query), params);
+      // FIXME: run the query if this.noQuery is set to false.
+      if (onSuccess) {
+        onSuccess(sql.interpose(query), params);
       } else {
         return {
           query: sql.interpose(query),
@@ -266,6 +270,7 @@ Snake.VenomousObject = function (schema) {
 
     resetQuery: function () {
       this.sql = {
+        noQuery: false,
         select: [],
         from: schema.tableName,
         where: {

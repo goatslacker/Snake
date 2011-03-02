@@ -11,9 +11,17 @@ Snake.Base = function (prop) {
 
     peer: null,
 
+    toSQL: function () {
+      this.no_query = "test";
+
+      return this;
+    },
+
     // saves a record in the database
     save: function (onSuccess, onFailure) {
       // this.peer.doUpdate(this, onSuccess, onFailure);
+
+console.log(this.no_query);
 
       // insert
       var peer = this.peer,
