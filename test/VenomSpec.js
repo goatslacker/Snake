@@ -10,6 +10,13 @@ describe("Snake", function () {
     // Run through Venom and return the SQL query
     describe("Venom - Return Queries", function () {
 
+        it("Select. Nothing Special", function () {
+          vql.Card.toSQL().doSelect(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card");
+            expect(params).toBeNull();
+          });
+        });
+
         it("Using Limit", function () {
           Venom.Card.limit(5).toSQL().doSelect(function (query, params) {
             expect(query).toEqual("SELECT * FROM card LIMIT 5");
@@ -17,10 +24,10 @@ describe("Snake", function () {
           });
         });
 
-        it("Select. Nothing Special", function () {
-          vql.Card.toSQL().doSelect(function (query, params) {
-            expect(query).toEqual("SELECT * FROM card");
-            expect(params).toBeNull();
+        it("Using Offset and Limit", function () {
+          Venom.Card.offset(10).limit(12).toSQL().doSelect(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card LIMIT 10, 12");
+            expect(params).toEqual(null);
           });
         });
 
@@ -127,30 +134,25 @@ describe("Snake", function () {
           });
         });
 
-/*
-        it("OR", function () {
-          vql.Card.find({ or: { face: 5, suit: 'clubs' } }).toSQL().doSelect(function (query, params) {
-            expect(query).toEqual("SELECT * FROM card WHERE card.face = ? OR card.suit = ?");
-            expect(params).toEqual([5, 'clubs']);
+        it("Multiple Obj Types: Greater Than + IN + Limit + Offset", function () {
+          vql.Card.find({ face: { 'GREATER_THAN': 2 }, suit: ['hearts', 'spades']}).offset(3).limit(16).toSQL().doSelect(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.face > ? AND card.suit IN (?, ?) LIMIT 3, 16");
+            expect(params).toEqual([2, 'hearts', 'spades']);
           });
         });
-*/
 
-/*
-// SELECT * FROM card WHERE (face = 'A' and suit = 'hearts') OR (face = 'J' and suit = 'spades');
-console.log(vql.Card.find({
-  or: {
-    and: [{
-      face: 'a',
-      suit: 'hearts'
-    }, {
-      face: 'j',
-      suit: 'spades'
-    }]
-  }
-}).toSQL().doSelect())
-*/
+        // TODO build:
+        // OR
+        // JOIN
+        // Custom queries with hydrating involved
 
+        // TODO test:
+        // doCount
+        // doDelete
+        // retrieveByPK
+        // doSelectOne
+        // add (do we make this one private?)
+        // orderBy
     });
 
     it("Venom should be defined", function () {
