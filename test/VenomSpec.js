@@ -141,18 +141,61 @@ describe("Snake", function () {
           });
         });
 
+        it("Order By", function () {
+          vql.Card.find({ suit: 'hearts' }).orderBy({ suit: 'desc' }).toSQL().doSelect(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.suit = ? ORDER BY card.suit DESC");
+            expect(params).toEqual(['hearts']);
+          });
+        });
+        
+        it("doSelectOne", function () {
+          vql.Card.find({ suit: 'clubs', face: 'A' }).toSQL().doSelectOne(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.suit = ? AND card.face = ? LIMIT 1");
+            expect(params).toEqual(['clubs', 'A']);
+          });
+        });
+
+        it("retrieveByPK", function () {
+          vql.Card.toSQL().retrieveByPK(101, function (query, params) {
+            expect(query).toEqual("SELECT * FROM card WHERE card.id = ?");
+            expect(params).toEqual([101]);
+          });
+        });
+
+        it("doCount", function () {
+          vql.Card.find({ suit: 'spades' }).toSQL().doCount(function (query, params) {
+            expect(query).toEqual("SELECT COUNT(*) FROM card WHERE card.suit = ?");
+            expect(params).toEqual(['spades']);
+          });
+        });
+
+        it("doCount DISTINCT", function () {
+          vql.Card.find({ suit: 'spades' }).toSQL().doCount(function (query, params) {
+            expect(query).toEqual("SELECT DISTINCT COUNT(*) FROM card WHERE card.suit = ?");
+            expect(params).toEqual(['spades']);
+          }, null, true);
+        });
+
+        it("doDelete", function () {
+          vql.Card.toSQL().doDelete(function (query, params) {
+            expect(query).toEqual("DELETE FROM card");
+          }, null, true);
+        });
+
+        it("doDelete WHERE", function () {
+          vql.Card.find({ face: 7 }).toSQL().doDelete(function (query, params) {
+            expect(query).toEqual("DELETE FROM card WHERE card.face = ?");
+            expect(params).toEqual([7]);
+          }, null, true);
+        });
+
         // TODO build:
         // OR
         // JOIN
         // Custom queries with hydrating involved
 
         // TODO test:
-        // doCount
         // doDelete
-        // retrieveByPK
-        // doSelectOne
-        // add (do we make this one private?)
-        // orderBy
     });
 
     it("Venom should be defined", function () {

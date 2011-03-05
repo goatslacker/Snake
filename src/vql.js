@@ -2,6 +2,7 @@ Snake.VenomousObject = function (schema) {
   var Selectors = {},
       Model = {},
       queryBuilder = null,
+      addWhere = null,
       resetObj = null;
 
   resetObj = function () {
@@ -18,8 +19,55 @@ Snake.VenomousObject = function (schema) {
     };
   };
 
+  addWhere = function () {
+    var field = arguments[0],
+        value = arguments[1],
+        selector = arguments[2];
+
+    if (field in schema.columns) {
+      field = schema.tableName + "." + field;
+    }
+
+    switch (selector) {
+    case Selectors.ISNULL:
+    case Selectors.ISNOTNULL:
+      Model.sql.where.criterion.push(field + " " + selector);
+      break;
+
+    case Selectors.IN:
+    case Selectors.NOTIN:
+      var q = [];
+
+      for (var i = 0; i < value.length; i = i + 1) {
+        q.push("?");
+      }
+
+      Model.sql.where.criterion.push(field + " " + selector + " (" + q.join(", ") + ")");
+      break;
+
+/*
+    case Selectors.LIKE:
+    case Selectors.NOTLIKE:
+      //console.log(value);
+      break;
+*/
+    
+    default:
+      Model.sql.where.criterion.push(field + " " + selector + " ?");
+    }
+
+    if (value) {
+      if (Snake.is_array(value)) {
+        Model.sql.where.params = Model.sql.where.params.concat(value);
+      } else {
+        Model.sql.where.params.push(value);
+      }
+    }
+  };
+
   queryBuilder = function (sql, query, onSuccess, onFailure) {
     var params = null;
+    query = query || {};
 
     // FROM
     query.from = schema.tableName;
@@ -113,52 +161,6 @@ Snake.VenomousObject = function (schema) {
 
   Model = {
 
-    add: function () {
-      var field = arguments[0],
-          value = arguments[1],
-          selector = arguments[2];
-
-      if (field in schema.columns) {
-        field = schema.tableName + "." + field;
-      }
-
-      switch (selector) {
-      case Selectors.ISNULL:
-      case Selectors.ISNOTNULL:
-        this.sql.where.criterion.push(field + " " + selector);
-        break;
-  
-      case Selectors.IN:
-      case Selectors.NOTIN:
-        var q = [];
-
-        for (var i = 0; i < value.length; i = i + 1) {
-          q.push("?");
-        }
-
-        this.sql.where.criterion.push(field + " " + selector + " (" + q.join(", ") + ")");
-        break;
-
-/*
-      case Selectors.LIKE:
-      case Selectors.NOTLIKE:
-        //console.log(value);
-        break;
-*/
-      
-      default:
-        this.sql.where.criterion.push(field + " " + selector + " ?");
-      }
-
-      if (value) {
-        if (Snake.is_array(value)) {
-          this.sql.where.params = this.sql.where.params.concat(value);
-        } else {
-          this.sql.where.params.push(value);
-        }
-      }
-    },
-
     find: function () {
       var field = null,
           value = null,
@@ -181,7 +183,7 @@ Snake.VenomousObject = function (schema) {
           selector = Selectors[arguments[2]] || Selectors.EQUAL;
         }
 
-        this.add(field, value, selector);
+        addWhere(field, value, selector);
 
       // we're not passing each argument
       } else {
@@ -204,7 +206,7 @@ Snake.VenomousObject = function (schema) {
               // if the value is an Array then we perform an IN query
               case "[object Array]":
                 selector = Selectors.IN;
-                this.add(field, value, selector);
+                addWhere(field, value, selector);
                 break;
 
               // if the value is a Regular Expression then we perform a LIKE query
@@ -223,7 +225,7 @@ Snake.VenomousObject = function (schema) {
                   value = '%' + tmp + '%';
                 }
 
-                this.add(field, value, selector);
+                addWhere(field, value, selector);
                 break;
 
               // if the value is an Object then we need to loop through all the items in the object and set them for the current field
@@ -232,7 +234,7 @@ Snake.VenomousObject = function (schema) {
                   if (value.hasOwnProperty(tmp)) {
                     selector = Selectors[tmp] || Selectors.EQUAL;
 
-                    this.add(field, value[tmp], selector);
+                    addWhere(field, value[tmp], selector);
                   }
                 }
                 break;
@@ -240,7 +242,7 @@ Snake.VenomousObject = function (schema) {
               // by default the selector is =
               default:
                 selector = Selectors.EQUAL;
-                this.add(field, value, selector);
+                addWhere(field, value, selector);
               }
             }
 
@@ -254,14 +256,27 @@ Snake.VenomousObject = function (schema) {
     },
 
     orderBy: function (obj) {
-      var column = null;
+      var column = null,
+          sortOrder = "";
       for (column in obj) {
         if (obj.hasOwnProperty(column)) {
-          this.sql.orderBy.push(column + " " + obj[column].toUpperCase());
+          sortOrder = obj[column].toUpperCase();
+          if (column in schema.columns) {
+            column = schema.tableName + "." + column;
+          }
+          this.sql.orderBy.push(column + " " + sortOrder);
         }
       }
 
       return this;
+    },
+
+    join: function (table, join_method) {
+      join_method = Selectors[join_method] || Selectors.LEFT_JOIN;
+
+      // FIXME -- need to lookup the schema information for the current table and match it up with the primary or foreign key on the other table
+      // possible syntax
+      // this.join(vql.Deck);
     },
 
     offset: function (offset) {
@@ -281,7 +296,7 @@ Snake.VenomousObject = function (schema) {
     },
 
     // retrieves by the current models primary key
-    retrieveByPk: function (pk, onSuccess, onFailure) {
+    retrieveByPK: function (pk, onSuccess, onFailure) {
       this.find({ id: pk }).doSelect(onSuccess, onFailure);
     },
 
@@ -330,7 +345,7 @@ Snake.VenomousObject = function (schema) {
       }
 
       queryBuilder(sql, query, onSuccess, onFailure);
-    },
+    }
 
 
   };
@@ -347,6 +362,9 @@ Snake.createPeer = function (schema, onSuccess) {
   for (table in schema) {
     if (schema.hasOwnProperty(table)) {
       model = schema[table];
+      // FIXME
+      model.columns.id = { type: "INTEGER" };
+      model.columns.created_at = { type: "TIME" };
       Snake.Venom[table] = new Snake.VenomousObject(model);
       Snake.global[table].prototype.peer = model;
     }
