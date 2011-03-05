@@ -10,9 +10,10 @@ Snake.Base = function (prop) {
   Model.prototype = {
 
     peer: null,
+    dontExecuteQuery: false,
 
     toSQL: function () {
-      this.no_query = "test";
+      this.dontExecuteQuery = true;
 
       return this;
     },
@@ -20,8 +21,6 @@ Snake.Base = function (prop) {
     // saves a record in the database
     save: function (onSuccess, onFailure) {
       // this.peer.doUpdate(this, onSuccess, onFailure);
-
-console.log(this.no_query);
 
       // insert
       var peer = this.peer,
@@ -55,28 +54,29 @@ console.log(this.no_query);
           q: q
         });
 
-        console.log(sql);
-        console.log(values);
-      }
-/*
+        if (this.dontExecuteQuery === true) {
+          if (onSuccess) {
+            onSuccess(sql, values);
+          }
+        } else {
+          Snake.query(sql, values, function (transaction, results) {
+            // set an ID
+            model.id = results.insertId;
 
-      Snake.query(sql, values, function (transaction, results) {
-        // set an ID
-        model.id = results.insertId;
-
-        if (onSuccess) {
-          onSuccess(model);
+            if (onSuccess) {
+              onSuccess(model);
+            }
+          }, onFailure);
         }
-      }, onFailure);
-*/
-
+      }
     },
 
     // deletes a record from the database
-    remove: function (onSuccess, onFailure) {
+    doDelete: function (onSuccess, onFailure) {
       // this.peer.doDeleteRecord(this, onSuccess, onFailure);
     },
 
+    // FIXME, refactor this!
     hydrate: function (obj) {
       var i = null;
       for (i in obj) {

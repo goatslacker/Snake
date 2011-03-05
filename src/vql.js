@@ -1,6 +1,99 @@
 Snake.VenomousObject = function (schema) {
   var Selectors = {},
-      Model = {};
+      Model = {},
+      queryBuilder = null,
+      resetObj = null;
+
+  resetObj = function () {
+    Model.sql = {
+      dontExecuteQuery: false,
+      select: [],
+      from: schema.tableName,
+      where: {
+        criterion: [],
+        params: []
+      },
+      orderBy: [],
+      limit: false
+    };
+  };
+
+  queryBuilder = function (sql, query, onSuccess, onFailure) {
+    var params = null;
+
+    // FROM
+    query.from = schema.tableName;
+
+    // TODO JOINs
+
+    // WHERE
+    if (Model.sql.where.criterion.length > 0) {
+      sql = sql + " WHERE #{where}";
+      // build the where...
+      query.where = Model.sql.where.criterion.join(" AND ");
+
+      params = Model.sql.where.params;
+    }
+
+    // ORDER BY
+    if (Model.sql.orderBy.length > 0) {
+      sql = sql + " ORDER BY #{orderBy}";
+      query.orderBy = Model.sql.orderBy;
+    }
+
+    // LIMIT && OFFSET
+    if (Model.sql.limit) {
+      if (Model.sql.offset) {
+        sql = sql + " LIMIT #{offset}, #{limit}";
+        query.offset = Model.sql.offset;
+      } else {
+        sql = sql + " LIMIT #{limit}";
+      }
+
+      query.limit = Model.sql.limit;
+    }
+
+    // if this query is not meant to be executed then we send it back to the onSuccess callback with the parameters Query {String}, Params {Array}
+    if (Model.dontExecuteQuery) {
+      if (onSuccess) {
+        onSuccess(sql.interpose(query), params);
+      }
+
+    // We run the query
+    } else {
+      Snake.query(sql.interpose(query), params, function (transaction, results) {
+        var arr = [],
+            i = 0,
+            obj = null,
+            tmp = null,
+            prop = null;
+        
+        if (results.rows.length > 0) {
+          for (i = 0; i < results.rows.length; i = i + 1) {
+
+            obj = results.rows.item(i);
+            tmp = new Snake.global[peer.jsName]();
+
+            for (prop in obj) {
+              if (obj.hasOwnProperty(prop)) {
+                tmp[prop] = obj[prop];
+                tmp['$nk_' + prop] = obj[prop];
+              }
+            }
+
+            arr.push(tmp);
+          }
+        }
+
+        if (onSuccess) {
+          onSuccess(arr);
+        }
+      }, onFailure);
+
+    }
+
+    resetObj();
+  };
 
   Selectors = {
     EQUAL: "=", 
@@ -19,6 +112,7 @@ Snake.VenomousObject = function (schema) {
   };
 
   Model = {
+
     add: function () {
       var field = arguments[0],
           value = arguments[1],
@@ -182,34 +276,44 @@ Snake.VenomousObject = function (schema) {
 
     // just outputs the sql
     toSQL: function () {
-      this.sql.noQuery = true;
+      this.sql.dontExecuteQuery = true;
       return this;
+    },
+
+    // retrieves by the current models primary key
+    retrieveByPk: function (pk, onSuccess, onFailure) {
+      this.find({ id: pk }).doSelect(onSuccess, onFailure);
     },
 
     // limits 1, returns obj
     doSelectOne: function (onSuccess, onFailure) {
+      this.limit(1).doSelect(onSuccess, onFailure);
     },
 
     // returns count
     doCount: function (onSuccess, onFailure, useDistinct) {
+      useDistinct = useDistinct ? "DISTINCT " : "";
+      var sql = "SELECT " + useDistinct + "COUNT(#{select}) FROM #{from}",
+          query = {};
+
+      if (this.sql.select.length === 0) {
+        query.select = "*";
+      } else {
+        query.select = this.sql.select;
+      }
+
+      queryBuilder(sql, query, onSuccess, onFailure);
     },
 
     // deletes objects
     doDelete: function (onSuccess, onFailure) {
-    },
-
-    // retrieves by the current models primary key
-    retrieveByPk: function (pk) {
+      queryBuilder("DELETE FROM #{from}", null, onSuccess, onFailure);
     },
 
     // returns Array of objs
     doSelect: function (onSuccess, onFailure) {
       var sql = "SELECT #{select} FROM #{from}",
-          query = {},
-          params = null;
-
-      // SELECT
-      query.select = "*";
+          query = {};
 
       if (this.sql.select.length === 0) {
         query.select = "*";
@@ -225,66 +329,13 @@ Snake.VenomousObject = function (schema) {
         query.select = this.sql.select;
       }
 
-      // FROM
-      query.from = schema.tableName;
-
-      // WHERE
-      if (this.sql.where.criterion.length > 0) {
-        sql = sql + " WHERE #{where}";
-        // build the where...
-        query.where = this.sql.where.criterion.join(" AND ");
-
-        params = this.sql.where.params;
-      }
-  
-      // ORDER BY
-      if (this.sql.orderBy.length > 0) {
-        sql = sql + " ORDER BY #{orderBy}";
-        query.orderBy = this.sql.orderBy;
-      }
-
-      // LIMIT && OFFSET
-      if (this.sql.limit) {
-        if (this.sql.offset) {
-          sql = sql + " LIMIT #{offset}, #{limit}";
-          query.offset = this.sql.offset;
-        } else {
-          sql = sql + " LIMIT #{limit}";
-        }
-
-        query.limit = this.sql.limit;
-      }
-
-      this.resetQuery();
-
-      // FIXME: run the query if this.noQuery is set to false.
-      if (onSuccess) {
-        onSuccess(sql.interpose(query), params);
-      } else {
-        return {
-          query: sql.interpose(query),
-          params: params
-        };
-      }
+      queryBuilder(sql, query, onSuccess, onFailure);
     },
 
-    resetQuery: function () {
-      this.sql = {
-        noQuery: false,
-        select: [],
-        from: schema.tableName,
-        where: {
-          criterion: [],
-          params: []
-        },
-        orderBy: [],
-        limit: false
-      };
-    }
 
   };
 
-  Model.resetQuery();
+  resetObj();
 
   return Model;
 };

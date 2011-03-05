@@ -1,7 +1,7 @@
 describe("Snake", function () {
 
-  it("Snake is version 0.0.27", function () {
-    expect(Snake.version).toEqual("0.0.27");
+  it("Snake is proper version", function () {
+    expect(Snake.version).toEqual("0.0.82");
   });
 
   // Venom Obj
@@ -18,7 +18,10 @@ describe("Snake", function () {
         });
 
         it("Select. Nothing Special", function () {
-          expect(vql.Card.toSQL().doSelect()).toEqual({ query : "SELECT * FROM card", params : null });
+          vql.Card.toSQL().doSelect(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card");
+            expect(params).toBeNull();
+          });
         });
 
         it("Single Where and Limit", function () {
@@ -158,8 +161,6 @@ console.log(vql.Card.find({
  
   // Model testing 
   describe("Model testing", function () {
-    // set debugging to true so it doesn't run the queries
-    Snake.debug = true;
 
     it("New Model", function () {
       var player1 = new Player();
@@ -172,7 +173,11 @@ console.log(vql.Card.find({
       // how about we do card.doSelect() ?
       card.face = 6;
       card.suit = 'clubs';
-      card.save();
+      card.toSQL().save(function (query, params) {
+        expect(query).toEqual("INSERT INTO 'card' (deck_id, face, suit, id, created_at) VALUES (?, ?, ?, ?, ?)");
+        expect(params[1]).toEqual(6);
+        expect(params[2]).toEqual('clubs');
+      });
     });
 
   });
