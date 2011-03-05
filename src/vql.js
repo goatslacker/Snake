@@ -54,7 +54,7 @@ Snake.VenomousObject = function (schema) {
     }
 
     // if this query is not meant to be executed then we send it back to the onSuccess callback with the parameters Query {String}, Params {Array}
-    if (Model.dontExecuteQuery) {
+    if (Model.sql.dontExecuteQuery === true) {
       if (onSuccess) {
         onSuccess(sql.interpose(query), params);
       }

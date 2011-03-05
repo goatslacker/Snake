@@ -20,9 +20,6 @@ Snake.Base = function (prop) {
 
     // saves a record in the database
     save: function (onSuccess, onFailure) {
-      // this.peer.doUpdate(this, onSuccess, onFailure);
-
-      // insert
       var peer = this.peer,
           values = [],
           q = [],
@@ -32,11 +29,25 @@ Snake.Base = function (prop) {
 
       // update
       if (this.id) {
+        for (i = 0; i < peer.columns.length; i = i + 1) {
+          if (model[peer.columns[i]] !== model['$nk_' + peer.columns[i]]) {
+            val = model[peer.columns[i]] || null;
+            values.push(val);
+
+            conditions.push(peer.columns[i] + " = ?");
+          }
+        }
+
+        sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpose({
+          table: peer.tableName,
+          conditions: conditions,
+          id: model.id
+        });
 
       // insert
       } else {
 
-        // TODO does this mean we can't name a column peer?
+        // TODO does this mean we can't name a column peer? - TEST
         for (i = 0; i < peer.map.length; i = i + 1) {
           val = this[peer.map[i]] || null;
   
@@ -53,22 +64,25 @@ Snake.Base = function (prop) {
           columns: peer.map,
           q: q
         });
-
-        if (this.dontExecuteQuery === true) {
-          if (onSuccess) {
-            onSuccess(sql, values);
-          }
-        } else {
-          Snake.query(sql, values, function (transaction, results) {
-            // set an ID
-            model.id = results.insertId;
-
-            if (onSuccess) {
-              onSuccess(model);
-            }
-          }, onFailure);
-        }
       }
+
+
+      if (this.dontExecuteQuery === true) {
+        if (onSuccess) {
+          onSuccess(sql, values);
+        }
+
+      } else {
+        Snake.query(sql, values, function (transaction, results) {
+          // set an ID
+          model.id = results.insertId;
+
+          if (onSuccess) {
+            onSuccess(model);
+          }
+        }, onFailure);
+      }
+
     },
 
     // deletes a record from the database
