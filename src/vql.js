@@ -355,6 +355,7 @@ Snake.VenomousObject = function (schema) {
   return Model;
 };
 
+// TODO move this method elsewhere
 Snake.createPeer = function (schema, onSuccess) {
   var table = null,
       model = null;
@@ -365,6 +366,10 @@ Snake.createPeer = function (schema, onSuccess) {
       // FIXME
       model.columns.id = { type: "INTEGER" };
       model.columns.created_at = { type: "TIME" };
+
+      // TODO create relationships for the base objects
+      // TODO create doSelectJoins for the relationships
+
       Snake.Venom[table] = new Snake.VenomousObject(model);
       Snake.global[table].prototype.peer = model;
     }

@@ -193,9 +193,6 @@ describe("Snake", function () {
         // OR
         // JOIN
         // Custom queries with hydrating involved
-
-        // TODO test:
-        // doDelete
     });
 
     it("Venom should be defined", function () {
@@ -224,6 +221,17 @@ describe("Snake", function () {
         expect(params[2]).toEqual('clubs');
       });
     });
+
+/*
+    it("Deleting an element", function () {
+      var card = new Card();
+      card.id = 1;
+      card.toSQL().doDelete(function (query, params) {
+        expect(query).toEqual("DELETE FROM card WHERE card.id = ?");
+        expect(params[0]).toEqual(1);
+      });
+    });
+*/
 
   });
 

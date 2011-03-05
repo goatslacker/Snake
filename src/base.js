@@ -87,6 +87,7 @@ Snake.Base = function (prop) {
 
     // deletes a record from the database
     doDelete: function (onSuccess, onFailure) {
+      // FIXME
       // this.peer.doDeleteRecord(this, onSuccess, onFailure);
     },
 
