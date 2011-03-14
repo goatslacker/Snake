@@ -41,14 +41,26 @@ task("default", [], function () {
         throw err;
       }
 
-      // TODO - jshint test!
+      console.log("Started Lint testing " + outputFile);
 
-      // FIXME - requires UglifyJS
+      exec("jshint " + outputFile, function (error, stdout, stderr) {
+        if (stdout) {
+          console.log("--jshint--");
+          console.log(stdout);
+        }
+        if (error !== null) {
+          console.log('exec error: ' + error);
+        }
+      });
+
       console.log("Compressing " + outputFile + " using UglifyJS");
 
       exec("uglifyjs " + outputFile + " >> " + outputMinFile, function (error, stdout, stderr) {
-        sys.print('stdout: ' + stdout);
-        sys.print('stderr: ' + stderr);
+        if (stdout) {
+          console.log("--UglifyJS--");
+          console.log(stdout);
+        }
+
         if (error !== null) {
           console.log('exec error: ' + error);
         }
