@@ -43,7 +43,7 @@ task("default", [], function () {
 
       console.log("Started Lint testing " + outputFile);
 
-      exec("jshint " + outputFile, function (error, stdout, stderr) {
+      exec("jshint " + outputFile + " --config jshint.json", function (error, stdout, stderr) {
         if (stdout) {
           console.log("--jshint--");
           console.log(stdout);

@@ -13,25 +13,22 @@
   <script type="text/javascript">
     // FIXME, dynamically create this from the schema || use SnakeMake
 
-    Snake.init({
+    Snake.loadFromJSON({
       Player: { 
         tableName: 'player', 
-        map: ['name', 'chips', 'id', 'created_at'],
-        columns: {
+        "columns": {
           "name": { "type": "text" },
           "chips": { "type": "integer" }
         }
       },
       Deck: { 
         tableName: 'deck', 
-        map: ['name', 'id', 'created_at'],
-        columns: {
+        "columns": {
           "name": { "type": "text" }
         }
       },
       Card: { 
         tableName: 'card', 
-        map: ['deck_id', 'face', 'suit', 'id', 'created_at'],
         "columns": {
           "deck_id": { "type": "integer", "foreign": "deck.id" },
           "face": { "type": "text" },
@@ -40,7 +37,6 @@
       },
       PlayerCard: { 
         tableName: 'player_card', 
-        map: ['player_id', 'card_id', 'id', 'created_at'],
         "columns": {
           "player_id": { "type": "integer", "foreign": "player.id" },
           "card_id": { "type": "integer", "foreign": "card.id" }

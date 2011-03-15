@@ -71,18 +71,25 @@ Snake.hydrateRS = function (peer, callback, transaction, results) {
   callback(model_rs);
 };
 
-// TODO move this method elsewhere
-Snake.init = function (schema, onSuccess) {
+Snake.loadFromJSON = function (schema, onSuccess) {
   var table = null,
+      column = null,
       model = null;
 
   for (table in schema) {
     if (schema.hasOwnProperty(table)) {
       model = schema[table];
-      // FIXME
+
       model.jsName = table;
       model.columns.id = { type: "INTEGER" };
       model.columns.created_at = { type: "TIME" };
+
+      model.map = [];
+      for (column in schema[table].columns) {
+        if (schema[table].columns.hasOwnProperty(column)) {
+          model.map.push(column);
+        }
+      }
 
       // TODO create relationships for the base objects
       // TODO create doSelectJoins for the relationships
@@ -92,21 +99,8 @@ Snake.init = function (schema, onSuccess) {
     }
   }
 
-/*
-  var table = null,
-      model = null;
-
-  for (table in schema) {
-    if (schema.hasOwnProperty(table)) {
-      model = schema[table];
-      model.tableName = table;
-      Snake.Venom[model.jsName] = new Snake.VenomousObject(model);
-      Snake.global[model.jsName].prototype.schema = model;
-    }
-  }
-
   if (onSuccess) {
     onSuccess();
   }
-*/
+
 };
