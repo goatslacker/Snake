@@ -7,6 +7,15 @@ Snake.Base = function (table) {
       dontExecuteQuery = false,
       Model = function () { };
 
+  Model.is = function (extend) {
+    // Copy the properties over onto the new prototype
+    for (var name in extend) {
+      if (extend.hasOwnProperty(name)) {
+        this.prototype[name] = extend[name];
+      }
+    }
+  };
+
   Model.prototype = {
 
     toSQL: function () {

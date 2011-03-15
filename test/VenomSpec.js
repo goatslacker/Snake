@@ -240,5 +240,20 @@ describe("Snake", function () {
 
   });
 
+  // Misc testing
+  describe("Misc testing", function () {
+    // Mixin
+    Card.is({
+      hello: function () {
+        return "hai";
+      },
+      world: "universe"
+    });
+
+    var card = new Card();
+
+    expect(card.hello()).toEqual("hai");
+    expect(card.world).toEqual("universe");
+  });
 
 });
