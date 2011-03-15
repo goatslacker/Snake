@@ -12,8 +12,7 @@ var jake = require("jake")
   , outputDevFile = "build/snake.dev.js"
   , gzippedFile = "build/snake.js.gz"
   , sys = require('sys')
-  , exec = require('child_process').exec
-  , jshintComments = "/*jshint white: true, devel: true, evil: true, laxbreak: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, newcap: true, immed: true, indent: 2, maxerr: 1 */\n/* global openDatabase*/\n";
+  , exec = require('child_process').exec;
 
 task("default", [], function () {
 
@@ -97,8 +96,9 @@ task("default", [], function () {
       compressFile();
     });
 
+// TODO add license
     // write files into a dev version with jshint comments
-    fs.writeFile(outputDevFile, jshintComments + code.join("\n") + "\n(function () { Snake.debug = true; })();", 'utf8', function (err) {
+    fs.writeFile(outputDevFile, code.join("\n") + "\n(function () { Snake.debug = true; }());", 'utf8', function (err) {
       console.log("Wrote to " + outputDevFile);
     });
   }
