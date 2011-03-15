@@ -1,7 +1,7 @@
 // base object
-// TODO support versioning
 var Snake = {
-  version: "0.0.82",
+  version: "0.1.0",
+  build: "alpha",
   global: this,
   config: {},
   log: function (msg) {

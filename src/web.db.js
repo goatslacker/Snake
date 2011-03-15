@@ -1,3 +1,4 @@
+// TODO support versioning
 Snake.query = (function () {
   var Database = null,
       Query = null;
