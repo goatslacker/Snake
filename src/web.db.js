@@ -53,7 +53,7 @@ Snake.query = (function () {
     if (!Database) {
       self.log("Connecting to the database");
       connect(function () {
-        this(arguments);
+        Snake.query(query, params, onSuccess, onFailure);
       });
     } else {
     
