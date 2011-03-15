@@ -54,7 +54,7 @@ task("default", [], function () {
 
       console.log("Compressing " + outputFile + " using UglifyJS");
 
-      exec("uglifyjs " + outputFile + " >> " + outputMinFile, function (error, stdout, stderr) {
+      exec("uglifyjs " + outputFile + " > " + outputMinFile, function (error, stdout, stderr) {
         if (stdout) {
           console.log("--UglifyJS--");
           console.log(stdout);
