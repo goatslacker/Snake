@@ -22,7 +22,7 @@ Snake.VenomousObject = function (schema) {
   addWhere = function () {
     var field = arguments[0],
         value = arguments[1],
-        selector = arguments[2],
+        selector = arguments[2] || Selectors.EQUAL,
         q = [],
         i = 0;
 
@@ -181,17 +181,16 @@ Snake.VenomousObject = function (schema) {
       // we're not passing each argument
       } else {
 
-        // TODO - if it's a number then pull by ID
+        // Pull by ID
+        if (typeof(arguments[0]) === "number") {
 
-        // loop through each field
-        for (field in arguments[0]) {
+          addWhere("id", arguments[0]);
 
-          if (field === 'or' || field === 'and') {
-            // do something
-            // if the field is an or then we have a problem, specially if there's nesting! :)
-            console.log(arguments[0][field]);
-            // if we have an and then we should run the code below like normal, except that arguments[0] needs to read arguments[0].and 
-          } else {
+        // It's an object
+        } else {
+
+          // loop through each field
+          for (field in arguments[0]) {
 
             if (arguments[0].hasOwnProperty(field)) {
               // the value is the property of the field
@@ -241,9 +240,9 @@ Snake.VenomousObject = function (schema) {
               }
             }
 
-          } // endif OR || AND
+          } // loop
 
-        } // loop
+        } // typeof num
 
       } // endif
 
@@ -292,7 +291,7 @@ Snake.VenomousObject = function (schema) {
 
     // retrieves by the current models primary key
     retrieveByPK: function (pk, onSuccess, onFailure) {
-      this.find({ id: pk }).doSelect(onSuccess, onFailure);
+      this.find(pk).doSelect(onSuccess, onFailure);
     },
 
     // limits 1, returns obj

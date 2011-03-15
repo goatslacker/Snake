@@ -92,7 +92,7 @@ Snake.Base = function (table) {
 
     // deletes a record from the database
     doDelete: function (onSuccess, onFailure) {
-      Snake.Venom[table.jsName].find({ id: this.id }).toSQL().doDelete(onSuccess, onFailure);
+      Snake.Venom[table.jsName].find(this.id).toSQL().doDelete(onSuccess, onFailure);
     }
   };
 
