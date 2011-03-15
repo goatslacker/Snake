@@ -2,25 +2,22 @@
 /*
   Base Class for the ORM
 */
-Snake.Base = function (prop) {
-
+Snake.Base = function (table) {
   var name = null,
+      dontExecuteQuery = false,
       Model = function () { };
 
   Model.prototype = {
 
-    peer: null,
-    dontExecuteQuery: false,
-
     toSQL: function () {
-      this.dontExecuteQuery = true;
+      dontExecuteQuery = true;
 
       return this;
     },
 
     // saves a record in the database
     save: function (onSuccess, onFailure) {
-      var peer = this.peer,
+      var model = this,
           values = [],
           q = [],
           i = 0,
@@ -29,29 +26,28 @@ Snake.Base = function (prop) {
 
       // update
       if (this.id) {
-        for (i = 0; i < peer.columns.length; i = i + 1) {
-          if (model[peer.columns[i]] !== model['$nk_' + peer.columns[i]]) {
-            val = model[peer.columns[i]] || null;
+        for (i = 0; i < table.columns.length; i = i + 1) {
+          if (this[table.columns[i]] !== this['$nk_' + table.columns[i]]) {
+            val = this[table.columns[i]] || null;
             values.push(val);
 
-            conditions.push(peer.columns[i] + " = ?");
+            q.push(table.columns[i] + " = ?");
           }
         }
 
-        sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpose({
-          table: peer.tableName,
-          conditions: conditions,
-          id: model.id
+        sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpolation({
+          table: table.tableName,
+          conditions: q,
+          id: this.id
         });
 
       // insert
       } else {
 
-        // TODO does this mean we can't name a column peer? - TEST
-        for (i = 0; i < peer.map.length; i = i + 1) {
-          val = this[peer.map[i]] || null;
+        for (i = 0; i < table.map.length; i = i + 1) {
+          val = this[table.map[i]] || null;
   
-          if (peer.map[i] === 'created_at' && val === null) {
+          if (table.map[i] === 'created_at' && val === null) {
             val = Date.now();
           }
 
@@ -59,15 +55,15 @@ Snake.Base = function (prop) {
           q.push("?");
         }
 
-        sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpose({
-          table: peer.tableName,
-          columns: peer.map,
+        sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpolation({
+          table: table.tableName,
+          columns: table.map,
           q: q
         });
       }
 
 
-      if (this.dontExecuteQuery === true) {
+      if (dontExecuteQuery === true) {
         if (onSuccess) {
           onSuccess(sql, values);
         }
@@ -87,25 +83,14 @@ Snake.Base = function (prop) {
 
     // deletes a record from the database
     doDelete: function (onSuccess, onFailure) {
-      // FIXME
-      // this.peer.doDeleteRecord(this, onSuccess, onFailure);
-    },
-
-    // FIXME, refactor this!
-    hydrate: function (obj) {
-      var i = null;
-      for (i in obj) {
-        if (obj.hasOwnProperty(i)) {
-          this[i] = obj[i];
-        }
-      }
+      Snake.Venom[table.jsName].find({ id: this.id }).toSQL().doDelete(onSuccess, onFailure);
     }
   };
 
   // Copy the properties over onto the new prototype
-  for (name in prop) {
-    if (prop.hasOwnProperty(name)) {
-      Model.prototype[name] = prop[name];
+  for (name in table.columns) {
+    if (table.columns.hasOwnProperty(name)) {
+      Model.prototype[name] = null;
     }
   }
 

@@ -223,13 +223,12 @@ describe("Snake", function () {
       card.face = 6;
       card.suit = 'clubs';
       card.toSQL().save(function (query, params) {
-        expect(query).toEqual("INSERT INTO 'card' (deck_id, face, suit, id, created_at) VALUES (?, ?, ?, ?, ?)");
+        expect(query).toEqual("INSERT INTO 'card' (deck_id,face,suit,id,created_at) VALUES (?,?,?,?,?)");
         expect(params[1]).toEqual(6);
         expect(params[2]).toEqual('clubs');
       });
     });
 
-/*
     it("Deleting an element", function () {
       var card = new Card();
       card.id = 1;
@@ -238,7 +237,6 @@ describe("Snake", function () {
         expect(params[0]).toEqual(1);
       });
     });
-*/
 
   });
 

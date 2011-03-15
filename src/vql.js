@@ -104,12 +104,12 @@ Snake.VenomousObject = function (schema) {
     // if this query is not meant to be executed then we send it back to the onSuccess callback with the parameters Query {String}, Params {Array}
     if (Model.sql.dontExecuteQuery === true) {
       if (onSuccess) {
-        onSuccess(sql.interpose(query), params);
+        onSuccess(sql.interpolation(query), params);
       }
 
     // We run the query
     } else {
-      Snake.query(sql.interpose(query), params, function (transaction, results) {
+      Snake.query(sql.interpolation(query), params, function (transaction, results) {
 /*
         var arr = [],
             i = 0,
@@ -189,6 +189,8 @@ Snake.VenomousObject = function (schema) {
 
       // we're not passing each argument
       } else {
+
+        // TODO - if it's a number then pull by ID
 
         // loop through each field
         for (field in arguments[0]) {
@@ -355,45 +357,6 @@ Snake.VenomousObject = function (schema) {
   resetObj();
 
   return Model;
-};
-
-// TODO move this method elsewhere
-Snake.createPeer = function (schema, onSuccess) {
-  var table = null,
-      model = null;
-
-  for (table in schema) {
-    if (schema.hasOwnProperty(table)) {
-      model = schema[table];
-      // FIXME
-      model.columns.id = { type: "INTEGER" };
-      model.columns.created_at = { type: "TIME" };
-
-      // TODO create relationships for the base objects
-      // TODO create doSelectJoins for the relationships
-
-      Snake.Venom[table] = new Snake.VenomousObject(model);
-      Snake.global[table].prototype.peer = model;
-    }
-  }
-
-/*
-  var table = null,
-      model = null;
-
-  for (table in schema) {
-    if (schema.hasOwnProperty(table)) {
-      model = schema[table];
-      model.tableName = table;
-      Snake.Venom[model.jsName] = new Snake.VenomousObject(model);
-      Snake.global[model.jsName].prototype.schema = model;
-    }
-  }
-
-  if (onSuccess) {
-    onSuccess();
-  }
-*/
 };
 
 Snake.Venom = {};

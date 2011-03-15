@@ -12,20 +12,8 @@
   <!--<script type="text/javascript" src="cardsExample.js"></script>-->
   <script type="text/javascript">
     // FIXME, dynamically create this from the schema || use SnakeMake
-/*
-    var Player = {"name":null,"chips":null,"id":null,"created_at":null};
-    var Deck = {"name":null,"id":null,"created_at":null};
-    var Card = {"deck_id":null,"face":null,"suit":null,"id":null,"created_at":null};
-    var PlayerCard = {"player_id":null,"card_id":null,"id":null,"created_at":null};
-*/
 
-
-var Player = new Snake.Base({"name":null,"chips":null,"id":null,"created_at":null}),
-    Deck = new Snake.Base({"name":null,"id":null,"created_at":null}),
-    Card = new Snake.Base({"deck_id":null,"face":null,"suit":null,"id":null,"created_at":null}),
-    PlayerCard = new Snake.Base({"player_id":null,"card_id":null,"id":null,"created_at":null});
-
-    Snake.createPeer({
+    Snake.init({
       Player: { 
         tableName: 'player', 
         map: ['name', 'chips', 'id', 'created_at'],
