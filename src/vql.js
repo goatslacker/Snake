@@ -22,7 +22,9 @@ Snake.VenomousObject = function (schema) {
   addWhere = function () {
     var field = arguments[0],
         value = arguments[1],
-        selector = arguments[2];
+        selector = arguments[2],
+        q = [],
+        i = 0;
 
     if (field in schema.columns) {
       field = schema.tableName + "." + field;
@@ -36,9 +38,7 @@ Snake.VenomousObject = function (schema) {
 
     case Selectors.IN:
     case Selectors.NOTIN:
-      var q = [];
-
-      for (var i = 0; i < value.length; i = i + 1) {
+      for (i = 0; i < value.length; i = i + 1) {
         q.push("?");
       }
 
@@ -110,6 +110,7 @@ Snake.VenomousObject = function (schema) {
     // We run the query
     } else {
       Snake.query(sql.interpose(query), params, function (transaction, results) {
+/*
         var arr = [],
             i = 0,
             obj = null,
@@ -136,6 +137,7 @@ Snake.VenomousObject = function (schema) {
         if (onSuccess) {
           onSuccess(arr);
         }
+*/
       }, onFailure);
 
     }
@@ -215,7 +217,7 @@ Snake.VenomousObject = function (schema) {
                 selector = Selectors.LIKE;
                 tmp = value.toString();
                 value = tmp;
-                tmp = value.replace(/[^A-Za-z_]/g, "");
+                tmp = value.replace(/\W/g, "");
 
                 if (value.substr(1, 1) === '^') {
                   value = tmp + '%';

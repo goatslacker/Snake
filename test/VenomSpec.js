@@ -99,6 +99,13 @@ describe("Snake", function () {
           });
         });
 
+        it("LIKE Special Chars", function () {
+          vql.Player.find('name', '%josh_goatslacker%', 'LIKE').toSQL().doSelect(function (query, params) {
+            expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+            expect(params).toEqual(['%josh_goatslacker%']);
+          });
+        });
+
         it("NOT LIKE using params", function () {
           vql.Player.find('name', 'Serenity%', 'NOTLIKE').toSQL().doSelect(function (query, params) {
             expect(query).toEqual("SELECT * FROM player WHERE player.name NOT LIKE ?");
@@ -107,9 +114,9 @@ describe("Snake", function () {
         });
 
         it("LIKE via obj", function () {
-          vql.Player.find({ name: /Joshua/ }).toSQL().doSelect(function (query, params) {
+          vql.Player.find({ name: /goatslacker/ }).toSQL().doSelect(function (query, params) {
             expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
-            expect(params).toEqual(['%Joshua%']);
+            expect(params).toEqual(['%goatslacker%']);
           });
         });
 
