@@ -45,13 +45,6 @@ Snake.VenomousObject = function (schema) {
       Model.sql.where.criterion.push(field + " " + selector + " (" + q.join(", ") + ")");
       break;
 
-/*
-    case Selectors.LIKE:
-    case Selectors.NOTLIKE:
-      //console.log(value);
-      break;
-*/
-    
     default:
       Model.sql.where.criterion.push(field + " " + selector + " ?");
     }
@@ -110,7 +103,6 @@ Snake.VenomousObject = function (schema) {
     // We run the query
     } else {
       Snake.query(sql.interpolation(query), params, function (transaction, results) {
-/*
         var arr = [],
             i = 0,
             obj = null,
@@ -121,7 +113,7 @@ Snake.VenomousObject = function (schema) {
           for (i = 0; i < results.rows.length; i = i + 1) {
 
             obj = results.rows.item(i);
-            tmp = new Snake.global[peer.jsName]();
+            tmp = new Snake.global[schema.jsName]();
 
             for (prop in obj) {
               if (obj.hasOwnProperty(prop)) {
@@ -137,7 +129,6 @@ Snake.VenomousObject = function (schema) {
         if (onSuccess) {
           onSuccess(arr);
         }
-*/
       }, onFailure);
 
     }
@@ -214,7 +205,7 @@ Snake.VenomousObject = function (schema) {
                 break;
 
               // if the value is a Regular Expression then we perform a LIKE query
-              case "[object RegExp]": // TODO not 100% happy with this
+              case "[object RegExp]": 
                 // TODO - NOT LIKE
                 selector = Selectors.LIKE;
                 tmp = value.toString();

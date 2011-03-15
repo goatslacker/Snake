@@ -49,16 +49,12 @@ String.prototype.interpolation = function (obj) {
   @param peer Object
   @param callback Object
 */
-Snake.hydrateRS = function (peer, callback, transaction, results) {
-  var model = null,
-      i = 0,
+Snake.hydrateRS = function (model, callback, transaction, results) {
+  var i = 0,
       model_rs = [];
 
   // loops through all results in the row
   for (i = 0; i < results.rows.length; i = i + 1) {
-
-    // creates a new model
-    model = new Snake.global[peer.jsName]();
 
     // hydrates the model
     model.hydrate(results.rows.item(i)); // YAY for hydrate
