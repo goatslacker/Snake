@@ -81,6 +81,9 @@ task("default", [], function () {
   }
 
   , writeFile = function () {
+    // create directory
+    exec("mkdir build");
+    
     // delete the file first
     fs.unlink(outputFile);
 
