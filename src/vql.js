@@ -291,7 +291,7 @@ Snake.VenomousObject = function (schema) {
 
     // retrieves by the current models primary key
     retrieveByPK: function (pk, onSuccess, onFailure) {
-      this.find(pk).doSelect(onSuccess, onFailure);
+      this.find(pk).doSelectOne(onSuccess, onFailure);
     },
 
     // limits 1, returns obj
