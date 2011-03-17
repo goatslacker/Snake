@@ -1,7 +1,7 @@
 describe("Snake", function () {
 
   it("Snake is proper version", function () {
-    expect(Snake.version).toEqual("0.0.82");
+    expect(Snake.version).toEqual("0.1.0");
   });
 
   // Venom Obj
@@ -164,7 +164,7 @@ describe("Snake", function () {
 
         it("retrieveByPK", function () {
           vql.Card.toSQL().retrieveByPK(101, function (query, params) {
-            expect(query).toEqual("SELECT * FROM card WHERE card.id = ?");
+            expect(query).toEqual("SELECT * FROM card WHERE card.id = ? LIMIT 1");
             expect(params).toEqual([101]);
           });
         });
@@ -176,10 +176,9 @@ describe("Snake", function () {
           });
         });
 
-        it("doCount DISTINCT", function () {
-          vql.Card.find({ suit: 'spades' }).toSQL().doCount(function (query, params) {
-            expect(query).toEqual("SELECT DISTINCT COUNT(*) FROM card WHERE card.suit = ?");
-            expect(params).toEqual(['spades']);
+        it("Count Specific column DISTINCT", function () {
+          vql.Card.select('face').toSQL().doCount(function (query, params) {
+            expect(query).toEqual("SELECT COUNT(DISTINCT card.face) FROM card");
           }, null, true);
         });
 

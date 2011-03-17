@@ -153,6 +153,15 @@ Snake.VenomousObject = function (schema) {
   };
 
   Model = {
+    select: function () {
+      for (var i = 0; i < arguments.length; i = i + 1) {
+        if (arguments[i] in schema.columns) {
+          this.sql.select.push(schema.tableName + "." + arguments[i]);
+        }
+      }
+
+      return this;
+    },
 
     find: function () {
       var field = null,
@@ -301,7 +310,7 @@ Snake.VenomousObject = function (schema) {
 
     // returns count
     doCount: function (onSuccess, onFailure, useDistinct) {
-      useDistinct = useDistinct ? "DISTINCT " : "";
+      useDistinct = (useDistinct && this.sql.select.length > 0) ? "DISTINCT " : "";
       var sql = "SELECT COUNT(" + useDistinct + "#{select}) FROM #{from}",
           query = {};
 
