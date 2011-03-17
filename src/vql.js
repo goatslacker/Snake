@@ -302,7 +302,7 @@ Snake.VenomousObject = function (schema) {
     // returns count
     doCount: function (onSuccess, onFailure, useDistinct) {
       useDistinct = useDistinct ? "DISTINCT " : "";
-      var sql = "SELECT " + useDistinct + "COUNT(#{select}) FROM #{from}",
+      var sql = "SELECT COUNT(" + useDistinct + "#{select}) FROM #{from}",
           query = {};
 
       if (this.sql.select.length === 0) {
