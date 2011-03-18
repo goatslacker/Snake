@@ -1,7 +1,7 @@
 {
-  "name": "snakemake",
+  "name": "snake",
   "version": "0.0.1",
-  "description": "builds a snake schema.json file into a javascript file",
+  "description": "Snake general purpose does everything snake related tool",
   "repository": {
     "type": "git",
     "url": "https://github.com/goatslacker/Snake.git"
@@ -10,6 +10,6 @@
   "licenses": ["MIT"],
   "dependencies": [],
   "bin": { 
-    "snake-make": "./bin/snake-make.js"
+    "snake": "./bin/snake.js"
   }
 }

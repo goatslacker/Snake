@@ -1,3 +1,9 @@
+// TODO
+/*
+  - load plug-ins
+  - select transport/driver
+*/
+
 var jake = require("jake")
   , gzip = require('gzip')
   , sys = require("sys")
