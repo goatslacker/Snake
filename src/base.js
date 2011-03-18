@@ -3,10 +3,21 @@
   Base Class for the ORM
 */
 Snake.Base = function (table) {
-  var name = null,
-      dontExecuteQuery = false,
+  var dontExecuteQuery = false,
       Proto = {},
-      Model = function () { };
+      Model = null;
+
+  Model = function () {
+
+    for (var name in table.columns) {
+      if (table.columns.hasOwnProperty(name)) {
+        // FIXME -- should add to object and then lock the obj
+        this[name] = null;
+      }
+    }
+
+    Object.seal(this); // ?
+  };
 
   Model.is = function (extend) {
     // Copy the properties over onto the new prototype
@@ -96,14 +107,6 @@ Snake.Base = function (table) {
       Snake.Venom[table.jsName].find(this.id).toSQL().doDelete(onSuccess, onFailure);
     }
   };
-
-  // Copy the properties over onto the new prototype
-  for (name in table.columns) {
-    if (table.columns.hasOwnProperty(name)) {
-      // FIXME -- should add to object and then lock the obj
-      //Model.prototype[name] = null;
-    }
-  }
 
   Model.is(Proto);
 

@@ -7,6 +7,10 @@ describe("Snake", function () {
   // Venom Obj
   describe("Venom", function () {
 
+    it("Venom should be defined", function () {
+      expect(Venom).toBeDefined();
+    });
+
     // Run through Venom and return the SQL query
     describe("Venom - Return Queries", function () {
 
@@ -201,50 +205,58 @@ describe("Snake", function () {
         // Custom queries with hydrating involved
     });
 
-    it("Venom should be defined", function () {
-      expect(Venom).toBeDefined();
-    });
-
   });
  
   // Model testing 
   describe("Model testing", function () {
+    var player = new Player();
+    player.name = "Mosuke Hiroshi-san";
+
+    it("var player is defined", function () {
+      expect(player).toBeDefined();
+    });
 
     it("New Model", function () {
-      var player1 = new Player();
-      player1.name = "Mosuke Hiroshi-san";
-      expect(player1.name).toEqual("Mosuke Hiroshi-san");
+      expect(player.name).toEqual("Mosuke Hiroshi-san");
     });
 
     it("Inserting a new item", function () {
-      var card = new Card();
-      // how about we do card.doSelect() ?
-      card.face = 6;
-      card.suit = 'clubs';
+      player.chips = 100;
 
-      // technically toSQL is called automatically by save since Card's save method was overwritten below
-      card.toSQL().save(function (query, params) {
-        expect(query).toEqual("INSERT INTO 'card' (deck_id,face,suit,id,created_at) VALUES (?,?,?,?,?)");
-        expect(params[1]).toEqual(6);
-        expect(params[2]).toEqual('clubs');
+      player.toSQL().save(function (query, params) {
+        expect(query).toEqual("INSERT INTO 'player' (name,chips,id,created_at) VALUES (?,?,?,?)");
+        expect(params[0]).toEqual("Mosuke Hiroshi-san");
+        expect(params[1]).toEqual(100);
       });
     });
 
     it("Deleting an element", function () {
-      var card = new Card();
-      card.id = 1;
-      card.toSQL().doDelete(function (query, params) {
-        expect(query).toEqual("DELETE FROM card WHERE card.id = ?");
+      player.id = 1;
+      player.toSQL().doDelete(function (query, params) {
+        expect(query).toEqual("DELETE FROM player WHERE player.id = ?");
         expect(params[0]).toEqual(1);
       });
     });
 
+    it("Property is present in obj", function () {
+      var player1 = new Player();
+      expect(player1.chips).toBeNull();
+    });
+
+    it("Property is not in the obj's prototype", function () {
+      expect(Player.prototype.chips).toEqual(undefined);
+    });
+
+    it("Object is sealed", function () {
+      expect(Object.isSealed(player)).toBeTruthy();
+    });
+
   });
 
-  // Misc testing
-  describe("Misc testing", function () {
+  // Mixin testing
+  describe("Mixin testing", function () {
 
-    // Mixin
+    // Setup Mixin
     Card.is({
       save: function () {
         // override save method
@@ -256,13 +268,27 @@ describe("Snake", function () {
       world: "universe"
     });
 
-    it("Adding Mixin properties", function () {
+    it("Mixin property exists", function () {
       var card = new Card();
-      expect(card.hello()).toEqual("hai");
       expect(card.world).toEqual("universe");
     });
 
-    it("should call toSQL automatically", function () {
+    it("Mixin function runs", function () {
+      var card = new Card();
+      expect(card.hello()).toEqual("hai");
+    });
+
+    it("Parent/Super prototype is available", function () {
+      var card = new Card();
+      expect(card.$super).toBeDefined();
+    });
+
+    it("Super does not have Mixin properties", function () {
+      var card = new Card();
+      expect(card.$super.world).toEqual(undefined);
+    });
+
+    it("Overriding save method, should call toSQL automatically", function () {
       var card = new Card();
       card.face = 3;
       card.suit = 'spades';
@@ -274,6 +300,7 @@ describe("Snake", function () {
         expect(params[2]).toEqual('spades');
       });
     });
+
 
   });
 
