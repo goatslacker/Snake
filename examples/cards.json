@@ -8,29 +8,29 @@
       "size": 20000
     },
     "schema": {
-      "player": {
-        "jsName": "Player",
+      "Player": { 
+        "tableName": "player", 
         "columns": {
           "name": { "type": "text" },
           "chips": { "type": "integer" }
         }
       },
-      "deck": {
-        "jsName": "Deck",
+      "Deck": { 
+        "tableName": "deck", 
         "columns": {
           "name": { "type": "text" }
         }
       },
-      "card": {
-        "jsName": "Card",
+      "Card": { 
+        "tableName": "card",
         "columns": {
           "deck_id": { "type": "integer", "foreign": "deck.id" },
           "face": { "type": "text" },
           "suit": { "type": "text" }
         }
       },
-      "player_card": {
-        "jsName": "PlayerCard",
+      "PlayerCard": { 
+        "tableName": "player_card",
         "columns": {
           "player_id": { "type": "integer", "foreign": "player.id" },
           "card_id": { "type": "integer", "foreign": "card.id" }
