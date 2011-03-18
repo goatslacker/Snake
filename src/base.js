@@ -5,6 +5,7 @@
 Snake.Base = function (table) {
   var name = null,
       dontExecuteQuery = false,
+      Proto = {},
       Model = function () { };
 
   Model.is = function (extend) {
@@ -16,7 +17,7 @@ Snake.Base = function (table) {
     }
   };
 
-  Model.prototype = {
+  Proto = {
 
     toSQL: function () {
       dontExecuteQuery = true;
@@ -99,9 +100,14 @@ Snake.Base = function (table) {
   // Copy the properties over onto the new prototype
   for (name in table.columns) {
     if (table.columns.hasOwnProperty(name)) {
-      Model.prototype[name] = null;
+      // FIXME -- should add to object and then lock the obj
+      //Model.prototype[name] = null;
     }
   }
+
+  Model.is(Proto);
+
+  Model.prototype.$super = Proto;
 
   return Model;
 };

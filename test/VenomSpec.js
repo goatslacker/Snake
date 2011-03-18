@@ -1,7 +1,7 @@
 describe("Snake", function () {
 
   it("Snake is proper version", function () {
-    expect(Snake.version).toEqual("0.1.0");
+    expect(Snake.version).toEqual("0.1.1");
   });
 
   // Venom Obj
@@ -221,6 +221,8 @@ describe("Snake", function () {
       // how about we do card.doSelect() ?
       card.face = 6;
       card.suit = 'clubs';
+
+      // technically toSQL is called automatically by save since Card's save method was overwritten below
       card.toSQL().save(function (query, params) {
         expect(query).toEqual("INSERT INTO 'card' (deck_id,face,suit,id,created_at) VALUES (?,?,?,?,?)");
         expect(params[1]).toEqual(6);
@@ -241,18 +243,38 @@ describe("Snake", function () {
 
   // Misc testing
   describe("Misc testing", function () {
+
     // Mixin
     Card.is({
+      save: function () {
+        // override save method
+        this.$super.toSQL().save();
+      },
       hello: function () {
         return "hai";
       },
       world: "universe"
     });
 
-    var card = new Card();
+    it("Adding Mixin properties", function () {
+      var card = new Card();
+      expect(card.hello()).toEqual("hai");
+      expect(card.world).toEqual("universe");
+    });
 
-    expect(card.hello()).toEqual("hai");
-    expect(card.world).toEqual("universe");
+    it("should call toSQL automatically", function () {
+      var card = new Card();
+      card.face = 3;
+      card.suit = 'spades';
+
+      // should call toSQL automatically
+      card.save(function (query, params) {
+        expect(query).toEqual("INSERT INTO 'card' (deck_id,face,suit,id,created_at) VALUES (?,?,?,?,?)");
+        expect(params[1]).toEqual(3);
+        expect(params[2]).toEqual('spades');
+      });
+    });
+
   });
 
 });
