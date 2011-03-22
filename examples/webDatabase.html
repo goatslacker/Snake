@@ -51,6 +51,7 @@
       for (i; i < Snake.Fixtures.Card.length; i = i + 1) {
         row = Snake.Fixtures.Card[i];
         var card = new Card();
+        card.deck_id = 1;
         card.face = row.face;
         card.suit = row.suit;
         card.save();
@@ -66,6 +67,11 @@
     vql.Card.doSelectOne(function (card) {
       console.log(card);
     });
+
+    // hydrate w/ join should return a Card object with "deck" {Object} as a property of Card.
+    //vql.Card.join("deck").doSelect(function (cards) { console.log(cards) });
+
+    //vql.Deck.doSelectOne(function (row) { console.log(row); });
 
   });
 </script>

@@ -354,7 +354,6 @@ Snake.VenomousObject = function (schema) {
         for (var column in schema.columns) {
           query.select.push(schema.tableName + "." + column);
         }
-      } else {
 */
       } else {
         query.select = this.sql.select;
