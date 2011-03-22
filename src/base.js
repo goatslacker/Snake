@@ -16,7 +16,24 @@ Snake.Base = function (table) {
       }
     }
 
-    Object.seal(this); // ?
+    //Object.seal(this); // Not sealing it for now
+  };
+
+  // Hydrate || Populate
+  Model.allocate = function (row) { // TODO - also handle multiple rows
+    var model = new Model(),
+        prop = null;
+
+    model.old = {};
+
+    for (prop in row) {
+      if (row.hasOwnProperty(prop)) {
+        model[prop] = row[prop];
+        model.old[prop] = row[prop];
+      }
+    }
+
+    return model;
   };
 
   Model.is = function (extend) {
@@ -48,7 +65,7 @@ Snake.Base = function (table) {
       // update
       if (this.id) {
         for (i = 0; i < table.columns.length; i = i + 1) {
-          if (this[table.columns[i]] !== this['$nk_' + table.columns[i]]) {
+          if (this[table.columns[i]] !== this.old[table.columns[i]]) {
             val = this[table.columns[i]] || null;
             values.push(val);
 

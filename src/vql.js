@@ -105,34 +105,9 @@ Snake.VenomousObject = function (schema) {
 
     // We run the query
     } else {
-      Snake.query(sql.interpolation(query), params, function (transaction, results) {
-        var arr = [],
-            i = 0,
-            obj = null,
-            tmp = null,
-            prop = null;
-        
-        if (results.rows.length > 0) {
-          for (i = 0; i < results.rows.length; i = i + 1) {
-
-            obj = results.rows.item(i);
-            tmp = new Snake.global[schema.jsName]();
-
-            for (prop in obj) {
-              if (obj.hasOwnProperty(prop)) {
-                tmp[prop] = obj[prop];
-                tmp['$nk_' + prop] = obj[prop];
-              }
-            }
-
-            arr.push(tmp);
-          }
-        }
-
-        if (onSuccess) {
-          onSuccess(arr);
-        }
-      }, onFailure);
+      Snake.query(sql.interpolation(query), params, onSuccess, onFailure);
+/*
+*/
 
     }
 
@@ -280,8 +255,6 @@ Snake.VenomousObject = function (schema) {
     join: function (table, on, join_method) {
       join_method = Selectors[join_method] || Selectors.LEFT_JOIN;
 
-      console.log(schema);
-
       // find relationship and join the tables
       if (!on) {
         // this.join(vql.Deck);
@@ -331,13 +304,21 @@ Snake.VenomousObject = function (schema) {
 
     // limits 1, returns obj
     doSelectOne: function (onSuccess, onFailure) {
-      this.limit(1).doSelect(onSuccess, onFailure);
+      this.limit(1).doSelect(function (rows) {
+        if (onSuccess) {
+          if (rows.length > 0) {
+            onSuccess(rows[0]);
+          } else {
+            onSuccess(null);
+          }
+        }
+      }, onFailure);
     },
 
     // returns count
     doCount: function (onSuccess, onFailure, useDistinct) {
       useDistinct = (useDistinct && this.sql.select.length > 0) ? "DISTINCT " : "";
-      var sql = "SELECT COUNT(" + useDistinct + "#{select}) FROM #{from}",
+      var sql = "SELECT COUNT(" + useDistinct + "#{select}) AS count FROM #{from}",
           query = {};
 
       if (this.sql.select.length === 0) {
@@ -346,7 +327,13 @@ Snake.VenomousObject = function (schema) {
         query.select = this.sql.select;
       }
 
-      queryBuilder(sql, query, onSuccess, onFailure);
+      queryBuilder(sql, query, function (transaction, results) {
+        var obj = results.rows.item(0);
+
+        if (onSuccess) {
+          onSuccess(obj.count);
+        }
+      }, onFailure);
     },
 
     // deletes objects
@@ -373,7 +360,22 @@ Snake.VenomousObject = function (schema) {
         query.select = this.sql.select;
       }
 
-      queryBuilder(sql, query, onSuccess, onFailure);
+      queryBuilder(sql, query, function (transaction, results) {
+        var arr = [],
+            i = 0,
+            model = null;
+        
+        if (results.rows.length > 0) {
+          for (i = 0; i < results.rows.length; i = i + 1) {
+            model = Snake.global[schema.jsName].allocate(results.rows.item(i));
+            arr.push(model);
+          }
+        }
+
+        if (onSuccess) {
+          onSuccess(arr);
+        }
+      }, onFailure);
     }
 
 

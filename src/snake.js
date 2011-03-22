@@ -44,27 +44,10 @@ String.prototype.interpolation = function (obj) {
   return str;
 };
 
-/*
-  Hydrates a recordset from the database into it's respective models
-  @param peer Object
-  @param callback Object
-*/
-Snake.hydrateRS = function (model, callback, transaction, results) {
-  var i = 0,
-      model_rs = [];
-
-  // loops through all results in the row
-  for (i = 0; i < results.rows.length; i = i + 1) {
-
-    // hydrates the model
-    model.hydrate(results.rows.item(i)); // YAY for hydrate
-
-    // pushes the results onto an array
-    model_rs.push(model);
-  }
-
-  // executes callback with array
-  callback(model_rs);
+// dummy func
+Snake.define = function (conf) {
+  var self = Snake;
+  self.config.database = conf;
 };
 
 Snake.loadFromJSON = function (schema, onSuccess) {

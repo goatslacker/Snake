@@ -1,0 +1,72 @@
+<script type="text/javascript" src="../build/snake.js"></script>
+<script type="text/javascript" src="fixtures/cards.js"></script>
+<script type="text/javascript">
+  // define the db properties
+  Snake.define({ name: "mycards", size: 65000, description: "An example", version: "0.1" });
+
+  // insert the tables if they don't exist
+  Snake.query(["CREATE TABLE IF NOT EXISTS 'player'(name text, chips integer, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'deck'(name text, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'card'(deck_id integer, face text, suit text, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (deck_id) REFERENCES deck(id))", "CREATE TABLE IF NOT EXISTS 'player_card'(player_id integer, card_id integer, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (player_id) REFERENCES player(id), FOREIGN KEY (card_id) REFERENCES card(id))"]);
+
+  // build the model via JSON and dynamically load it
+  Snake.loadFromJSON({
+    Player: { 
+      tableName: 'player', 
+      "columns": {
+        "name": { "type": "text" },
+        "chips": { "type": "integer" }
+      }
+    },
+    Deck: { 
+      tableName: 'deck', 
+      "columns": {
+        "name": { "type": "text" }
+      }
+    },
+    Card: { 
+      tableName: 'card', 
+      "columns": {
+        "deck_id": { "type": "integer", "foreign": "deck.id" },
+        "face": { "type": "text" },
+        "suit": { "type": "text" }
+      }
+    },
+    PlayerCard: { 
+      tableName: 'player_card', 
+      "columns": {
+        "player_id": { "type": "integer", "foreign": "player.id" },
+        "card_id": { "type": "integer", "foreign": "card.id" }
+      }
+    }
+  });
+
+  // load Card fixtures
+  vql.Card.doCount(function (ct) {
+    // load card fixtures
+    if (ct === 0) {
+      var i = 0,
+          row = null,
+          card = null;
+
+      // load fixtures by creating a new model for each row
+      for (i; i < Snake.Fixtures.Card.length; i = i + 1) {
+        row = Snake.Fixtures.Card[i];
+        var card = new Card();
+        card.face = row.face;
+        card.suit = row.suit;
+        card.save();
+      }
+    }
+
+    // select all the cards!
+    vql.Card.doSelect(function (cards) {
+      console.log(cards);
+    });
+
+    // select a single card
+    vql.Card.doSelectOne(function (card) {
+      console.log(card);
+    });
+
+  });
+</script>
+<h1>Check console for results</h1>

@@ -59,20 +59,31 @@ Snake.query = (function () {
     
       // HTML5 database perform query
       Database.transaction(function (transaction) {
+        var preparedQuery = null,
+            i = 0;
 
-        // append semicolon to query
-        query = query + ";";
-
-        // debugging
-        if (self.debug) {
-          self.log(query);
-          if (params) {
-            self.log(params);
-          }
-        } else {
-          // perform query
-          transaction.executeSql(query, params, onSuccess, onFailure);
+        // convert to single array
+        if (!self.is_array(query)) {
+          query = [query];
         }
+
+        for (i; i < query.length; i = i + 1) {
+
+          // append semicolon to query
+          preparedQuery = query[i] + ";";
+
+          // debugging
+          if (self.debug) {
+            self.log(preparedQuery);
+            if (params) {
+              self.log(params);
+            }
+          } else {
+            // perform query
+            transaction.executeSql(preparedQuery, params, onSuccess, onFailure);
+          }
+        }
+
       });
     }
   };
