@@ -199,6 +199,18 @@ describe("Snake", function () {
           }, null, true);
         });
 
+        it("Join", function () {
+          vql.Card.join("deck").toSQL().doSelect(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card LEFT JOIN deck ON card.deck_id = deck.id");
+          }, null, true);
+        });
+
+        it("Join - Specify On", function () {
+          vql.Card.join("deck", ['deck_id', 'id']).toSQL().doSelect(function (query, params) {
+            expect(query).toEqual("SELECT * FROM card LEFT JOIN deck ON card.deck_id = deck.id");
+          }, null, true);
+        });
+
         // TODO build:
         // OR
         // JOIN

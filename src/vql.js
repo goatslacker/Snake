@@ -10,6 +10,7 @@ Snake.VenomousObject = function (schema) {
       dontExecuteQuery: false,
       select: [],
       from: schema.tableName,
+      joins: [],
       where: {
         criterion: [],
         params: []
@@ -65,7 +66,9 @@ Snake.VenomousObject = function (schema) {
     // FROM
     query.from = schema.tableName;
 
-    // TODO JOINs
+    if (Model.sql.joins.length > 0) {
+      sql = sql + " " + Model.sql.joins.join(" ");
+    }
 
     // WHERE
     if (Model.sql.where.criterion.length > 0) {
@@ -274,12 +277,35 @@ Snake.VenomousObject = function (schema) {
       return this;
     },
 
-    join: function (table, join_method) {
+    join: function (table, on, join_method) {
       join_method = Selectors[join_method] || Selectors.LEFT_JOIN;
 
-      // FIXME -- need to lookup the schema information for the current table and match it up with the primary or foreign key on the other table
-      // possible syntax
-      // this.join(vql.Deck);
+      console.log(schema);
+
+      // find relationship and join the tables
+      if (!on) {
+        // this.join(vql.Deck);
+        if ("foreign" in schema && table in schema.foreign) {
+          this.sql.joins.push("#{join_method} #{foreign_table} ON #{table}.#{primary_key} = #{foreign_table}.#{foreign_key}".interpolation({
+            join_method: join_method,
+            foreign_table: table,
+            table: schema.tableName,
+            primary_key: schema.foreign[table][0],
+            foreign_key: schema.foreign[table][1]
+          }));
+        }
+      // join it on the parameters provided
+      } else {
+        this.sql.joins.push("#{join_method} #{foreign_table} ON #{table}.#{primary_key} = #{foreign_table}.#{foreign_key}".interpolation({
+          join_method: join_method,
+          foreign_table: table,
+          table: schema.tableName,
+          primary_key: on[0],
+          foreign_key: on[1]
+        }));
+      }
+
+      return this;
     },
 
     offset: function (offset) {

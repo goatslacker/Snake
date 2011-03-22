@@ -70,6 +70,8 @@ Snake.hydrateRS = function (model, callback, transaction, results) {
 Snake.loadFromJSON = function (schema, onSuccess) {
   var table = null,
       column = null,
+      def_column = null,
+      fk = null,
       model = null;
 
   for (table in schema) {
@@ -83,6 +85,17 @@ Snake.loadFromJSON = function (schema, onSuccess) {
       model.map = [];
       for (column in schema[table].columns) {
         if (schema[table].columns.hasOwnProperty(column)) {
+          def_column = schema[table].columns[column];
+
+          if ("foreign" in def_column) {
+            if (!model.foreign) {
+              model.foreign = {};
+            }
+
+            fk = def_column.foreign.split(".");
+            model.foreign[fk[0]] = [column, fk[1]];
+          }
+
           model.map.push(column);
         }
       }
