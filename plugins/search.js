@@ -43,18 +43,18 @@ Snake.Indexed = {
 
     if (phrase !== false) {
       // run first query and the mix with second set of results
-      Snake.query(query.interpolate({ words: "?" }), [phrase], Snake.hydrateRS.bind(this, DreamPeer, (function (dreams) {
+      Snake.query(query.interpolation({ words: "?" }), [phrase], Snake.hydrateRS.bind(this, DreamPeer, (function (dreams) {
         var all_dreams = [];
         all_dreams = all_dreams.concat(dreams);
 
-        Snake.query(query.interpolate({ words: q }), stemmed_words, Snake.hydrateRS.bind(this, DreamPeer, (function (dreams) {
+        Snake.query(query.interpolation({ words: q }), stemmed_words, Snake.hydrateRS.bind(this, DreamPeer, (function (dreams) {
           callback(all_dreams);
         }).bind(this)));
 
       }).bind(this)));
     } else {
       // hydrates a record set
-      Snake.query(query.interpolate({ words: q }), stemmed_words, Snake.hydrateRS.bind(this, DreamPeer, function (dreams) {
+      Snake.query(query.interpolation({ words: q }), stemmed_words, Snake.hydrateRS.bind(this, DreamPeer, function (dreams) {
         callback(dreams);
       }));
     }

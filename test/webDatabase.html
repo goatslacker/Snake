@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Snake Unit Testing | Jasmine</title>
+  <link rel="stylesheet" type="text/css" href="../vendor/jasmine/jasmine.css">
+  <script type="text/javascript" src="../vendor/jasmine/jasmine.js"></script>
+  <script type="text/javascript" src="../vendor/jasmine/jasmine-html.js"></script>
+
+  <!-- include source files here... -->
+  <script type="text/javascript" src="../build/snake.dev.js"></script>
+  <script type="text/javascript" src="fixtures/cards.js"></script>
+  <!--<script type="text/javascript" src="cardsExample.js"></script>-->
+  <script type="text/javascript">
+    // define the db properties
+    Snake.define({ name: "mycards", size: 65000, description: "An example", version: "0.1" });
+
+    Snake.query(["CREATE TABLE IF NOT EXISTS 'player'(name text, chips integer, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'deck'(name text, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'card'(deck_id integer, face text, suit text, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (deck_id) REFERENCES deck(id))", "CREATE TABLE IF NOT EXISTS 'player_card'(player_id integer, card_id integer, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (player_id) REFERENCES player(id), FOREIGN KEY (card_id) REFERENCES card(id))"]);
+
+    // build the model via JSON and dynamically load it
+    Snake.loadFromJSON({
+      Player: { 
+        tableName: 'player', 
+        "columns": {
+          "name": { "type": "text" },
+          "chips": { "type": "integer" }
+        }
+      },
+      Deck: { 
+        tableName: 'deck', 
+        "columns": {
+          "name": { "type": "text" }
+        }
+      },
+      Card: { 
+        tableName: 'card', 
+        "columns": {
+          "deck_id": { "type": "integer", "foreign": "deck.id" },
+          "face": { "type": "text" },
+          "suit": { "type": "text" }
+        }
+      },
+      PlayerCard: { 
+        tableName: 'player_card', 
+        "columns": {
+          "player_id": { "type": "integer", "foreign": "player.id" },
+          "card_id": { "type": "integer", "foreign": "card.id" }
+        }
+      }
+    });
+  </script>
+
+  <!-- include spec files here... -->
+  <script type="text/javascript" src="webDbSpec.js"></script>
+
+</head>
+<body>
+
+<script type="text/javascript">
+  jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
+  jasmine.getEnv().execute();
+</script>
+
+</body>
+</html>

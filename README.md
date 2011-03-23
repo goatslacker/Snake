@@ -1,7 +1,7 @@
-# Snake: a Javascript ORM #
+# Snake: asynchronous Javascript ORM & DBAL #
 
-Snake is English for Orm in Swedish. Snake is inspired by Propel & Criteria.
+- Snake is English for Orm in Swedish.
 
-Snake is in Alpha stage right now so it should not be used for production applications.
+- Snake is in Alpha stage right now so it should not be used for production applications.
 
-Would love some help and/or ideas on this project! If you want to contribute just fork the project.
+- Would love some help and/or ideas on this project! If you want to contribute just fork the project.
