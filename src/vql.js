@@ -7,7 +7,6 @@ Snake.VenomousObject = function (schema) {
 
   resetObj = function () {
     Model.sql = {
-      dontExecuteQuery: false,
       select: [],
       from: schema.tableName,
       joins: [],
@@ -25,7 +24,8 @@ Snake.VenomousObject = function (schema) {
         value = arguments[1],
         selector = arguments[2] || Selectors.EQUAL,
         q = [],
-        i = 0;
+        i = 0,
+        max = 0;
 
     if (field in schema.columns) {
       field = schema.tableName + "." + field;
@@ -39,7 +39,7 @@ Snake.VenomousObject = function (schema) {
 
     case Selectors.IN:
     case Selectors.NOTIN:
-      for (i = 0; i < value.length; i = i + 1) {
+      for (i = 0, max = value.length; i < max; i = i + 1) {
         q.push("?");
       }
 
@@ -59,7 +59,7 @@ Snake.VenomousObject = function (schema) {
     }
   };
 
-  queryBuilder = function (sql, query, onSuccess, onFailure) {
+  queryBuilder = function (persist, sql, query, onSuccess, onFailure) {
     var params = null;
     query = query || {};
 
@@ -97,18 +97,15 @@ Snake.VenomousObject = function (schema) {
       query.limit = Model.sql.limit;
     }
 
-    // if this query is not meant to be executed then we send it back to the onSuccess callback with the parameters Query {String}, Params {Array}
-    if (Model.sql.dontExecuteQuery === true) {
+    // We run the query
+    if (persist) {
+      Snake.query(sql.interpolation(query), params, onSuccess, onFailure);
+
+    // use the callback to return the query
+    } else {
       if (onSuccess) {
         onSuccess(sql.interpolation(query), params);
       }
-
-    // We run the query
-    } else {
-      Snake.query(sql.interpolation(query), params, onSuccess, onFailure);
-/*
-*/
-
     }
 
     resetObj();
@@ -132,7 +129,7 @@ Snake.VenomousObject = function (schema) {
 
   Model = {
     select: function () {
-      for (var i = 0; i < arguments.length; i = i + 1) {
+      for (var i = 0, max = arguments.length; i < max; i = i + 1) {
         if (arguments[i] in schema.columns) {
           this.sql.select.push(schema.tableName + "." + arguments[i]);
         }
@@ -291,34 +288,37 @@ Snake.VenomousObject = function (schema) {
       return this;
     },
 
-    // just outputs the sql
-    toSQL: function () {
-      this.sql.dontExecuteQuery = true;
-      return this;
-    },
-
     // retrieves by the current models primary key
-    retrieveByPK: function (pk, onSuccess, onFailure) {
-      this.find(pk).doSelectOne(onSuccess, onFailure);
+    retrieveByPK: function (pk, onSuccess, onFailure, outputSql) {
+      this.find(pk).doSelectOne(onSuccess, onFailure, outputSql);
     },
 
     // limits 1, returns obj
-    doSelectOne: function (onSuccess, onFailure) {
-      this.limit(1).doSelect(function (rows) {
-        if (onSuccess) {
-          if (rows.length > 0) {
-            onSuccess(rows[0]);
-          } else {
-            onSuccess(null);
+    doSelectOne: function (onSuccess, onFailure, outputSql) {
+      var callback = null;
+
+      if (outputSql === true) {
+        callback = onSuccess;
+      } else {
+        callback = function (rows) {
+          if (onSuccess) {
+            if (rows.length > 0) {
+              onSuccess(rows[0]);
+            } else {
+              onSuccess(null);
+            }
           }
-        }
-      }, onFailure);
+        };
+      }
+
+      this.limit(1).doSelect(callback, onFailure, outputSql);
     },
 
     // returns count
-    doCount: function (onSuccess, onFailure, useDistinct) {
+    doCount: function (onSuccess, onFailure, useDistinct, outputSql) {
       useDistinct = (useDistinct && this.sql.select.length > 0) ? "DISTINCT " : "";
       var sql = "SELECT COUNT(" + useDistinct + "#{select}) AS count FROM #{from}",
+          callback = null,
           query = {};
 
       if (this.sql.select.length === 0) {
@@ -327,56 +327,63 @@ Snake.VenomousObject = function (schema) {
         query.select = this.sql.select;
       }
 
-      queryBuilder(sql, query, function (transaction, results) {
-        var obj = results.rows.item(0);
+      if (outputSql === true) {
+        callback = onSuccess;
+      } else {
+        callback = function (transaction, results) {
+          var obj = results.rows.item(0);
 
-        if (onSuccess) {
-          onSuccess(obj.count);
-        }
-      }, onFailure);
+          if (onSuccess) {
+            onSuccess(obj.count);
+          }
+        };
+      }
+
+      queryBuilder(!outputSql, sql, query, onSuccess, onFailure);
     },
 
     // deletes objects
-    doDelete: function (onSuccess, onFailure) {
-      queryBuilder("DELETE FROM #{from}", null, onSuccess, onFailure);
+    doDelete: function (onSuccess, onFailure, outputSql) {
+      queryBuilder(!outputSql, "DELETE FROM #{from}", null, onSuccess, onFailure);
     },
 
     // returns Array of objs
-    doSelect: function (onSuccess, onFailure) {
+    doSelect: function (onSuccess, onFailure, outputSql) {
       var sql = "SELECT #{select} FROM #{from}",
+          callback = null,
           query = {};
 
       if (this.sql.select.length === 0) {
         query.select = "*";
-/*
-// this adds all the columns
-        query.select = [];
-        for (var column in schema.columns) {
-          query.select.push(schema.tableName + "." + column);
-        }
-*/
       } else {
         query.select = this.sql.select;
       }
 
-      queryBuilder(sql, query, function (transaction, results) {
-        var arr = [],
-            i = 0,
-            model = null;
-        
-        if (results.rows.length > 0) {
-          for (i = 0; i < results.rows.length; i = i + 1) {
-            model = Snake.global[schema.jsName].allocate(results.rows.item(i));
-            arr.push(model);
+      if (outputSql === true) {
+        callback = onSuccess;
+      } else {
+        callback = function (transaction, results) {
+          var arr = [],
+              i = 0,
+              max = 0,
+              model = null,
+              rows = results.rows;
+          
+          if (rows.length > 0) {
+            for (i = 0, max = rows.length; i < max; i = i + 1) {
+              model = Snake.global[schema.jsName].allocate(rows.item(i));
+              arr.push(model);
+            }
           }
-        }
 
-        if (onSuccess) {
-          onSuccess(arr);
-        }
-      }, onFailure);
+          if (onSuccess) {
+            onSuccess(arr);
+          }
+        };
+      }
+
+      queryBuilder(!outputSql, sql, query, callback, onFailure);
     }
-
 
   };
 

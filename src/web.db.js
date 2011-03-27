@@ -60,14 +60,15 @@ Snake.query = (function () {
       // HTML5 database perform query
       Database.transaction(function (transaction) {
         var preparedQuery = null,
-            i = 0;
+            i = 0,
+            max = 0;
 
         // convert to single array
         if (!self.is_array(query)) {
           query = [query];
         }
 
-        for (i; i < query.length; i = i + 1) {
+        for (i, max = query.length; i < max; i = i + 1) {
 
           // append semicolon to query
           preparedQuery = query[i] + ";";

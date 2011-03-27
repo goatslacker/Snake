@@ -39,4 +39,8 @@ describe("webdb.js", function () {
     });
   });
 
+  vql.Card.doSelect(function (cards) {
+console.log(cards);
+  });
+
 });

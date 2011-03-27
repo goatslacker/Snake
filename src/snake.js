@@ -1,6 +1,6 @@
 // base object
 var Snake = {
-  version: "0.1.3",
+  version: "0.1.4",
   build: "alpha",
   global: this,
   config: {},
@@ -16,8 +16,9 @@ Snake.is_array = function (arrayInQuestion) {
 };
 
 Array.prototype.in_array = function (val) {
-  var i = 0;
-  for (i = 0; i < this.length; i = i + 1) {
+  var i = 0,
+      max = 0;
+  for (i = 0, max = this.length; i < max; i = i + 1) {
     if (this[i] === val) {
       return true;
     }
