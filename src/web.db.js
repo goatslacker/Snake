@@ -79,10 +79,10 @@ Snake.query = (function () {
             if (params) {
               self.log(params);
             }
-          } else {
-            // perform query
-            transaction.executeSql(preparedQuery, params, onSuccess, onFailure);
           }
+
+          // perform query
+          transaction.executeSql(preparedQuery, params, onSuccess, onFailure);
         }
 
       });

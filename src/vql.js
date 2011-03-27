@@ -339,7 +339,7 @@ Snake.VenomousObject = function (schema) {
         };
       }
 
-      queryBuilder(!outputSql, sql, query, onSuccess, onFailure);
+      queryBuilder(!outputSql, sql, query, callback, onFailure);
     },
 
     // deletes objects

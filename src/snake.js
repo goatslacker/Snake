@@ -5,7 +5,9 @@ var Snake = {
   global: this,
   config: {},
   log: function (msg) {
-    console.log(msg);
+    if ('console' in Snake.global) {
+      console.log(msg);
+    }
   },
   debug: false
 };
