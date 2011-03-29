@@ -1,14 +1,24 @@
-// TODO support versioning
+/**
+  * Performs a query on the Web Database
+  *
+  * @function
+  * @param {string} query A prepared statement
+  * @param {Array} params The parameters to insert into the prepared statements
+  * @param {Function} onSuccess The function to callback if the transaction is successfully executed
+  * @param {Function} onFailure The function to callback if the transaction fails
+  */
 Snake.query = (function () {
+// TODO support versioning
+
+/**
+  * @private
+  */
   var Database = null,
       Query = null;
 
-/*
-  @private
-  Creates the database connection
-  @param onSuccess Object function
-  @param onFailure Object function
-*/
+/**
+  * @private
+  */
   function connect(onSuccess, onFailure) {
     var self = Snake,
         db = self.config.database;
@@ -28,13 +38,9 @@ Snake.query = (function () {
     }
   }
 
-  /*
-    Performs a query
-    @param query String
-    @param params Array
-    @param onSuccess Object
-    @param onFailure Object
-  */
+  /**
+    * @private
+    */
   Query = function (query, params, onSuccess, onFailure) {
     var self = Snake;
 

@@ -1,12 +1,26 @@
-Snake.VenomousObject = function (schema) {
+/**
+  * Creates the `Query Building` object which is used to extract data from the database
+  *
+  * @constructor
+  * @param {Object} schema The object's schema
+  * @returns {Object}
+  */
+Snake.venomousObject = function (schema) {
+  /**
+    * @private
+    */
   var Selectors = {},
-      Model = {},
+      Collection = {},
       queryBuilder = null,
       addWhere = null,
       resetObj = null;
 
+  /**
+    * @private
+    * Resets the Query after it returns a result
+    */
   resetObj = function () {
-    Model.sql = {
+    Collection.sql = {
       select: [],
       from: schema.tableName,
       joins: [],
@@ -19,6 +33,10 @@ Snake.VenomousObject = function (schema) {
     };
   };
 
+  /**
+    * @private
+    * Adds a WHERE statement to the query
+    */
   addWhere = function () {
     var field = arguments[0],
         value = arguments[1],
@@ -34,7 +52,7 @@ Snake.VenomousObject = function (schema) {
     switch (selector) {
     case Selectors.ISNULL:
     case Selectors.ISNOTNULL:
-      Model.sql.where.criterion.push(field + " " + selector);
+      Collection.sql.where.criterion.push(field + " " + selector);
       break;
 
     case Selectors.IN:
@@ -43,74 +61,84 @@ Snake.VenomousObject = function (schema) {
         q.push("?");
       }
 
-      Model.sql.where.criterion.push(field + " " + selector + " (" + q.join(", ") + ")");
+      Collection.sql.where.criterion.push(field + " " + selector + " (" + q.join(", ") + ")");
       break;
 
     default:
-      Model.sql.where.criterion.push(field + " " + selector + " ?");
+      Collection.sql.where.criterion.push(field + " " + selector + " ?");
     }
 
     if (value) {
       if (Snake.is_array(value)) {
-        Model.sql.where.params = Model.sql.where.params.concat(value);
+        Collection.sql.where.params = Collection.sql.where.params.concat(value);
       } else {
-        Model.sql.where.params.push(value);
+        Collection.sql.where.params.push(value);
       }
     }
   };
 
+  /**
+    * @private
+    * Builds the query and passes it onto Snake.query for processing
+    */
   queryBuilder = function (persist, sql, query, onSuccess, onFailure) {
-    var params = null;
+    var params = null,
+        interpolate = Snake.interpolate;
+
     query = query || {};
 
     // FROM
     query.from = schema.tableName;
 
-    if (Model.sql.joins.length > 0) {
-      sql = sql + " " + Model.sql.joins.join(" ");
+    if (Collection.sql.joins.length > 0) {
+      sql = sql + " " + Collection.sql.joins.join(" ");
     }
 
     // WHERE
-    if (Model.sql.where.criterion.length > 0) {
+    if (Collection.sql.where.criterion.length > 0) {
       sql = sql + " WHERE #{where}";
       // build the where...
-      query.where = Model.sql.where.criterion.join(" AND ");
+      query.where = Collection.sql.where.criterion.join(" AND ");
 
-      params = Model.sql.where.params;
+      params = Collection.sql.where.params;
     }
 
     // ORDER BY
-    if (Model.sql.orderBy.length > 0) {
+    if (Collection.sql.orderBy.length > 0) {
       sql = sql + " ORDER BY #{orderBy}";
-      query.orderBy = Model.sql.orderBy;
+      query.orderBy = Collection.sql.orderBy;
     }
 
     // LIMIT && OFFSET
-    if (Model.sql.limit) {
-      if (Model.sql.offset) {
+    if (Collection.sql.limit) {
+      if (Collection.sql.offset) {
         sql = sql + " LIMIT #{offset}, #{limit}";
-        query.offset = Model.sql.offset;
+        query.offset = Collection.sql.offset;
       } else {
         sql = sql + " LIMIT #{limit}";
       }
 
-      query.limit = Model.sql.limit;
+      query.limit = Collection.sql.limit;
     }
 
     // We run the query
     if (persist) {
-      Snake.query(sql.interpolation(query), params, onSuccess, onFailure);
+      Snake.query(interpolate(sql, query), params, onSuccess, onFailure);
 
     // use the callback to return the query
     } else {
       if (onSuccess) {
-        onSuccess(sql.interpolation(query), params);
+        onSuccess(interpolate(sql, query), params);
       }
     }
 
     resetObj();
   };
 
+  /**
+    * @private
+    * @constant
+    */
   Selectors = {
     EQUAL: "=", 
     NOT_EQUAL: "<>",
@@ -127,7 +155,21 @@ Snake.VenomousObject = function (schema) {
     LEFT_JOIN: "LEFT JOIN"
   };
 
-  Model = {
+  /**
+    * @public
+    * @constructor
+    * @this {Collection} The collection object - in order to chain calls
+    */
+  Collection = {
+
+    /**
+      * Adds select columns to the query
+      *
+      * @param {string} args The field names to select
+      * @example
+      * vql.fruits.select(id, tree_id, name, description).doSelect(callback);
+      * @returns {Object} this 
+      */
     select: function () {
       for (var i = 0, max = arguments.length; i < max; i = i + 1) {
         if (arguments[i] in schema.columns) {
@@ -138,6 +180,15 @@ Snake.VenomousObject = function (schema) {
       return this;
     },
 
+    /**
+      * Filters the results by the criteria specified
+      *
+      * @param {string} args The field names to select
+      * @example
+      * vql.fruits.find({ name: "mango" }).doCount(callback);
+      * vql.fruits.find("name", "mango").doCount(callback);
+      * @returns {Object} this 
+      */
     find: function () {
       var field = null,
           value = null,
@@ -233,6 +284,14 @@ Snake.VenomousObject = function (schema) {
       return this;
     },
 
+    /**
+      * Orders the result set in ascending or descending order by a column
+      *
+      * @param {Object} obj The fields to order by along with their order
+      * @example
+      * vql.fruits.orderBy({ id: 'desc' }).doSelect(callback);
+      * @returns {Object} this 
+      */
     orderBy: function (obj) {
       var column = null,
           sortOrder = "";
@@ -249,14 +308,21 @@ Snake.VenomousObject = function (schema) {
       return this;
     },
 
+    /**
+      * Joins two tables together using the table's primary and foreign keys
+      * TODO params
+      * @returns {Object} this 
+      */
     join: function (table, on, join_method) {
+      var interpolate = Snake.interpolate;
+
       join_method = Selectors[join_method] || Selectors.LEFT_JOIN;
 
       // find relationship and join the tables
       if (!on) {
         // this.join(vql.Deck);
         if ("foreign" in schema && table in schema.foreign) {
-          this.sql.joins.push("#{join_method} #{foreign_table} ON #{table}.#{primary_key} = #{foreign_table}.#{foreign_key}".interpolation({
+          this.sql.joins.push(interpolate("#{join_method} #{foreign_table} ON #{table}.#{primary_key} = #{foreign_table}.#{foreign_key}", {
             join_method: join_method,
             foreign_table: table,
             table: schema.tableName,
@@ -266,7 +332,7 @@ Snake.VenomousObject = function (schema) {
         }
       // join it on the parameters provided
       } else {
-        this.sql.joins.push("#{join_method} #{foreign_table} ON #{table}.#{primary_key} = #{foreign_table}.#{foreign_key}".interpolation({
+        this.sql.joins.push(interpolate("#{join_method} #{foreign_table} ON #{table}.#{primary_key} = #{foreign_table}.#{foreign_key}", {
           join_method: join_method,
           foreign_table: table,
           table: schema.tableName,
@@ -278,28 +344,54 @@ Snake.VenomousObject = function (schema) {
       return this;
     },
 
+    /**
+      * Provides an offset or 'skips' a number of records
+      *
+      * @param {number} offset The number of records to skip
+      * @returns {Object} this
+      */
     offset: function (offset) {
       this.sql.offset = offset;
       return this;
     },
 
+    /**
+      * Limits the return result set to a set number of records
+      *
+      * @param {number} limit The number of records to return
+      * @returns {Object} this
+      */
     limit: function (limit) {
       this.sql.limit = limit;
       return this;
     },
 
-    // retrieves by the current models primary key
+    /**
+      * Retrieves one record by the current collection's primary key
+      *
+      * @param {number} pk The primary key to retrieve from the database
+      * @param {Function} onSuccess The function to callback once the operation completes successfully
+      * @param {Function} onFailure The function to callback if the operation fails
+      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      */
     retrieveByPK: function (pk, onSuccess, onFailure, outputSql) {
       this.find(pk).doSelectOne(onSuccess, onFailure, outputSql);
     },
 
-    // limits 1, returns obj
+    /**
+      * Retrieves one record from the database from the specified criteria 
+      *
+      * @param {Function} onSuccess The function to callback once the operation completes successfully
+      * @param {Function} onFailure The function to callback if the operation fails
+      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      */
     doSelectOne: function (onSuccess, onFailure, outputSql) {
       var callback = null;
 
       if (outputSql === true) {
         callback = onSuccess;
       } else {
+        /** @private */
         callback = function (rows) {
           if (onSuccess) {
             if (rows.length > 0) {
@@ -314,7 +406,14 @@ Snake.VenomousObject = function (schema) {
       this.limit(1).doSelect(callback, onFailure, outputSql);
     },
 
-    // returns count
+    /**
+      * Returns the number of records for a given criteria
+      *
+      * @param {Function} onSuccess The function to callback once the operation completes successfully
+      * @param {Function} onFailure The function to callback if the operation fails
+      * @param {boolean} useDistinct If true the COUNT is performed as distinct
+      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      */
     doCount: function (onSuccess, onFailure, useDistinct, outputSql) {
       useDistinct = (useDistinct && this.sql.select.length > 0) ? "DISTINCT " : "";
       var sql = "SELECT COUNT(" + useDistinct + "#{select}) AS count FROM #{from}",
@@ -330,6 +429,7 @@ Snake.VenomousObject = function (schema) {
       if (outputSql === true) {
         callback = onSuccess;
       } else {
+        /** @private */
         callback = function (transaction, results) {
           var obj = results.rows.item(0);
 
@@ -342,12 +442,24 @@ Snake.VenomousObject = function (schema) {
       queryBuilder(!outputSql, sql, query, callback, onFailure);
     },
 
-    // deletes objects
+    /**
+      * Deletes an object from the database
+      *
+      * @param {Function} onSuccess The function to callback once the operation completes successfully
+      * @param {Function} onFailure The function to callback if the operation fails
+      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      */
     doDelete: function (onSuccess, onFailure, outputSql) {
       queryBuilder(!outputSql, "DELETE FROM #{from}", null, onSuccess, onFailure);
     },
 
-    // returns Array of objs
+    /**
+      * Returns an Array of objects for the specified criteria
+      *
+      * @param {Function} onSuccess The function to callback once the operation completes successfully
+      * @param {Function} onFailure The function to callback if the operation fails
+      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      */
     doSelect: function (onSuccess, onFailure, outputSql) {
       var sql = "SELECT #{select} FROM #{from}",
           callback = null,
@@ -362,6 +474,7 @@ Snake.VenomousObject = function (schema) {
       if (outputSql === true) {
         callback = onSuccess;
       } else {
+        /** @private */
         callback = function (transaction, results) {
           var arr = [],
               i = 0,
@@ -389,10 +502,10 @@ Snake.VenomousObject = function (schema) {
 
   resetObj();
 
-  return Model;
+  return Collection;
 };
 
-Snake.Venom = {};
+Snake.venom = {};
 
-var Venom = Snake.Venom,
-    vql = Venom;
+var venom = Snake.venom,
+    vql = venom;

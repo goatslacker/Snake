@@ -13,10 +13,10 @@ describe("Snake", function () {
 describe("VQL", function () {
 
   it("Venom should be defined", function () {
-    expect(Venom).toBeDefined();
+    expect(venom).toBeDefined();
   });
 
-  // Run through Venom and return the SQL query
+  // Run through venom and return the SQL query
   describe("Venom - Return Queries", function () {
 
       it("Select. Nothing Special", function () {
@@ -27,14 +27,14 @@ describe("VQL", function () {
       });
 
       it("Using Limit", function () {
-        Venom.Card.limit(5).doSelect(function (query, params) {
+        venom.Card.limit(5).doSelect(function (query, params) {
           expect(query).toEqual("SELECT * FROM card LIMIT 5");
           expect(params).toEqual(null);
         }, null, true);
       });
 
       it("Using Offset and Limit", function () {
-        Venom.Card.offset(10).limit(12).doSelect(function (query, params) {
+        venom.Card.offset(10).limit(12).doSelect(function (query, params) {
           expect(query).toEqual("SELECT * FROM card LIMIT 10, 12");
           expect(params).toEqual(null);
         }, null, true);
@@ -407,7 +407,7 @@ describe("webDB", function () {
     });
 
     waitsFor(function () {
-      return (cardCount === undefined) ? false : true;
+      return waitTilSet(cardCount);
     });
 
     runs(function () {
@@ -415,5 +415,4 @@ describe("webDB", function () {
     });
   });
 
-  //vql.Card.doDelete();
 });

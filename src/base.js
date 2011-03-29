@@ -1,11 +1,17 @@
-// Base Classes
-/*
-  Base Class for the ORM
-*/
-Snake.Base = function (table) {
-  var Proto = {},
+/**
+  * The base objects which we'll base our Models from
+  *
+  * @constructor
+  * @param {Object} table The model's schema
+  * @returns {Object} The model to use
+  */
+Snake.base = function (table) {
+  var Proto = null,
       Model = null;
 
+  /**
+    * @constructor
+    */
   Model = function () {
 
     for (var name in table.columns) {
@@ -18,8 +24,16 @@ Snake.Base = function (table) {
     //Object.seal(this); // Not sealing it for now
   };
 
-  // Hydrate || Populate
+  /**
+    * Hydrates or populates a result set into the specified Model
+    *
+    * @public
+    * 
+    * @param {Array} row The result set of objects to populate into the model
+    * @returns {Object} model The hydrated model
+    */
   Model.allocate = function (row) { // TODO - also handle multiple rows
+    // FIXME - if called as (instanceOf) Model.allocate then Model will need to be provided as the second param 
     var model = new Model(),
         prop = null;
 
@@ -35,6 +49,11 @@ Snake.Base = function (table) {
     return model;
   };
 
+  /**
+    * Allows a Model to have Mixins
+    * 
+    * @param {Object} extend The object to mix into the model
+    */
   Model.is = function (extend) {
     // Copy the properties over onto the new prototype
     for (var name in extend) {
@@ -45,11 +64,19 @@ Snake.Base = function (table) {
   };
 
   Proto = {
+  /** @lends Model.prototype */
 
-    // saves a record in the database
+    /**
+      * Saves a record to the database
+      *
+      * @param {Function} onSuccess The callback to execute if the transaction completes successfully
+      * @param {Function} onFailure The callback to execute if the transaction fails
+      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
+      */
     save: function (onSuccess, onFailure, outputSql) {
       var model = this,
           values = [],
+          interpolate = Snake.interpolate,
           q = [],
           i = 0,
           max = 0,
@@ -67,7 +94,7 @@ Snake.Base = function (table) {
           }
         }
 
-        sql = "UPDATE #{table} SET #{conditions} WHERE id = #{id}".interpolation({
+        sql = interpolate("UPDATE #{table} SET #{conditions} WHERE id = #{id}", {
           table: table.tableName,
           conditions: q,
           id: this.id
@@ -87,7 +114,7 @@ Snake.Base = function (table) {
           q.push("?");
         }
 
-        sql = "INSERT INTO '#{table}' (#{columns}) VALUES (#{q})".interpolation({
+        sql = interpolate("INSERT INTO '#{table}' (#{columns}) VALUES (#{q})", {
           table: table.tableName,
           columns: table.map,
           q: q
@@ -113,9 +140,15 @@ Snake.Base = function (table) {
 
     },
 
-    // deletes a record from the database
+    /**
+      * Deletes a record from the database
+      *
+      * @param {Function} onSuccess The callback to execute if the transaction completes successfully
+      * @param {Function} onFailure The callback to execute if the transaction fails
+      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
+      */
     doDelete: function (onSuccess, onFailure, outputSql) {
-      Snake.Venom[table.jsName].find(this.id).doDelete(onSuccess, onFailure, outputSql);
+      Snake.venom[table.jsName].find(this.id).doDelete(onSuccess, onFailure, outputSql);
     }
   };
 
