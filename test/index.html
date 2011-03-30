@@ -14,7 +14,7 @@
     // define the db properties
     Snake.define({ name: "mycards", size: 65000, description: "An example", version: "0.1" });
 
-    Snake.query(["CREATE TABLE IF NOT EXISTS 'player'(name text, chips integer, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'deck'(name text, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'card'(deck_id integer, face text, suit text, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (deck_id) REFERENCES deck(id))", "CREATE TABLE IF NOT EXISTS 'player_card'(player_id integer, card_id integer, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (player_id) REFERENCES player(id), FOREIGN KEY (card_id) REFERENCES card(id))"]);
+    Snake.query(["CREATE TABLE IF NOT EXISTS 'players'(name text, chips integer, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'decks'(name text, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'cards'(deck_id integer, face text, suit text, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (deck_id) REFERENCES deck(id))", "CREATE TABLE IF NOT EXISTS 'player_cards'(player_id integer, card_id integer, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (player_id) REFERENCES player(id), FOREIGN KEY (card_id) REFERENCES card(id))"]);
 
     // build the model via JSON and dynamically load it
     Snake.loadFromJSON({

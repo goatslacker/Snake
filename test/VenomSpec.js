@@ -375,34 +375,12 @@ describe("webDB", function () {
 
   });
 
-  // TODO load the fixtures
   it("there should be 52 cards", function () {
     var cardCount;
 
     runs(function () {
       vql.cards.doCount(function (ct) {
         cardCount = ct;
-
-/*
-        // if the count is 0 then load the items from the fixtures
-        if (cardCount === 0) {
-          var i = 0,
-              row = null,
-              card = null;
-
-          // load fixtures by creating a new model for each row
-          for (i; i < Snake.Fixtures.Card.length; i = i + 1) {
-            row = Snake.Fixtures.Card[i];
-            card = new Card();
-            card.deck_id = 1;
-            card.face = row.face;
-            card.suit = row.suit;
-            card.save();
-            cardCount = cardCount + 1;
-          }
-        }
-*/
-
       });
     });
 
@@ -412,7 +390,28 @@ describe("webDB", function () {
 
     runs(function () {
       expect(cardCount).toEqual(52);
+
+      if (cardCount === 0) {
+        loadFixtures();
+      }
     });
   });
 
 });
+
+/** Load Fixtures for Web DB testing */
+function loadFixtures() {
+  var i = 0,
+      row = null,
+      card = null;
+
+  // load fixtures by creating a new model for each row
+  for (i; i < Snake.Fixtures.Card.length; i = i + 1) {
+    row = Snake.Fixtures.Card[i];
+    card = new Card();
+    card.deck_id = 1;
+    card.face = row.face;
+    card.suit = row.suit;
+    card.save();
+  }
+}
