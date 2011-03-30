@@ -1,4 +1,4 @@
-# `Snake`: asynchronous Javascript ORM & DBAL #
+# Snake: asynchronous Javascript ORM & DBAL #
 
 - Snake is English for Orm in Swedish.
 
@@ -40,9 +40,11 @@ Examples:
 SELECT * FROM fruits;
 
     vql.fruits.doSelect(function (results) {
+      console.log(results);
     });
 
 SELECT * FROM fruits WHERE name = 'mango' LIMIT 1;
 
     vql.fruits.find({ name: 'mango' }).doSelectOne(function (result) {
+      console.log(result);
     });
