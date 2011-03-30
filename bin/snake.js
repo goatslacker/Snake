@@ -4,8 +4,25 @@ var sys = require("sys"),
     path = require("path"),
     fs = require("fs"),
     args = (function () {
-      return process.argv.splice(2); 
+      var args = process.argv.splice(2),
+          i = 0,
+          max = 0,
+          key = null,
+          val = null,
+          arg = null,
+          obj = {};
+
+      for (i, max = args.length; i < max; i = i + 1) {
+        arg = args[i].split("=");
+        key = arg[0];
+        val = arg[1] || true;
+
+        obj[key] = val;
+      }
+
+      return obj;
     }());
+
 
 // TODO
 /*

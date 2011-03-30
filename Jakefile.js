@@ -18,10 +18,7 @@ var jake = require("jake")
   , outputDevFile = "build/snake.dev.js"
   , gzippedFile = "build/snake.js.gz"
   , sys = require('sys')
-  , exec = require('child_process').exec
-  , args = (function () {
-      return process.argv.splice(2); 
-    }());
+  , exec = require('child_process').exec;
 
 task("default", [], function () {
 
@@ -71,11 +68,14 @@ task("default", [], function () {
         });
       });
 
+/*
       // Build docs
       console.log("Building documentation...");
       exec("java -jar vendor/jsdoc/jsrun.jar vendor/jsdoc/app/run.js -c=jsdoc.conf", function () {
         console.log("Documentation available in docs/");
       });
+*/
+
     });
   },
 
