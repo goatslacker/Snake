@@ -18,36 +18,22 @@ var jake = require("jake")
   , outputDevFile = "build/snake.dev.js"
   , gzippedFile = "build/snake.js.gz"
   , sys = require('sys')
-  , exec = require('child_process').exec;
+  , exec = require('child_process').exec
+  , args = (function () {
+      return process.argv.splice(2); 
+    }());
 
 task("default", [], function () {
 
-  var compressorDone = function (preMin, postMin) {
-
-    console.log("Successfully compressed " + preMin);
-
-    fs.stat(preMin, function (err, stats) {
-      preMin = stats;
-      fs.stat(postMin, function (err, stats) {
-        postMin = stats;
-        var ratio = Math.round((postMin.size / preMin.size) * 100);
-
-        console.log("Original size: " + preMin.size);
-        console.log("Compressed size: " + postMin.size);
-        console.log("Compression ratio: " + ratio + "%");
-      });
-    });
-  }
-
-  , compressFile = function () {
-    // Uglify JS
+  var finishr = function () {
     fs.readFile(outputFile, "utf8", function (err, text) {
       if (err) {
         throw err;
       }
 
+      // Test code using jshint
+      // TODO check to make sure jshint is installed
       console.log("Started Lint testing " + outputFile);
-
       exec("jshint " + outputFile + " --config jshint.json", function (error, stdout, stderr) {
         if (stdout) {
           console.log("--jshint--");
@@ -58,8 +44,9 @@ task("default", [], function () {
         }
       });
 
+      // Minimify the code using uglifyJS
+      // TODO check that uglify is installed
       console.log("Compressing " + outputFile + " using UglifyJS");
-
       exec("uglifyjs " + outputFile + " > " + outputMinFile, function (error, stdout, stderr) {
         if (stdout) {
           console.log("--UglifyJS--");
@@ -71,9 +58,9 @@ task("default", [], function () {
         }
       });
 
-      console.log("Compressing " + outputFile + " using node-gzip");
-
       // NOTE: requires gzip (npm install gzip)
+      // TODO check for gzip installed!
+      console.log("Compressing " + outputFile + " using node-gzip");
       gzip(text, function (err, data) {
         // Save gzip output to a file
         fs.writeFile(gzippedFile, data, 'utf8', function (err) {
@@ -83,16 +70,26 @@ task("default", [], function () {
           });
         });
       });
-    });
-  }
 
-  , writeFile = function () {
-    // create directory
+      // Build docs
+      console.log("Building documentation...");
+      exec("java -jar vendor/jsdoc/jsrun.jar vendor/jsdoc/app/run.js -c=jsdoc.conf", function () {
+        console.log("Documentation available in docs/");
+      });
+    });
+  },
+
+  writeFile = function () {
+    // create directory for build
     exec("mkdir build");
     
+    // create directory for Docs
+    exec("mkdir docs");
+
     // delete the file first
     fs.unlink(outputFile);
 
+    // TODO add license
     // write all files into a snake build
     fs.writeFile(outputFile, code.join("\n"), 'utf8', function (err) {
       console.log("Wrote to " + outputFile);
@@ -101,18 +98,17 @@ task("default", [], function () {
         throw err;
       }
 
-      // run compressor
-      compressFile();
+      // run minimifier, jshint and gzip
+      finishr();
     });
 
-// TODO add license
-    // write files into a dev version with jshint comments
+    // write files into a dev version
     fs.writeFile(outputDevFile, code.join("\n") + "\n(function () { Snake.debug = true; }());", 'utf8', function (err) {
       console.log("Wrote to " + outputDevFile);
     });
-  }
+  },
 
-  , readFile = function () {
+  readFile = function () {
     if (code.length === files.length) {
       writeFile();
     } else {
