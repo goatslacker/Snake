@@ -26,6 +26,13 @@ describe("VQL", function () {
         }, null, true);
       });
 
+      it("Specific select column", function () {
+        vql.cards.select("face", "suit").doSelect(function (query, params) {
+          expect(query).toEqual("SELECT cards.face,cards.suit FROM cards");
+          expect(params).toBeNull();
+        }, null, true);
+      });
+
       it("Using Limit", function () {
         vql.cards.limit(5).doSelect(function (query, params) {
           expect(query).toEqual("SELECT * FROM cards LIMIT 5");

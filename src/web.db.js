@@ -155,6 +155,9 @@ Snake.loadFromJSON = function (schema, onComplete, createTables) {
         max = 0,
         column = null,
         foreign = null,
+        foreignKey = null,
+        refaction = null,
+        ref = [],
         fields = [],
         fk = [];
 
@@ -170,21 +173,38 @@ Snake.loadFromJSON = function (schema, onComplete, createTables) {
         }
       }
 
-      // FIXME - multiple foreign keys?
       if ("foreign" in models[i]) {
-        for (foreign in models[i].foreign) {
-          if (models[i].foreign.hasOwnProperty(foreign)) {
-            fk.push("FOREIGN KEY (" + models[i].foreign[foreign][0] + ") REFERENCES " + foreign + "(" + models[i].foreign[foreign][1] + ")");
+        foreignKey = models[i].foreign;
+        for (foreign in foreignKey) {
+          if (foreignKey.hasOwnProperty(foreign)) {
+            ref = [];
+
+            if ("delete" in models[i].columns[foreignKey[foreign][0]]) {
+              ref.push("ON DELETE " + models[i].columns[foreignKey[foreign][0]]["delete"]);
+            }
+
+            if ("update" in models[i].columns[foreignKey[foreign][0]]) {
+              ref.push("ON DELETE " + models[i].columns[foreignKey[foreign][0]]["delete"]);
+            }
+
+            fk.push("FOREIGN KEY (" + foreignKey[foreign][0] + ") REFERENCES " + foreign + "(" + foreignKey[foreign][1] + ") " + ref.join(" "));
+          }
+        }
+
+        if ("ref" in models[i]) {
+          for (refaction in models[i].ref) {
+            if (models[i].ref.hasOwnProperty(refaction)) {
+              ref.push("ON " + refaction + " " + models[i].ref[refaction]);
+            }
           }
         }
       }
 
-      fields = fields.concat(["id INTEGER PRIMARY KEY", "created_at INTEGER"]);
+      fields = fields.concat(["id INTEGER PRIMARY KEY AUTOINCREMENT", "created_at INTEGER"], fk);
       
-      queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{fields} #{refs})", {
+      queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{fields})", {
         table: models[i].tableName,
-        fields: fields,
-        refs: fk
+        fields: fields
       }));
     }
 
