@@ -20,199 +20,199 @@ describe("VQL", function () {
   describe("Venom - Return Queries", function () {
 
       it("Select. Nothing Special", function () {
-        vql.Card.doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card");
+        vql.cards.doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards");
           expect(params).toBeNull();
         }, null, true);
       });
 
       it("Using Limit", function () {
-        venom.Card.limit(5).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card LIMIT 5");
+        vql.cards.limit(5).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards LIMIT 5");
           expect(params).toEqual(null);
         }, null, true);
       });
 
       it("Using Offset and Limit", function () {
-        venom.Card.offset(10).limit(12).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card LIMIT 10, 12");
+        vql.cards.offset(10).limit(12).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards LIMIT 10, 12");
           expect(params).toEqual(null);
         }, null, true);
       });
 
       it("Single Where and Limit", function () {
-        vql.Card.find('face', 2).limit(4).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face = ? LIMIT 4");
+        vql.cards.find('face', 2).limit(4).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face = ? LIMIT 4");
           expect(params).toEqual([2]);
         }, null, true);
       });
 
       it("Where. No Limit", function () {
-        vql.Card.find({ face: 5 }).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face = ?");
+        vql.cards.find({ face: 5 }).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face = ?");
           expect(params).toEqual([5]);
         }, null, true);
       });
 
       it("Greater Than", function () {
-        vql.Card.find('face', 'A', 'GREATER_THAN').doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face > ?");
+        vql.cards.find('face', 'A', 'GREATER_THAN').doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face > ?");
           expect(params).toEqual(['A']);
         }, null, true);
       });
 
       it("Greater Than 2", function () {
-        vql.Card.find({ face: { 'GREATER_THAN': 'A' }}).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face > ?");
+        vql.cards.find({ face: { 'GREATER_THAN': 'A' }}).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face > ?");
           expect(params).toEqual(['A']);
         }, null, true);
       });
 
       it("Greater Than/Less Than", function () {
-        vql.Card.find({ face: { 'GREATER_THAN': 2, 'LESS_THAN': 8 }}).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face > ? AND card.face < ?");
+        vql.cards.find({ face: { 'GREATER_THAN': 2, 'LESS_THAN': 8 }}).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face > ? AND cards.face < ?");
           expect(params).toEqual([2, 8]);
         }, null, true);
       });
 
       it("2 Wheres AND", function () {
-        vql.Card.find({ face: '7', suit: 'hearts' }).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face = ? AND card.suit = ?");
+        vql.cards.find({ face: '7', suit: 'hearts' }).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face = ? AND cards.suit = ?");
           expect(params).toEqual(['7', 'hearts']);
         }, null, true);
       });
 
       it("IN", function () {
-        vql.Card.find({ face: ['Q', 'J'] }).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face IN (?, ?)");
+        vql.cards.find({ face: ['Q', 'J'] }).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face IN (?, ?)");
           expect(params).toEqual(['Q', 'J']);
         }, null, true);
       });
 
       it("IS NULL", function () {
-        vql.Player.find('name', 'ISNULL').doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM player WHERE player.name IS NULL");
+        vql.players.find('name', 'ISNULL').doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM players WHERE players.name IS NULL");
         }, null, true);
       });
 
       it("IS NOT NULL", function () {
-        vql.Player.find('name', 'ISNOTNULL').doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM player WHERE player.name IS NOT NULL");
+        vql.players.find('name', 'ISNOTNULL').doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM players WHERE players.name IS NOT NULL");
         }, null, true);
       });
 
       it("LIKE using params", function () {
-        vql.Player.find('name', '%Josh%', 'LIKE').doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+        vql.players.find('name', '%Josh%', 'LIKE').doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM players WHERE players.name LIKE ?");
           expect(params).toEqual(['%Josh%']);
         }, null, true);
       });
 
       it("LIKE Special Chars", function () {
-        vql.Player.find('name', '%josh_goatslacker%', 'LIKE').doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+        vql.players.find('name', '%josh_goatslacker%', 'LIKE').doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM players WHERE players.name LIKE ?");
           expect(params).toEqual(['%josh_goatslacker%']);
         }, null, true);
       });
 
       it("NOT LIKE using params", function () {
-        vql.Player.find('name', 'Serenity%', 'NOTLIKE').doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM player WHERE player.name NOT LIKE ?");
+        vql.players.find('name', 'Serenity%', 'NOTLIKE').doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM players WHERE players.name NOT LIKE ?");
           expect(params).toEqual(['Serenity%']);
         }, null, true);
       });
 
       it("LIKE via obj", function () {
-        vql.Player.find({ name: /goatslacker/ }).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+        vql.players.find({ name: /goatslacker/ }).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM players WHERE players.name LIKE ?");
           expect(params).toEqual(['%goatslacker%']);
         }, null, true);
       });
 
       it("LIKE first char", function () {
-        vql.Player.find({ name: /^Serena/ }).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+        vql.players.find({ name: /^Serena/ }).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM players WHERE players.name LIKE ?");
           expect(params).toEqual(['Serena%']);
         }, null, true);
       });
 
       it("LIKE last char", function () {
-        vql.Player.find({ name: /Perez$/ }).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM player WHERE player.name LIKE ?");
+        vql.players.find({ name: /Perez$/ }).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM players WHERE players.name LIKE ?");
           expect(params).toEqual(['%Perez']);
         }, null, true);
       });
 
       it("Multiple Obj Types: Greater Than + IN", function () {
-        vql.Card.find({ face: { 'GREATER_THAN': 2 }, suit: ['hearts', 'spades']}).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face > ? AND card.suit IN (?, ?)");
+        vql.cards.find({ face: { 'GREATER_THAN': 2 }, suit: ['hearts', 'spades']}).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face > ? AND cards.suit IN (?, ?)");
           expect(params).toEqual([2, 'hearts', 'spades']);
         }, null, true);
       });
 
       it("Multiple Obj Types: Greater Than + IN + Limit + Offset", function () {
-        vql.Card.find({ face: { 'GREATER_THAN': 2 }, suit: ['hearts', 'spades']}).offset(3).limit(16).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.face > ? AND card.suit IN (?, ?) LIMIT 3, 16");
+        vql.cards.find({ face: { 'GREATER_THAN': 2 }, suit: ['hearts', 'spades']}).offset(3).limit(16).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.face > ? AND cards.suit IN (?, ?) LIMIT 3, 16");
           expect(params).toEqual([2, 'hearts', 'spades']);
         }, null, true);
       });
 
       it("Order By", function () {
-        vql.Card.find({ suit: 'hearts' }).orderBy({ suit: 'desc' }).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.suit = ? ORDER BY card.suit DESC");
+        vql.cards.find({ suit: 'hearts' }).orderBy({ suit: 'desc' }).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.suit = ? ORDER BY cards.suit DESC");
           expect(params).toEqual(['hearts']);
         }, null, true);
       });
       
       it("doSelectOne", function () {
-        vql.Card.find({ suit: 'clubs', face: 'A' }).doSelectOne(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.suit = ? AND card.face = ? LIMIT 1");
+        vql.cards.find({ suit: 'clubs', face: 'A' }).doSelectOne(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.suit = ? AND cards.face = ? LIMIT 1");
           expect(params).toEqual(['clubs', 'A']);
         }, null, true);
       });
 
       it("retrieveByPK", function () {
-        vql.Card.retrieveByPK(101, function (query, params) {
-          expect(query).toEqual("SELECT * FROM card WHERE card.id = ? LIMIT 1");
+        vql.cards.retrieveByPK(101, function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards WHERE cards.id = ? LIMIT 1");
           expect(params).toEqual([101]);
         }, null, true);
       });
 
       it("doCount", function () {
-        vql.Card.find({ suit: 'spades' }).doCount(function (query, params) {
-          expect(query).toEqual("SELECT COUNT(*) AS count FROM card WHERE card.suit = ?");
+        vql.cards.find({ suit: 'spades' }).doCount(function (query, params) {
+          expect(query).toEqual("SELECT COUNT(*) AS count FROM cards WHERE cards.suit = ?");
           expect(params).toEqual(['spades']);
         }, null, false, true);
       });
 
       it("Count Specific column DISTINCT", function () {
-        vql.Card.select('face').doCount(function (query, params) {
-          expect(query).toEqual("SELECT COUNT(DISTINCT card.face) AS count FROM card");
+        vql.cards.select('face').doCount(function (query, params) {
+          expect(query).toEqual("SELECT COUNT(DISTINCT cards.face) AS count FROM cards");
         }, null, true, true);
       });
 
       it("doDelete", function () {
-        vql.Card.doDelete(function (query, params) {
-          expect(query).toEqual("DELETE FROM card");
+        vql.cards.doDelete(function (query, params) {
+          expect(query).toEqual("DELETE FROM cards");
         }, null, true);
       });
 
       it("doDelete WHERE", function () {
-        vql.Card.find({ face: 7 }).doDelete(function (query, params) {
-          expect(query).toEqual("DELETE FROM card WHERE card.face = ?");
+        vql.cards.find({ face: 7 }).doDelete(function (query, params) {
+          expect(query).toEqual("DELETE FROM cards WHERE cards.face = ?");
           expect(params).toEqual([7]);
         }, null, true);
       });
 
       it("Join", function () {
-        vql.Card.join("deck").doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card LEFT JOIN deck ON card.deck_id = deck.id");
+        vql.cards.join("deck").doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards LEFT JOIN deck ON cards.deck_id = deck.id");
         }, null, true);
       });
 
       it("Join - Specify On", function () {
-        vql.Card.join("deck", ['deck_id', 'id']).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM card LEFT JOIN deck ON card.deck_id = deck.id");
+        vql.cards.join("deck", ['deck_id', 'id']).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards LEFT JOIN deck ON cards.deck_id = deck.id");
         }, null, true);
       });
 
@@ -243,7 +243,7 @@ describe("Base.js", function () {
       player.chips = 100;
 
       player.save(function (query, params) {
-        expect(query).toEqual("INSERT INTO 'player' (name,chips,id,created_at) VALUES (?,?,?,?)");
+        expect(query).toEqual("INSERT INTO 'players' (name,chips,id,created_at) VALUES (?,?,?,?)");
         expect(params[0]).toEqual("Mosuke Hiroshi-san");
         expect(params[1]).toEqual(100);
       }, null, true);
@@ -252,7 +252,7 @@ describe("Base.js", function () {
     it("Deleting an element", function () {
       player.id = 1;
       player.doDelete(function (query, params) {
-        expect(query).toEqual("DELETE FROM player WHERE player.id = ?");
+        expect(query).toEqual("DELETE FROM players WHERE players.id = ?");
         expect(params[0]).toEqual(1);
       }, null, true);
     });
@@ -337,7 +337,7 @@ describe("webDB", function () {
     var card;
 
     runs(function () {
-      vql.Card.doSelectOne(function (obj) {
+      vql.cards.doSelectOne(function (obj) {
         card = obj;
       });
     });
@@ -358,7 +358,7 @@ describe("webDB", function () {
     var card;
 
     runs(function () {
-      vql.Card.orderBy({ id: 'desc' }).doSelectOne(function (obj) {
+      vql.cards.orderBy({ id: 'desc' }).doSelectOne(function (obj) {
         card = obj;
       });
     });
@@ -375,15 +375,15 @@ describe("webDB", function () {
 
   });
 
+  // TODO load the fixtures
   it("there should be 52 cards", function () {
     var cardCount;
 
     runs(function () {
-      vql.Card.doCount(function (ct) {
+      vql.cards.doCount(function (ct) {
         cardCount = ct;
 
 /*
-        // TODO load the fixtures
         // if the count is 0 then load the items from the fixtures
         if (cardCount === 0) {
           var i = 0,

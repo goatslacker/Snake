@@ -19,20 +19,20 @@
     // build the model via JSON and dynamically load it
     Snake.loadFromJSON({
       Player: { 
-        tableName: 'player', 
+        tableName: 'players', 
         "columns": {
           "name": { "type": "text" },
           "chips": { "type": "integer" }
         }
       },
       Deck: { 
-        tableName: 'deck', 
+        tableName: 'decks', 
         "columns": {
           "name": { "type": "text" }
         }
       },
       Card: { 
-        tableName: 'card', 
+        tableName: 'cards', 
         "columns": {
           "deck_id": { "type": "integer", "foreign": "deck.id" },
           "face": { "type": "text" },
@@ -40,7 +40,7 @@
         }
       },
       PlayerCard: { 
-        tableName: 'player_card', 
+        tableName: 'player_cards', 
         "columns": {
           "player_id": { "type": "integer", "foreign": "player.id" },
           "card_id": { "type": "integer", "foreign": "card.id" }

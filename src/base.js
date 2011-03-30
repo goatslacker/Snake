@@ -148,7 +148,7 @@ Snake.base = function (table) {
       * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
       */
     doDelete: function (onSuccess, onFailure, outputSql) {
-      Snake.venom[table.jsName].find(this.id).doDelete(onSuccess, onFailure, outputSql);
+      Snake.venom[table.tableName].find(this.id).doDelete(onSuccess, onFailure, outputSql);
     }
   };
 

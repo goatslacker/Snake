@@ -82,7 +82,7 @@ var Snake = {
         // TODO create relationships for the base objects
         // TODO create doSelectJoins for the relationships
 
-        Snake.venom[table] = new Snake.venomousObject(model);
+        Snake.venom[schema[table].tableName] = new Snake.venomousObject(model);
         Snake.global[table] = new Snake.base(model);
       }
     }
