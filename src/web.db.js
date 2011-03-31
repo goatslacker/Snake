@@ -13,7 +13,7 @@ Snake.query = (function () {
 /**
   * @private
   */
-  var Database = null,
+  var database = null,
       Query = null;
 
 /**
@@ -28,10 +28,10 @@ Snake.query = (function () {
     onFailure = onFailure || function () {};
 
     // HTML5 openDatabase
-    Database = openDatabase(db.name, db.version, db.displayName, db.size);
+    database = openDatabase(db.name, db.version, db.displayName, db.size);
 
     // callbacks
-    if (!Database) {
+    if (!database) {
       onFailure("Could not open database");
     } else {
       onSuccess();
@@ -56,7 +56,7 @@ Snake.query = (function () {
       self.log(error);
     };
 
-    if (!Database) {
+    if (!database) {
       self.log("Connecting to the database");
       connect(function () {
         Snake.query(query, params, onSuccess, onFailure);
@@ -64,13 +64,13 @@ Snake.query = (function () {
     } else {
     
       // HTML5 database perform query
-      Database.transaction(function (transaction) {
+      database.transaction(function (transaction) {
         var preparedQuery = null,
             i = 0,
             max = 0;
 
         // convert to single array
-        if (!self.is_array(query)) {
+        if (!self.isArray(query)) {
           query = [query];
         }
 
@@ -103,9 +103,9 @@ Snake.query = (function () {
   *
   * @param {Object} schema The schema in JSON format
   * @param {Function} onComplete The callback function to execute once the schema finishes building
-  * @param {boolean} createTables If set the true the tables will be automatically created for you if they don't exist
+  * @param {boolean} create_tables If set the true the tables will be automatically created for you if they don't exist
   */
-Snake.loadFromJSON = function (schema, onComplete, createTables) {
+Snake.loadFromJSON = function (schema, onComplete, create_tables) {
   var table = null,
       column = null,
       def_column = null,
@@ -155,7 +155,7 @@ Snake.loadFromJSON = function (schema, onComplete, createTables) {
         max = 0,
         column = null,
         foreign = null,
-        foreignKey = null,
+        foreign_key = null,
         refaction = null,
         ref = [],
         fields = [],
@@ -174,20 +174,20 @@ Snake.loadFromJSON = function (schema, onComplete, createTables) {
       }
 
       if ("foreign" in models[i]) {
-        foreignKey = models[i].foreign;
-        for (foreign in foreignKey) {
-          if (foreignKey.hasOwnProperty(foreign)) {
+        foreign_key = models[i].foreign;
+        for (foreign in foreign_key) {
+          if (foreign_key.hasOwnProperty(foreign)) {
             ref = [];
 
-            if ("delete" in models[i].columns[foreignKey[foreign][0]]) {
-              ref.push("ON DELETE " + models[i].columns[foreignKey[foreign][0]]["delete"]);
+            if ("delete" in models[i].columns[foreign_key[foreign][0]]) {
+              ref.push("ON DELETE " + models[i].columns[foreign_key[foreign][0]]["delete"]);
             }
 
-            if ("update" in models[i].columns[foreignKey[foreign][0]]) {
-              ref.push("ON DELETE " + models[i].columns[foreignKey[foreign][0]]["delete"]);
+            if ("update" in models[i].columns[foreign_key[foreign][0]]) {
+              ref.push("ON DELETE " + models[i].columns[foreign_key[foreign][0]]["delete"]);
             }
 
-            fk.push("FOREIGN KEY (" + foreignKey[foreign][0] + ") REFERENCES " + foreign + "(" + foreignKey[foreign][1] + ") " + ref.join(" "));
+            fk.push("FOREIGN KEY (" + foreign_key[foreign][0] + ") REFERENCES " + foreign + "(" + foreign_key[foreign][1] + ") " + ref.join(" "));
           }
         }
 
@@ -211,7 +211,7 @@ Snake.loadFromJSON = function (schema, onComplete, createTables) {
     Snake.query(queries, null, onComplete);
   }
 
-  if (createTables === true) {
+  if (create_tables === true) {
     sqlCreateTables(models);
   } else {
     if (onComplete) {

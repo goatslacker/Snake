@@ -43,10 +43,10 @@ var Snake = {
   /**
     * Tests whether an Object is an array or not
     *
-    * @param {Array} arrayInQuestion The object to check
+    * @param {Array} array_in_question The object to check
     @ @returns {boolean}
     */
-  is_array: function (arrayInQuestion) {
-    return (Object.prototype.toString.call(arrayInQuestion) === '[object Array]');
+  isArray: function (array_in_question) {
+    return (Object.prototype.toString.call(array_in_question) === '[object Array]');
   }
 };

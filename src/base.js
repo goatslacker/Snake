@@ -6,7 +6,7 @@
   * @returns {Object} The model to use
   */
 Snake.base = function (table) {
-  var Proto = null,
+  var proto = null,
       Model = null;
 
   /**
@@ -63,7 +63,7 @@ Snake.base = function (table) {
     }
   };
 
-  Proto = {
+  proto = {
   /** @lends Model.prototype */
 
     /**
@@ -71,9 +71,9 @@ Snake.base = function (table) {
       *
       * @param {Function} onSuccess The callback to execute if the transaction completes successfully
       * @param {Function} onFailure The callback to execute if the transaction fails
-      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
       */
-    save: function (onSuccess, onFailure, outputSql) {
+    save: function (onSuccess, onFailure, output_sql) {
       var model = this,
           values = [],
           interpolate = Snake.interpolate,
@@ -122,7 +122,7 @@ Snake.base = function (table) {
       }
 
 
-      if (outputSql === true) {
+      if (output_sql === true) {
         if (onSuccess) {
           onSuccess(sql, values);
         }
@@ -145,16 +145,16 @@ Snake.base = function (table) {
       *
       * @param {Function} onSuccess The callback to execute if the transaction completes successfully
       * @param {Function} onFailure The callback to execute if the transaction fails
-      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
       */
-    doDelete: function (onSuccess, onFailure, outputSql) {
-      Snake.venom[table.tableName].find(this.id).doDelete(onSuccess, onFailure, outputSql);
+    doDelete: function (onSuccess, onFailure, output_sql) {
+      Snake.venom[table.tableName].find(this.id).doDelete(onSuccess, onFailure, output_sql);
     }
   };
 
-  Model.is(Proto);
+  Model.is(proto);
 
-  Model.prototype.$super = Proto;
+  Model.prototype.$super = proto;
 
   return Model;
 };

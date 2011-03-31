@@ -9,7 +9,7 @@ Snake.venomousObject = function (schema) {
   /**
     * @private
     */
-  var Selectors = {},
+  var SELECTORS = {},
       Collection = {},
       queryBuilder = null,
       addWhere = null,
@@ -40,7 +40,7 @@ Snake.venomousObject = function (schema) {
   addWhere = function () {
     var field = arguments[0],
         value = arguments[1],
-        selector = arguments[2] || Selectors.EQUAL,
+        selector = arguments[2] || SELECTORS.EQUAL,
         q = [],
         i = 0,
         max = 0;
@@ -50,13 +50,13 @@ Snake.venomousObject = function (schema) {
     }
 
     switch (selector) {
-    case Selectors.ISNULL:
-    case Selectors.ISNOTNULL:
+    case SELECTORS.ISNULL:
+    case SELECTORS.ISNOTNULL:
       Collection.sql.where.criterion.push(field + " " + selector);
       break;
 
-    case Selectors.IN:
-    case Selectors.NOTIN:
+    case SELECTORS.IN:
+    case SELECTORS.NOTIN:
       for (i = 0, max = value.length; i < max; i = i + 1) {
         q.push("?");
       }
@@ -69,7 +69,7 @@ Snake.venomousObject = function (schema) {
     }
 
     if (value) {
-      if (Snake.is_array(value)) {
+      if (Snake.isArray(value)) {
         Collection.sql.where.params = Collection.sql.where.params.concat(value);
       } else {
         Collection.sql.where.params.push(value);
@@ -139,7 +139,7 @@ Snake.venomousObject = function (schema) {
     * @private
     * @constant
     */
-  Selectors = {
+  SELECTORS = {
     EQUAL: "=", 
     NOT_EQUAL: "<>",
     GREATER_THAN: ">", 
@@ -203,12 +203,12 @@ Snake.venomousObject = function (schema) {
         value = arguments[1];
 
         // unless the value is actually a selector
-        if (value in Selectors) {
-          selector = Selectors[value];
+        if (value in SELECTORS) {
+          selector = SELECTORS[value];
 
         // otherwise the third argument is the selector
         } else {
-          selector = Selectors[arguments[2]] || Selectors.EQUAL;
+          selector = SELECTORS[arguments[2]] || SELECTORS.EQUAL;
         }
 
         addWhere(field, value, selector);
@@ -234,14 +234,14 @@ Snake.venomousObject = function (schema) {
               switch (Object.prototype.toString.call(value)) {
               // if the value is an Array then we perform an IN query
               case "[object Array]":
-                selector = Selectors.IN;
+                selector = SELECTORS.IN;
                 addWhere(field, value, selector);
                 break;
 
               // if the value is a Regular Expression then we perform a LIKE query
               case "[object RegExp]": 
                 // TODO - NOT LIKE
-                selector = Selectors.LIKE;
+                selector = SELECTORS.LIKE;
                 tmp = value.toString();
                 value = tmp;
                 tmp = value.replace(/\W/g, "");
@@ -261,7 +261,7 @@ Snake.venomousObject = function (schema) {
               case "[object Object]":
                 for (tmp in value) {
                   if (value.hasOwnProperty(tmp)) {
-                    selector = Selectors[tmp] || Selectors.EQUAL;
+                    selector = SELECTORS[tmp] || SELECTORS.EQUAL;
 
                     addWhere(field, value[tmp], selector);
                   }
@@ -270,7 +270,7 @@ Snake.venomousObject = function (schema) {
 
               // by default the selector is =
               default:
-                selector = Selectors.EQUAL;
+                selector = SELECTORS.EQUAL;
                 addWhere(field, value, selector);
               }
             }
@@ -316,7 +316,7 @@ Snake.venomousObject = function (schema) {
     join: function (table, on, join_method) {
       var interpolate = Snake.interpolate;
 
-      join_method = Selectors[join_method] || Selectors.LEFT_JOIN;
+      join_method = SELECTORS[join_method] || SELECTORS.LEFT_JOIN;
 
       // find relationship and join the tables
       if (!on) {
@@ -372,10 +372,10 @@ Snake.venomousObject = function (schema) {
       * @param {number} pk The primary key to retrieve from the database
       * @param {Function} onSuccess The function to callback once the operation completes successfully
       * @param {Function} onFailure The function to callback if the operation fails
-      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
       */
-    retrieveByPK: function (pk, onSuccess, onFailure, outputSql) {
-      this.find(pk).doSelectOne(onSuccess, onFailure, outputSql);
+    retrieveByPK: function (pk, onSuccess, onFailure, output_sql) {
+      this.find(pk).doSelectOne(onSuccess, onFailure, output_sql);
     },
 
     /**
@@ -383,12 +383,12 @@ Snake.venomousObject = function (schema) {
       *
       * @param {Function} onSuccess The function to callback once the operation completes successfully
       * @param {Function} onFailure The function to callback if the operation fails
-      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
       */
-    doSelectOne: function (onSuccess, onFailure, outputSql) {
+    doSelectOne: function (onSuccess, onFailure, output_sql) {
       var callback = null;
 
-      if (outputSql === true) {
+      if (output_sql === true) {
         callback = onSuccess;
       } else {
         /** @private */
@@ -403,7 +403,7 @@ Snake.venomousObject = function (schema) {
         };
       }
 
-      this.limit(1).doSelect(callback, onFailure, outputSql);
+      this.limit(1).doSelect(callback, onFailure, output_sql);
     },
 
     /**
@@ -412,9 +412,9 @@ Snake.venomousObject = function (schema) {
       * @param {Function} onSuccess The function to callback once the operation completes successfully
       * @param {Function} onFailure The function to callback if the operation fails
       * @param {boolean} useDistinct If true the COUNT is performed as distinct
-      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
       */
-    doCount: function (onSuccess, onFailure, useDistinct, outputSql) {
+    doCount: function (onSuccess, onFailure, useDistinct, output_sql) {
       useDistinct = (useDistinct && this.sql.select.length > 0) ? "DISTINCT " : "";
       var sql = "SELECT COUNT(" + useDistinct + "#{select}) AS count FROM #{from}",
           callback = null,
@@ -426,7 +426,7 @@ Snake.venomousObject = function (schema) {
         query.select = this.sql.select;
       }
 
-      if (outputSql === true) {
+      if (output_sql === true) {
         callback = onSuccess;
       } else {
         /** @private */
@@ -439,7 +439,7 @@ Snake.venomousObject = function (schema) {
         };
       }
 
-      queryBuilder(!outputSql, sql, query, callback, onFailure);
+      queryBuilder(!output_sql, sql, query, callback, onFailure);
     },
 
     /**
@@ -447,10 +447,10 @@ Snake.venomousObject = function (schema) {
       *
       * @param {Function} onSuccess The function to callback once the operation completes successfully
       * @param {Function} onFailure The function to callback if the operation fails
-      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
       */
-    doDelete: function (onSuccess, onFailure, outputSql) {
-      queryBuilder(!outputSql, "DELETE FROM #{from}", null, onSuccess, onFailure);
+    doDelete: function (onSuccess, onFailure, output_sql) {
+      queryBuilder(!output_sql, "DELETE FROM #{from}", null, onSuccess, onFailure);
     },
 
     /**
@@ -458,9 +458,9 @@ Snake.venomousObject = function (schema) {
       *
       * @param {Function} onSuccess The function to callback once the operation completes successfully
       * @param {Function} onFailure The function to callback if the operation fails
-      * @param {boolean} outputSql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
       */
-    doSelect: function (onSuccess, onFailure, outputSql) {
+    doSelect: function (onSuccess, onFailure, output_sql) {
       var sql = "SELECT #{select} FROM #{from}",
           callback = null,
           query = {};
@@ -471,7 +471,7 @@ Snake.venomousObject = function (schema) {
         query.select = this.sql.select;
       }
 
-      if (outputSql === true) {
+      if (output_sql === true) {
         callback = onSuccess;
       } else {
         /** @private */
@@ -495,7 +495,7 @@ Snake.venomousObject = function (schema) {
         };
       }
 
-      queryBuilder(!outputSql, sql, query, callback, onFailure);
+      queryBuilder(!output_sql, sql, query, callback, onFailure);
     }
 
   };
