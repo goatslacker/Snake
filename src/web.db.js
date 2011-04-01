@@ -120,7 +120,7 @@ Snake.loadFromJSON = function (schema, onComplete, create_tables) {
 
       model.jsName = table;
       model.columns.id = { type: "INTEGER" };
-      model.columns.created_at = { type: "INTEGER" }; // based off of sqlite 3
+      model.columns.created_at = { type: "INTEGER" };
 
       model.map = [];
       for (column in schema[table].columns) {
@@ -188,7 +188,7 @@ Snake.loadFromJSON = function (schema, onComplete, create_tables) {
               ref.push("ON DELETE " + models[i].columns[foreign_key[foreign][0]]["delete"]);
             }
 
-            fk.push("FOREIGN KEY (" + foreign_key[foreign][0] + ") REFERENCES " + foreign + "(" + foreign_key[foreign][1] + ") " + ref.join(" "));
+            fk.push("FOREIGN KEY (" + foreign_key[foreign][0] + ") REFERENCES " + foreign + "(" + foreign_key[foreign][1] + ") " + ref.join(""));
           }
         }
 
@@ -199,6 +199,7 @@ Snake.loadFromJSON = function (schema, onComplete, create_tables) {
             }
           }
         }
+
       }
 
       fields = fields.concat(["id INTEGER PRIMARY KEY AUTOINCREMENT", "created_at INTEGER"], fk);

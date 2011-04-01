@@ -32,7 +32,7 @@
       Card: { 
         tableName: 'cards',
         "columns": {
-          "deck_id": { "type": "integer", "foreign": "deck.id" },
+          "deck_id": { "type": "integer", "foreign": "decks.id" },
           "face": { "type": "text" },
           "suit": { "type": "text" }
         }
@@ -40,8 +40,8 @@
       PlayerCard: { 
         tableName: 'player_cards', 
         "columns": {
-          "player_id": { "type": "integer", "foreign": "player.id" },
-          "card_id": { "type": "integer", "foreign": "card.id" }
+          "player_id": { "type": "integer", "foreign": "players.id" },
+          "card_id": { "type": "integer", "foreign": "cards.id" }
         }
       }
     }, null, true);

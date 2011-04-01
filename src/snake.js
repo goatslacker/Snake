@@ -2,7 +2,7 @@
   * Snake - A JavaScript ORM/DBAL
   *
   * @author <a href="mailto:josh@goatslacker.com">Josh Perez</a>
-  * @version 0.1.4
+  * @version 0.1.5
   */
 
 /**
@@ -12,7 +12,7 @@
   * @this {Snake}
   */
 var Snake = {
-  version: "0.1.4",
+  version: "0.1.5",
   build: "alpha",
   global: this,
   debug: false,

@@ -10,6 +10,28 @@ Snake.base = function (table) {
       Model = null;
 
   /**
+    @private
+    */
+  function getForeignObj(that, ref, onSuccess, onFailure, output_sql) {
+    // test
+    Snake.venom[ref].retrieveByPK(that[table.foreign[ref][0]], function (result) {
+
+      // change the func
+      that[ref] = function (onSuccess) {
+        onSuccess(result);
+      };
+
+      onSuccess.apply(null, arguments);
+    }, onFailure, output_sql);
+  }
+
+  function bindGetForeignObject(context, ref) {
+    return function (onSuccess, onFailure, output_sql) {
+      getForeignObj(context, ref, onSuccess, onFailure, output_sql);
+    };
+  }
+
+  /**
     * @constructor
     */
   Model = function () {
@@ -21,6 +43,16 @@ Snake.base = function (table) {
       }
     }
 
+    if ("foreign" in table) {
+      for (name in table.foreign) {
+        if (table.foreign.hasOwnProperty(name)) {
+          this[name] = bindGetForeignObject(this, name);
+        }
+      }
+    }
+
+    this.old = {};
+
     //Object.seal(this); // Not sealing it for now
   };
 
@@ -30,14 +62,15 @@ Snake.base = function (table) {
     * @public
     * 
     * @param {Array} row The result set of objects to populate into the model
+    * @param {Object} model_obj Object that will be populated
+    * @example
+    * Model.allocate(result, new Fruits());
+    * fruits.allocate(result);
     * @returns {Object} model The hydrated model
     */
-  Model.allocate = function (row) { // TODO - also handle multiple rows
-    // FIXME - if called as (instanceOf) Model.allocate then Model will need to be provided as the second param 
-    var model = new Model(),
+  Model.allocate = function (row, model_obj) { // TODO - also handle multiple rows
+    var model = (this instanceof Model) ? model_obj : new Model(),
         prop = null;
-
-    model.old = {};
 
     for (prop in row) {
       if (row.hasOwnProperty(prop)) {
@@ -85,20 +118,21 @@ Snake.base = function (table) {
 
       // update
       if (this.id) {
-        for (i = 0, max = table.columns.length; i < max; i = i + 1) {
-          if (this[table.columns[i]] !== this.old[table.columns[i]]) {
-            val = this[table.columns[i]] || null;
+        for (i = 0, max = table.map.length; i < max; i = i + 1) {
+          if (this[table.map[i]] !== this.old[table.map[i]]) {
+            val = this[table.map[i]] || null;
             values.push(val);
 
-            q.push(table.columns[i] + " = ?");
+            q.push(table.map[i] + " = ?");
           }
         }
 
-        sql = interpolate("UPDATE #{table} SET #{conditions} WHERE id = #{id}", {
+        sql = interpolate("UPDATE #{table} SET #{conditions} WHERE id = ?", {
           table: table.tableName,
-          conditions: q,
-          id: this.id
+          conditions: q
         });
+
+        values.push(this.id);
 
       // insert
       } else {

@@ -2,7 +2,7 @@
 describe("Snake", function () {
 
   it("Snake is proper version", function () {
-    expect(Snake.version).toEqual("0.1.4");
+    expect(Snake.version).toEqual("0.1.5");
   });
 
   // TODO test Snake functions!
@@ -212,14 +212,14 @@ describe("VQL", function () {
       });
 
       it("Join", function () {
-        vql.cards.join("deck").doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM cards LEFT JOIN deck ON cards.deck_id = deck.id");
+        vql.cards.join("decks").doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards LEFT JOIN decks ON cards.deck_id = decks.id");
         }, null, true);
       });
 
       it("Join - Specify On", function () {
-        vql.cards.join("deck", ['deck_id', 'id']).doSelect(function (query, params) {
-          expect(query).toEqual("SELECT * FROM cards LEFT JOIN deck ON cards.deck_id = deck.id");
+        vql.cards.join("decks", ['deck_id', 'id']).doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards LEFT JOIN decks ON cards.deck_id = decks.id");
         }, null, true);
       });
 
@@ -235,8 +235,14 @@ describe("Base.js", function () {
  
   // Model testing 
   describe("Model testing", function () {
-    var player = new Player();
+    var player = new Player(),
+        card = new Card();
+
     player.name = "Mosuke Hiroshi-san";
+    card.id = 16;
+    card.deck_id = 1;
+    card.face = 'J';
+    card.suit = 'clubs';
 
     it("var player is defined", function () {
       expect(player).toBeDefined();
@@ -253,6 +259,16 @@ describe("Base.js", function () {
         expect(query).toEqual("INSERT INTO 'players' (name,chips,id,created_at) VALUES (?,?,?,?)");
         expect(params[0]).toEqual("Mosuke Hiroshi-san");
         expect(params[1]).toEqual(100);
+      }, null, true);
+    });
+
+    it("Updating a record", function () {
+      card.suit = "hearts";
+      
+      card.save(function (query, params) {
+        expect(query).toEqual("UPDATE cards SET deck_id = ?,face = ?,suit = ?,id = ?,created_at = ? WHERE id = ?");
+        expect(params[2]).toEqual('hearts');
+        expect(params[5]).toEqual(16);
       }, null, true);
     });
 
@@ -273,6 +289,24 @@ describe("Base.js", function () {
       expect(Player.prototype.chips).toEqual(undefined);
     });
 
+    it("Object has foreign key", function () {
+      expect(card.deck).not.toBeNull(); 
+    });
+
+    it("Card deck should return the available deck the first time it's called", function () {
+      card.decks(function (query, params) {
+        expect(query).toEqual("SELECT * FROM decks WHERE decks.id = ? LIMIT 1");
+        console.log(params);
+        expect(params[0]).toEqual(1);
+
+        // same query, shouldn't query the db again
+        card.decks(function (query2, params) {
+          expect(query2).toEqual("SELECT * FROM decks WHERE decks.id = ? LIMIT 1");
+          expect(params2).toEqual(undefined); // the fact that params isn't set is an indication that the query didn't run
+        });
+      }, null, true);
+    });
+
 /*
     it("Object is sealed", function () {
       expect(Object.isSealed(player)).toBeTruthy();
@@ -286,49 +320,44 @@ describe("Base.js", function () {
   describe("Mixin testing", function () {
 
     // Setup Mixin
-    Card.is({
-      // TODO override something else...
+    Deck.is({
+      save: function (onSuccess, onFailure) {
+        // automatically sets output_sql to true!
+        this.$super.save.call(this, arguments[0], arguments[1], true);
+      },
       hello: function () {
         return "hai";
       },
       world: "universe"
     });
 
+    var deck = new Deck();
+
     it("Mixin property exists", function () {
-      var card = new Card();
-      expect(card.world).toEqual("universe");
+      expect(deck.world).toEqual("universe");
     });
 
     it("Mixin function runs", function () {
-      var card = new Card();
-      expect(card.hello()).toEqual("hai");
+      expect(deck.hello()).toEqual("hai");
     });
 
     it("Parent/Super prototype is available", function () {
-      var card = new Card();
-      expect(card.$super).toBeDefined();
+      expect(deck.$super).toBeDefined();
     });
 
     it("Super does not have Mixin properties", function () {
-      var card = new Card();
-      expect(card.$super.world).toEqual(undefined);
+      expect(deck.$super.world).toEqual(undefined);
     });
 
-// TODO - override something else...
-/*
     it("Overriding save method, should automatically output query as text", function () {
-      var card = new Card();
-      card.face = 3;
-      card.suit = 'spades';
+      deck.name = "Bee";
 
       // should return the query in the callback
-      card.save(function (query, params) {
-        expect(query).toEqual("INSERT INTO 'card' (deck_id,face,suit,id,created_at) VALUES (?,?,?,?,?)");
-        expect(params[1]).toEqual(3);
-        expect(params[2]).toEqual('spades');
+      deck.save(function (query, params) {
+        expect(query).toEqual("INSERT INTO 'decks' (name,id,created_at) VALUES (?,?,?)");
+        expect(params[0]).toEqual('Bee');
       });
     });
-*/
 
   });
 
