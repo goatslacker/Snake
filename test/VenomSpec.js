@@ -300,7 +300,7 @@ describe("Base.js", function () {
         expect(params[0]).toEqual(1);
 
         // same query, shouldn't query the db again
-        card.decks(function (query2, params) {
+        card.decks(function (query2, params2) {
           expect(query2).toEqual("SELECT * FROM decks WHERE decks.id = ? LIMIT 1");
           expect(params2).toEqual(undefined); // the fact that params isn't set is an indication that the query didn't run
         });
