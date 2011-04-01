@@ -1,78 +1,118 @@
-<script type="text/javascript" src="../build/snake.js"></script>
+<script type="text/javascript" src="../build/snake.dev.js"></script>
 <script type="text/javascript" src="fixtures/cards.js"></script>
 <script type="text/javascript">
   // define the db properties
-  Snake.define({ name: "mycards", size: 65000, description: "An example", version: "0.1" });
+  Snake.config.database = { name: "mycards", size: 65000, description: "An example", version: "0.1" };
 
-  // insert the tables if they don't exist
-  Snake.query(["CREATE TABLE IF NOT EXISTS 'player'(name text, chips integer, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'deck'(name text, id INTEGER PRIMARY KEY, created_at INTEGER)", "CREATE TABLE IF NOT EXISTS 'card'(deck_id integer, face text, suit text, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (deck_id) REFERENCES deck(id))", "CREATE TABLE IF NOT EXISTS 'player_card'(player_id integer, card_id integer, id INTEGER PRIMARY KEY, created_at INTEGER, FOREIGN KEY (player_id) REFERENCES player(id), FOREIGN KEY (card_id) REFERENCES card(id))"]);
+  // drop all tables first
+  Snake.query(["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
 
-  // build the model via JSON and dynamically load it
+  // build the model via JSON, dynamically load it, and create the tables if they don't exist
   Snake.loadFromJSON({
     Player: { 
-      tableName: 'player', 
+      "tableName": 'players', 
       "columns": {
         "name": { "type": "text" },
         "chips": { "type": "integer" }
       }
     },
     Deck: { 
-      tableName: 'deck', 
+      "tableName": 'decks',
       "columns": {
         "name": { "type": "text" }
       }
     },
     Card: { 
-      tableName: 'card', 
+      "tableName": 'cards',
       "columns": {
-        "deck_id": { "type": "integer", "foreign": "deck.id" },
+        "deck_id": { "type": "integer", "foreign": "deck.id", "delete": "cascade" },
         "face": { "type": "text" },
         "suit": { "type": "text" }
       }
     },
     PlayerCard: { 
-      tableName: 'player_card', 
+      "tableName": 'player_cards', 
       "columns": {
-        "player_id": { "type": "integer", "foreign": "player.id" },
-        "card_id": { "type": "integer", "foreign": "card.id" }
+        "player_id": { "type": "integer", "foreign": "player.id", "delete": "cascade" },
+        "card_id": { "type": "integer", "foreign": "card.id", "delete": "cascade" }
       }
     }
-  });
+  }, null, true);
 
-  // load Card fixtures
-  vql.Card.doCount(function (ct) {
-    // load card fixtures
-    if (ct === 0) {
-      var i = 0,
-          row = null,
-          card = null;
+  /** Load Fixtures for Web DB testing */
+  (function (onComplete) {
+    var i = 0,
+        max = 0,
+        row = null,
+        fixture = null,
+        model = null;
 
-      // load fixtures by creating a new model for each row
-      for (i; i < Snake.Fixtures.Card.length; i = i + 1) {
-        row = Snake.Fixtures.Card[i];
-        var card = new Card();
-        card.deck_id = 1;
-        card.face = row.face;
-        card.suit = row.suit;
-        card.save();
+    // load fixtures by creating a new model for each row
+    for (fixture in Snake.Fixtures) {
+      if (Snake.Fixtures.hasOwnProperty(fixture)) {
+        for (i = 0, max = Snake.Fixtures[fixture].length; i < max; i = i + 1) {
+          row = Snake.Fixtures[fixture][i];
+          model = Snake.global[fixture].allocate(row);
+          model.save();
+        }
       }
     }
 
+    onComplete();
+  }(runTests));
+
+  function runTests() {
     // select all the cards!
-    vql.Card.doSelect(function (cards) {
+    vql.cards.doSelect(function (cards) {
       console.log(cards);
     });
 
     // select a single card
-    vql.Card.doSelectOne(function (card) {
+    vql.cards.doSelectOne(function (card) {
       console.log(card);
+    });
+
+    // select a single deck
+    vql.decks.doSelectOne(function (deck) {
+      console.log(deck);
     });
 
     // hydrate w/ join should return a Card object with "deck" {Object} as a property of Card.
     //vql.Card.join("deck").doSelect(function (cards) { console.log(cards) });
 
-    //vql.Deck.doSelectOne(function (row) { console.log(row); });
+    // test out the on delete cascade
+    // FIXME ON DELETE CASCADE doesn't work
+/*
+    vql.decks.doSelectOne(function (deck) {
+      deck.doDelete();
 
-  });
+      vql.decks.doSelect(function (decks) {
+        console.log(decks);
+      });
+
+      // now test to see if they were deleted
+      vql.cards.doSelect(function (cards) {
+        console.log(cards); // not working
+      });
+    });
+*/
+
+    // join is a little tricky
+/*  FIXME
+    when joining a column, ambiguous column names may require an "as"
+    and then the allocate func would need to take this into consideration and allocate into the appropriate column
+*/
+    Snake.query("SELECT cards.face,cards.suit,decks.name,decks.id as decks_id,cards.id as cards_id,decks.created_at as decks_created_at FROM cards LEFT JOIN decks ON cards.deck_id = decks.id WHERE cards.face = 'A' and cards.suit = 'clubs'", null, function (transaction, results) {
+      console.log('experimenting');
+      console.log(results.rows.item(0));
+      console.log(results.rows.item(0)['suit']);
+      console.log(results.rows.item(0)['name']);
+      console.log('==========================');
+    });
+
+    // Use this syntax prefferably
+    //vql.cards.select("face", "suit").join("deck").doSelect(function (cards) { console.log(cards) });
+  }
+
 </script>
 <h1>Check console for results</h1>

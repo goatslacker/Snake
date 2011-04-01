@@ -74,6 +74,7 @@ Snake.query = (function () {
           query = [query];
         }
 
+        // TODO better support for multiple queries
         for (i, max = query.length; i < max; i = i + 1) {
 
           // append semicolon to query

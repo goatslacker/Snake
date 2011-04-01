@@ -17,12 +17,15 @@ var sys = require("sys"),
         key = arg[0];
         val = arg[1] || true;
 
-        obj[key] = val;
+        if (key) {
+          obj[key] = val;
+        }
       }
 
       return obj;
     }());
 
+console.log(args);
 
 // TODO
 /*
