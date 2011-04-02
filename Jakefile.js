@@ -4,131 +4,150 @@
   - select transport/driver
 */
 
-var jake = require("jake")
-  , gzip = require('gzip')
-  , sys = require("sys")
-  , path = require("path")
-  , fs = require("fs")
-  , util = require('util')
-  , files = ['MIT-LICENSE', 'snake', 'base', 'web.db', 'vql']
-  , i = 0
-  , code = []
-  , outputFile = "build/snake.js"
-  , outputMinFile = "build/snake.min.js"
-  , outputDevFile = "build/snake.dev.js"
-  , gzippedFile = "build/snake.js.gz"
-  , sys = require('sys')
-  , exec = require('child_process').exec;
+var gzip = require('gzip'),
+    sys = require("sys"),
+    fs = require("fs"),
+    files = ['MIT-LICENSE', 'snake', 'base', 'vql'],
+    output = {
+      file: "build/snake.js",
+      min: "build/snake.min.js",
+      dev: "build/snake.dev.js",
+      gzip: "build/snake.js.gz"
+    },
+    exec = require('child_process').exec,
+    Jake = null;
 
-function jshint() {
-  // Test code using jshint
-  // TODO check to make sure jshint is installed
-  console.log("Started Lint testing " + outputFile);
-  exec("jshint " + outputFile + " --config jshint.json", function (error, stdout, stderr) {
-    if (stdout) {
-      console.log("--jshint--");
-      console.log(stdout);
-    }
-    if (error !== null) {
-      console.log('exec error: ' + error);
-    }
-  });
-}
+Jake = {
+  jshint: function () {
+    // Test code using jshint
+    // TODO check to make sure jshint is installed
+    console.log("Started Lint testing " + output.file);
+    exec("jshint " + output.file + " --config jshint.json", function (error, stdout, stderr) {
+      if (stdout) {
+        console.log("--jshint--");
+        console.log(stdout);
+      }
+      if (error !== null) {
+        console.log('exec error: ' + error);
+      }
+    });
+  },
 
-function createDirs() {
-  // create directory for build
-  exec("mkdir build");
+  createDirs: function () {
+    // create directory for build
+    exec("mkdir build");
   
-  // create directory for Docs
-  exec("mkdir docs");
-}
+    // create directory for Docs
+    exec("mkdir docs");
+  },
 
-task("default", [], function () {
-
-  var finishr = function () {
-    fs.readFile(outputFile, "utf8", function (err, text) {
-      if (err) {
-        throw err;
+  compress: function () {
+    // Minimify the code using uglifyJS
+    // TODO check that uglify is installed
+    console.log("Compressing " + output.file + " using UglifyJS");
+    exec("uglifyjs " + output.file + " > " + output.min, function (error, stdout, stderr) {
+      if (stdout) {
+        console.log("--UglifyJS--");
+        console.log(stdout);
       }
 
-      // test code with jshint
-      jshint();
-
-      // Minimify the code using uglifyJS
-      // TODO check that uglify is installed
-      console.log("Compressing " + outputFile + " using UglifyJS");
-      exec("uglifyjs " + outputFile + " > " + outputMinFile, function (error, stdout, stderr) {
-        if (stdout) {
-          console.log("--UglifyJS--");
-          console.log(stdout);
-        }
-
-        if (error !== null) {
-          console.log('exec error: ' + error);
-        }
-      });
-
+      if (error !== null) {
+        console.log('exec error: ' + error);
+      }
     });
   },
 
-  writeFile = function () {
-    createDirs();
-
-    // delete the file first
-    fs.unlink(outputFile);
-
-    // write all files into a snake build
-    fs.writeFile(outputFile, code.join("\n"), 'utf8', function (err) {
-      console.log("Wrote to " + outputFile);
-
-      if (err) {
-        throw err;
-      }
-
-      // run minimifier, jshint and gzip
-      finishr();
-    });
-
-    // write files into a dev version
-    fs.writeFile(outputDevFile, code.join("\n") + "\n(function () { Snake.debug = true; }());", 'utf8', function (err) {
-      console.log("Wrote to " + outputDevFile);
-    });
-  },
-
-  readFile = function () {
-    if (code.length === files.length) {
-      writeFile();
-    } else {
-      var inputFile = null;
-
-      switch (files[i]) {
-      case "MIT-LICENSE":
-        inputFile = files[i];
-        break;
-      default:
-        inputFile = "src/" + files[i] + ".js";
-      }
-      console.log("Merging " + inputFile);
-
-      fs.readFile(inputFile, 'utf8', function (err, data) {
+  main: function () {
+    var finishr = function () {
+      fs.readFile(output.file, "utf8", function (err, text) {
         if (err) {
           throw err;
         }
 
-        // join all the files
-        code.push(data);
+        // test code with jshint
+        Jake.jshint();
 
-        // read the next file...
-        readFile();
+        // minimify using uglifyjs
+        Jake.compress();
+      });
+    },
+
+    writeFile = function (code) {
+      Jake.createDirs();
+
+      // delete the file first
+      fs.unlink(output.file);
+
+      // write all files into a snake build
+      fs.writeFile(output.file, code.join("\n"), 'utf8', function (err) {
+        console.log("Wrote to " + output.file);
+
+        if (err) {
+          throw err;
+        }
+
+        // run minimifier and jshint
+        finishr();
       });
 
-      i = i + 1;
-    }
-  };
+      // write files into a dev version
+      fs.writeFile(output.dev, code.join("\n") + "\n(function () { Snake.debug = true; }());", 'utf8', function (err) {
+        console.log("Wrote to " + output.dev);
+      });
+    },
 
-  readFile();
+    readFile = function (code) {
+      if (files.length === 0) {
+        writeFile(code);
+      } else {
+        var inputFile = null;
 
+        switch (files[0]) {
+        case "MIT-LICENSE":
+          inputFile = files[0];
+          break;
+        default:
+          inputFile = "src/" + files[0] + ".js";
+        }
+        console.log("Merging " + inputFile);
+
+        fs.readFile(inputFile, 'utf8', function (err, data) {
+          if (err) {
+            throw err;
+          }
+
+          // join all the files
+          code.push(data);
+
+          // read the next file...
+          readFile(code);
+        });
+
+        files.shift();
+      }
+    };
+
+    readFile([]);
+  }
+}
+
+/**
+  Tasks
+  */
+
+/** Web SQL Database */
+task("default", [], function () {
+  files.push('web.db');
+  Jake.main();
 }, true);
+
+/** MySQL */
+task("mysql", [], function () {
+  files.push('mysql.db');
+  Jake.main();
+}, true);
+
+/** Tasks */
 
 task("docs", [], function () {
   // Build docs
@@ -139,19 +158,23 @@ task("docs", [], function () {
 }, true);
 
 task("jshint", [], function () {
-  jshint();
+  Jake.jshint();
+}, true);
+
+task("uglify", [], function () {
+  Jake.compress();
 }, true);
 
 task("gzip", [], function () {
-  fs.readFile(outputFile, "utf8", function (err, text) {
+  fs.readFile(output.file, "utf8", function (err, text) {
     // NOTE: requires gzip (npm install gzip)
     // TODO check for gzip installed!
-    console.log("Compressing " + outputFile + " using node-gzip");
+    console.log("Compressing " + output.file + " using node-gzip");
     gzip(text, function (err, data) {
       // Save gzip output to a file
-      fs.writeFile(gzippedFile, data, 'utf8', function (err) {
-        console.log("gzipped file: " + gzippedFile);
-        fs.stat(gzippedFile, function (err, stats) {
+      fs.writeFile(output.gzip, data, 'utf8', function (err) {
+        console.log("gzipped file: " + output.gzip);
+        fs.stat(output.gzip, function (err, stats) {
           console.log("gzipped size: " + stats.size);
         });
       });
@@ -160,5 +183,18 @@ task("gzip", [], function () {
 }, true);
 
 task("mkdir", [], function () {
-  createDirs();
+  Jake.createDirs();
 }, true);
+
+/*
+task("node", [], function () {
+  console.log("Building node file");
+  fs.readFile(output.file, "utf8", function (err, text) {
+    fs.writeFile("lib/index.js", text + "\nmodule.exports = Snake", 'utf8', function (err) {
+      if (!err) {
+        console.log("Wrote to lib/index.js");
+      }
+    });
+  });
+}, true);
+*/
