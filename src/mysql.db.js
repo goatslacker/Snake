@@ -1,11 +1,26 @@
+/**
+  * Performs a query on the Web Database
+  *
+  * @function
+  * @param {string} query A prepared statement
+  * @param {Array} params The parameters to insert into the prepared statements
+  * @param {Function} onSuccess The function to callback if the transaction is successfully executed
+  * @param {Function} onFailure The function to callback if the transaction fails
+  */
 Snake.query = (function () {
 
+/**
+  * @private
+  */
   var self = Snake,
       Query = null,
       Client = require('mysql').Client,
       client = new Client(),
       database = false;
 
+/**
+  * @private
+  */
   function connect(onComplete) {
     var self = Snake;
 
@@ -20,6 +35,9 @@ Snake.query = (function () {
     onComplete();
   }
 
+  /**
+    * @private
+    */
   Query = function (query, params, onSuccess, onFailure) {
 
     if (!database) {
@@ -47,6 +65,15 @@ Snake.query = (function () {
   return Query;
 }());
 
+//FIXME move this from here?
+//FIXME finish building
+/**
+  * Dynamically builds the Models
+  *
+  * @param {Object} schema The schema in JSON format
+  * @param {Function} onComplete The callback function to execute once the schema finishes building
+  * @param {boolean} create_tables If set the true the tables will be automatically created for you if they don't exist
+  */
 Snake.loadFromJSON = function (schema, onComplete, create_tables) {
   var table = null,
       column = null,
