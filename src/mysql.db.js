@@ -1,3 +1,4 @@
+/*global require module */
 /**
   * Performs a query on the Web Database
   *
@@ -47,6 +48,15 @@ Snake.query = (function () {
       });
     } else {
       params = params || [];
+
+      onSuccess = onSuccess || function (transaction, results) {
+        self.log(transaction);
+        self.log(results);
+      };
+      onFailure = onFailure || function (transaction, error) {
+        self.log(transaction);
+        self.log(error);
+      };
 
       client.query(query, params, function (err, results) {
         if (err) {

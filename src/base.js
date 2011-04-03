@@ -25,6 +25,9 @@ Snake.base = function (table) {
     }, onFailure, output_sql);
   }
 
+  /**
+    @private
+    */
   function bindGetForeignObject(context, ref) {
     return function (onSuccess, onFailure, output_sql) {
       getForeignObj(context, ref, onSuccess, onFailure, output_sql);
