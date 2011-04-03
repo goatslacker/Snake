@@ -161,13 +161,15 @@ Snake.venomousObject = function (schema) {
     * @this {Collection} The collection object - in order to chain calls
     */
   Collection = {
+    // TODO Select DISTINCT, group by
 
     /**
       * Adds select columns to the query
       *
       * @param {string} args The field names to select
       * @example
-      * vql.fruits.select(id, tree_id, name, description).doSelect(callback);
+      * SELECT nebulas, black_holes, stars FROM galaxies;
+      * vql.galaxies.select("nebulas", "black_holes", "stars").doSelect(callback);
       * @returns {Object} this 
       */
     select: function () {
@@ -185,6 +187,7 @@ Snake.venomousObject = function (schema) {
       *
       * @param {string} args The field names to select
       * @example
+      * SELECT * FROM fruits WHERE name = 'mango';
       * vql.fruits.find({ name: "mango" }).doCount(callback);
       * vql.fruits.find("name", "mango").doCount(callback);
       * @returns {Object} this 
@@ -289,7 +292,8 @@ Snake.venomousObject = function (schema) {
       *
       * @param {Object} obj The fields to order by along with their order
       * @example
-      * vql.fruits.orderBy({ id: 'desc' }).doSelect(callback);
+      * SELECT * FROM tasks ORDER BY priority DESC;
+      * vql.tasks.orderBy({ priority: 'desc' }).doSelect(callback);
       * @returns {Object} this 
       */
     orderBy: function (obj) {
@@ -348,6 +352,9 @@ Snake.venomousObject = function (schema) {
       * Provides an offset or 'skips' a number of records
       *
       * @param {number} offset The number of records to skip
+      * @example
+      * SELECT * FROM cars LIMIT 5, 10;
+      * vql.cars.offset(5).limit(10).doSelect(callback);
       * @returns {Object} this
       */
     offset: function (offset) {
@@ -359,6 +366,9 @@ Snake.venomousObject = function (schema) {
       * Limits the return result set to a set number of records
       *
       * @param {number} limit The number of records to return
+      * @example
+      * SELECT * FROM cars LIMIT 10;
+      * vql.cars.limit(10).doSelect(callback);
       * @returns {Object} this
       */
     limit: function (limit) {
