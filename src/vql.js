@@ -21,6 +21,7 @@ Snake.venomousObject = function (schema) {
     */
   resetObj = function () {
     Collection.sql = {
+      distinct: false,
       select: [],
       from: schema.tableName,
       joins: [],
@@ -29,6 +30,7 @@ Snake.venomousObject = function (schema) {
         params: []
       },
       orderBy: [],
+      groupBy: [],
       limit: false
     };
   };
@@ -109,6 +111,12 @@ Snake.venomousObject = function (schema) {
       query.orderBy = Collection.sql.orderBy;
     }
 
+    // GROUP BY
+    if (Collection.sql.groupBy.length > 0) {
+      sql = sql + " GROUP BY #{groupBy}";
+      query.groupBy = Collection.sql.groupBy;
+    }
+
     // LIMIT && OFFSET
     if (Collection.sql.limit) {
       if (Collection.sql.offset) {
@@ -161,12 +169,10 @@ Snake.venomousObject = function (schema) {
     * @this {Collection} The collection object - in order to chain calls
     */
   Collection = {
-    // TODO Select DISTINCT, group by
-
     /**
       * Adds select columns to the query
       *
-      * @param {string} args The field names to select
+      * @param {string} arguments The field names to select
       * @example
       * SELECT nebulas, black_holes, stars FROM galaxies;
       * vql.galaxies.select("nebulas", "black_holes", "stars").doSelect(callback);
@@ -183,9 +189,24 @@ Snake.venomousObject = function (schema) {
     },
 
     /**
+      * Prefixes the SQL statement with DISTINCT in order to filter out the duplicate entries
+      *
+      * @param {string} arguments The field names to apply select to
+      * @example
+      * SELECT DISTINCT nebulas, black_holes, stars FROM galaxies;
+      * vql.galaxies.distinct("nebulas", "black_holes", "stars").doSelect(callback);
+      * @returns {Object} this 
+      */
+    distinct: function () {
+      this.sql.distinct = true;
+      this.select.apply(this, arguments);
+      return this;
+    },
+
+    /**
       * Filters the results by the criteria specified
       *
-      * @param {string} args The field names to select
+      * @param {string} arguments
       * @example
       * SELECT * FROM fruits WHERE name = 'mango';
       * vql.fruits.find({ name: "mango" }).doCount(callback);
@@ -313,6 +334,30 @@ Snake.venomousObject = function (schema) {
     },
 
     /**
+      * Groups results by a column specified
+      *
+      * @param {string} arguments The fields to group by
+      * @example
+      * SELECT * FROM population GROUP BY ethnicity;
+      * vql.population.groupBy('ethnicity');
+      * @returns {Object} this 
+      */
+    groupBy: function () {
+      var i = 0,
+          column = null;
+
+      for (i = 0; i < arguments.length; i = i + 1) {
+        column = arguments[i];
+        if (column in schema.columns) {
+          column = schema.tableName + "." + column;
+        }
+        this.sql.groupBy.push(column);
+      }
+
+      return this;
+    },
+
+    /**
       * Joins two tables together using the table's primary and foreign keys
       * TODO params
       * @returns {Object} this 
@@ -425,7 +470,7 @@ Snake.venomousObject = function (schema) {
       * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
       */
     doCount: function (onSuccess, onFailure, useDistinct, output_sql) {
-      useDistinct = (useDistinct && this.sql.select.length > 0) ? "DISTINCT " : "";
+      useDistinct = ((useDistinct || this.sql.distinct === true) && this.sql.select.length > 0) ? "DISTINCT " : "";
       var sql = "SELECT COUNT(" + useDistinct + "#{select}) AS count FROM #{from}",
           callback = null,
           query = {};
@@ -478,7 +523,8 @@ Snake.venomousObject = function (schema) {
       if (this.sql.select.length === 0) {
         query.select = "*";
       } else {
-        query.select = this.sql.select;
+        query.select = this.sql.distinct ? "DISTINCT " : "";
+        query.select = query.select + this.sql.select;
       }
 
       if (output_sql === true) {

@@ -37,6 +37,20 @@ describe("VQL", function () {
         }, null, true);
       });
 
+      it("DISTINCT", function () {
+        vql.cards.distinct("suit").doSelect(function (query, params) {
+          expect(query).toEqual("SELECT DISTINCT cards.suit FROM cards");
+          expect(params).toBeNull();
+        }, null, true);
+      });
+
+      it("DISTINCT 2 cols", function () {
+        vql.cards.distinct("face", "suit").doSelect(function (query, params) {
+          expect(query).toEqual("SELECT DISTINCT cards.face,cards.suit FROM cards");
+          expect(params).toBeNull();
+        }, null, true);
+      });
+
       it("Using Limit", function () {
         vql.cards.limit(5).doSelect(function (query, params) {
           expect(query).toEqual("SELECT * FROM cards LIMIT 5");
@@ -168,6 +182,12 @@ describe("VQL", function () {
         }, null, true);
       });
 
+      it("Group By", function () {
+        vql.cards.groupBy('suit').doSelect(function (query, params) {
+          expect(query).toEqual("SELECT * FROM cards GROUP BY cards.suit");
+        }, null, true);
+      });
+      
       it("Order By", function () {
         vql.cards.find({ suit: 'hearts' }).orderBy({ suit: 'desc' }).doSelect(function (query, params) {
           expect(query).toEqual("SELECT * FROM cards WHERE cards.suit = ? ORDER BY cards.suit DESC");
