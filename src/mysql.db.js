@@ -1,4 +1,5 @@
 /*global require module */
+Snake.driver = "node-mysql";
 /**
   * Performs a query on the Web Database
   *

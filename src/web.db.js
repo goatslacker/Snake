@@ -1,3 +1,5 @@
+Snake.driver = "WebSQL";
+
 /**
   * Performs a query on the Web Database
   *

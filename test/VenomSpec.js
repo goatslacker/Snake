@@ -5,6 +5,10 @@ describe("Snake", function () {
     expect(Snake.version).toEqual("0.1.5");
   });
 
+  it("Driver is WebSQL", function () {
+    expect(Snake.driver).toEqual("WebSQL");
+  });
+
   // TODO test Snake functions!
 
 });
