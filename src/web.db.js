@@ -89,7 +89,20 @@ Snake.query = (function () {
           }
 
           // perform query
-          transaction.executeSql(preparedQuery, params, onSuccess, onFailure);
+          transaction.executeSql(preparedQuery, params, function (transaction, results) {
+            var arr = [],
+                i = 0,
+                max = 0,
+                rows = results.rows;
+            
+            if (rows.length > 0) {
+              for (i = 0, max = rows.length; i < max; i = i + 1) {
+                arr.push(rows.item(i));
+              }
+            }
+
+            onSuccess(arr);
+          }, onFailure);
         }
 
       });

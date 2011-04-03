@@ -18,7 +18,7 @@ var Snake = {
   debug: false,
   config: {},
   log: function (msg) {
-    if ('console' in Snake.global) {
+    if (console) {
       console.log(msg);
     }
   },

@@ -430,8 +430,8 @@ Snake.venomousObject = function (schema) {
         callback = onSuccess;
       } else {
         /** @private */
-        callback = function (transaction, results) {
-          var obj = results.rows.item(0);
+        callback = function (results) {
+          var obj = results[0];
 
           if (onSuccess) {
             onSuccess(obj.count);
@@ -475,16 +475,15 @@ Snake.venomousObject = function (schema) {
         callback = onSuccess;
       } else {
         /** @private */
-        callback = function (transaction, results) {
+        callback = function (results) {
           var arr = [],
               i = 0,
               max = 0,
-              model = null,
-              rows = results.rows;
+              model = null;
           
-          if (rows.length > 0) {
-            for (i = 0, max = rows.length; i < max; i = i + 1) {
-              model = Snake.global[schema.jsName].allocate(rows.item(i));
+          if (results.length > 0) {
+            for (i = 0, max = results.length; i < max; i = i + 1) {
+              model = Snake.global[schema.jsName].allocate(results[i]);
               arr.push(model);
             }
           }

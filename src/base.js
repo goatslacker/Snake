@@ -117,6 +117,7 @@ Snake.base = function (table) {
           sql = "";
 
       // update
+      // FIXME - if new ID !== OLD ID then it's an INSERT
       if (this.id) {
         for (i = 0, max = table.map.length; i < max; i = i + 1) {
           if (this[table.map[i]] !== this.old[table.map[i]]) {
