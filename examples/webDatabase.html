@@ -53,7 +53,9 @@
         for (i = 0, max = Snake.Fixtures[fixture].length; i < max; i = i + 1) {
           row = Snake.Fixtures[fixture][i];
           model = Snake.global[fixture].allocate(row);
-          model.save();
+          model.save(function (id) {
+            console.log(id);
+          });
         }
       }
     }

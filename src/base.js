@@ -166,9 +166,9 @@ Snake.base = function (table) {
         }
 
       } else {
-        Snake.query(sql, values, function (transaction, results) {
+        Snake.query(sql, values, function (id) {
           // set an ID
-          model.id = results.insertId;
+          model.id = id;
 
           if (onSuccess) {
             onSuccess(model);
@@ -187,6 +187,8 @@ Snake.base = function (table) {
       */
     doDelete: function (onSuccess, onFailure, output_sql) {
       Snake.venom[table.tableName].find(this.id).doDelete(onSuccess, onFailure, output_sql);
+
+      // loop through linked foreign objects and delete those using the FK!
     }
   };
 

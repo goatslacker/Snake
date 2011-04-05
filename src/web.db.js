@@ -81,18 +81,25 @@ Snake.query = (function () {
           @private
           */
         callback = function (transaction, results) {
-          var arr = [],
+          var result = null,
               i = 0,
               max = 0,
-              rows = results.rows;
-          
-          if (rows.length > 0) {
-            for (i = 0, max = rows.length; i < max; i = i + 1) {
-              arr.push(rows.item(i));
+              rows = null;
+
+          try {
+            result = results.insertId;
+          } catch (e) {
+            result = [];
+            rows = results.rows;
+
+            if (rows.length > 0) {
+              for (i = 0, max = rows.length; i < max; i = i + 1) {
+                result.push(rows.item(i));
+              }
             }
           }
-
-          onSuccess(arr);
+          
+          onSuccess(result);
         };
 
         for (i, max = query.length; i < max; i = i + 1) {
