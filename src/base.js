@@ -113,6 +113,7 @@ Snake.base = function (table) {
       var model = this,
           values = [],
           interpolate = Snake.interpolate,
+          callback = null,
           q = [],
           i = 0,
           max = 0,
@@ -138,6 +139,10 @@ Snake.base = function (table) {
 
         values.push(this.id);
 
+        callback = function (results) {
+          onSuccess(model);
+        };
+
       // insert
       } else {
 
@@ -157,6 +162,15 @@ Snake.base = function (table) {
           columns: table.map,
           q: q
         });
+
+        callback = function (id) {
+          // set an ID
+          model.id = id;
+
+          if (onSuccess) {
+            onSuccess(model);
+          }
+        };
       }
 
 
@@ -166,14 +180,7 @@ Snake.base = function (table) {
         }
 
       } else {
-        Snake.query(sql, values, function (id) {
-          // set an ID
-          model.id = id;
-
-          if (onSuccess) {
-            onSuccess(model);
-          }
-        }, onFailure);
+        Snake.query(sql, values, callback, onFailure);
       }
 
     },
