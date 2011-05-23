@@ -11,7 +11,7 @@
   * @this {Snake}
   */
 var Snake = {
-  version: "0.1.7",
+  version: "0.1.8",
   build: "alpha",
   global: this,
   debug: false,
@@ -37,15 +37,5 @@ var Snake = {
     }
 
     return str;
-  },
-
-  /**
-    * Tests whether an Object is an array or not
-    *
-    * @param {Array} array_in_question The object to check
-    @ @returns {boolean}
-    */
-  isArray: function (array_in_question) {
-    return (Object.prototype.toString.call(array_in_question) === '[object Array]');
   }
 };

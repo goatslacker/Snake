@@ -73,7 +73,7 @@ Snake.query = (function () {
             max = 0;
 
         // convert to single array
-        if (!self.isArray(query)) {
+        if (!Array.isArray(query)) {
           query = [query];
         }
 

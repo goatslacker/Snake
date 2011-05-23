@@ -2,7 +2,7 @@
 describe("Snake", function () {
 
   it("Snake is proper version", function () {
-    expect(Snake.version).toEqual("0.1.7");
+    expect(Snake.version).toEqual("0.1.8");
   });
 
   it("Driver is WebSQL", function () {
@@ -286,13 +286,13 @@ describe("Base.js", function () {
       }, null, true);
     });
 
-    it("Updating a record", function () {
+    it("Inserting a record", function () {
       card.suit = "hearts";
       
       card.save(function (query, params) {
-        expect(query).toEqual("UPDATE cards SET deck_id = ?,face = ?,suit = ?,id = ?,created_at = ? WHERE id = ?");
+        expect(query).toEqual("INSERT INTO 'cards' (deck_id,face,suit,id,created_at) VALUES (?,?,?,?,?)");
         expect(params[2]).toEqual('hearts');
-        expect(params[5]).toEqual(16);
+        expect(params[3]).toEqual(16);
       }, null, true);
     });
 

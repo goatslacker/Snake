@@ -41,7 +41,6 @@ Snake.base = function (table) {
 
     for (var name in table.columns) {
       if (table.columns.hasOwnProperty(name)) {
-        // FIXME -- should add to object and then lock the obj
         this[name] = null;
       }
     }
@@ -121,8 +120,7 @@ Snake.base = function (table) {
           sql = "";
 
       // update
-      // FIXME - if new ID !== OLD ID then it's an INSERT
-      if (this.id) {
+      if (this.id && this.id === this.old.id) {
         for (i = 0, max = table.map.length; i < max; i = i + 1) {
           if (this[table.map[i]] !== this.old[table.map[i]]) {
             val = this[table.map[i]] || null;

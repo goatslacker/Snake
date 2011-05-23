@@ -71,7 +71,7 @@ Snake.venomousObject = function (schema) {
     }
 
     if (value) {
-      if (Snake.isArray(value)) {
+      if (Array.isArray(value)) {
         Collection.sql.where.params = Collection.sql.where.params.concat(value);
       } else {
         Collection.sql.where.params.push(value);

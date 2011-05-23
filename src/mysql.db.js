@@ -76,8 +76,6 @@ Snake.query = (function () {
   return Query;
 }());
 
-//FIXME move this from here?
-//FIXME finish building
 /**
   * Dynamically builds the Models
   *
