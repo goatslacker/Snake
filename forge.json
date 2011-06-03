@@ -1,4 +1,5 @@
 {
+  "appName": "snake",
   "files": {
     "js": ["src/snake", "src/base", "src/vql", "src/web.db"]
   }

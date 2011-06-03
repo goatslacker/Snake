@@ -102,6 +102,17 @@ Snake.base = function (table) {
   /** @lends Model.prototype */
 
     /**
+      * The "super" function
+      *
+      * @param {Object} name The name of the function to call
+      */
+    returns: function (name) {
+      if (proto.hasOwnProperty(name)) {
+        proto[name].apply(this, Array.prototype.slice.call(arguments, 1));
+      }
+    },
+
+    /**
       * Saves a record to the database
       *
       * @param {Function} onSuccess The callback to execute if the transaction completes successfully
@@ -198,8 +209,6 @@ Snake.base = function (table) {
   };
 
   Model.is(proto);
-
-  Model.prototype.$super = proto;
 
   return Model;
 };

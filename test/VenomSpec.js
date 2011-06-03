@@ -346,12 +346,15 @@ describe("Base.js", function () {
     // Setup Mixin
     Deck.is({
       save: function (onSuccess, onFailure) {
-        // automatically sets output_sql to true!
-        this.$super.save.call(this, arguments[0], arguments[1], true);
+        // automatically sets output SQL function for Deck!
+        // uses the "super" function
+        this.returns('save', onSuccess, onFailure, true);
       },
+
       hello: function () {
         return "hai";
       },
+
       world: "universe"
     });
 
@@ -366,11 +369,11 @@ describe("Base.js", function () {
     });
 
     it("Parent/Super prototype is available", function () {
-      expect(deck.$super).toBeDefined();
+      expect(deck.returns).toBeDefined();
     });
 
     it("Super does not have Mixin properties", function () {
-      expect(deck.$super.world).toEqual(undefined);
+      expect(deck.returns.world).toEqual(undefined);
     });
 
     it("Overriding save method, should automatically output query as text", function () {
