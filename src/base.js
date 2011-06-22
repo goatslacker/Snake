@@ -38,24 +38,21 @@ Snake.base = function (table) {
     * @constructor
     */
   Model = function () {
+    var self = this;
 
-    for (var name in table.columns) {
-      if (table.columns.hasOwnProperty(name)) {
-        this[name] = null;
-      }
-    }
+    Object.keys(table.columns).forEach(function (name) {
+      self[name] = null;
+    });
 
-    if ("foreign" in table) {
-      for (name in table.foreign) {
-        if (table.foreign.hasOwnProperty(name)) {
-          this[name] = bindGetForeignObject(this, name);
-        }
-      }
+    if (table.hasOwnProperty("foreign")) {
+      Object.keys(table.foreign).forEach(function (name) {
+        self[name] = bindGetForeignObject(self, name);
+      });
     }
 
     this.old = {};
 
-    //Object.seal(this); // Not sealing it for now
+//    Object.seal(this); // Not sealing it for now
   };
 
   /**
@@ -74,12 +71,10 @@ Snake.base = function (table) {
     var model = (this instanceof Model) ? model_obj : new Model(),
         prop = null;
 
-    for (prop in row) {
-      if (row.hasOwnProperty(prop)) {
-        model[prop] = row[prop];
-        model.old[prop] = row[prop];
-      }
-    }
+    Object.keys(row).forEach(function (prop) {
+      model[prop] = row[prop];
+      model.old[prop] = row[prop];
+    });
 
     return model;
   };
@@ -90,12 +85,12 @@ Snake.base = function (table) {
     * @param {Object} extend The object to mix into the model
     */
   Model.is = function (extend) {
+    var self = this;
+
     // Copy the properties over onto the new prototype
-    for (var name in extend) {
-      if (extend.hasOwnProperty(name)) {
-        this.prototype[name] = extend[name];
-      }
-    }
+    Object.keys(extend).forEach(function (name) {
+      self.prototype[name] = extend[name];
+    });
   };
 
   proto = {
@@ -155,16 +150,16 @@ Snake.base = function (table) {
       // insert
       } else {
 
-        for (i = 0, max = table.map.length; i < max; i = i + 1) {
-          val = this[table.map[i]] || null;
-  
-          if (table.map[i] === 'created_at' && val === null) {
+        table.map.forEach(function (map) {
+          var val = model[map] || null;
+
+          if (map === 'created_at' && val === null) {
             val = Date.now();
           }
 
           values.push(val);
           q.push("?");
-        }
+        });
 
         sql = interpolate("INSERT INTO '#{table}' (#{columns}) VALUES (#{q})", {
           table: table.tableName,

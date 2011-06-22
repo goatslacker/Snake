@@ -43,9 +43,7 @@ Snake.venomousObject = function (schema) {
     var field = arguments[0],
         value = arguments[1],
         selector = arguments[2] || SELECTORS.EQUAL,
-        q = [],
-        i = 0,
-        max = 0;
+        q = [];
 
     if (field in schema.columns) {
       field = schema.tableName + "." + field;
@@ -59,9 +57,9 @@ Snake.venomousObject = function (schema) {
 
     case SELECTORS.IN:
     case SELECTORS.NOTIN:
-      for (i = 0, max = value.length; i < max; i = i + 1) {
+      value.forEach(function (val) {
         q.push("?");
-      }
+      });
 
       Collection.sql.where.criterion.push(field + " " + selector + " (" + q.join(", ") + ")");
       break;
@@ -179,11 +177,13 @@ Snake.venomousObject = function (schema) {
       * @returns {Object} this 
       */
     select: function () {
-      for (var i = 0, max = arguments.length; i < max; i = i + 1) {
-        if (arguments[i] in schema.columns) {
-          this.sql.select.push(schema.tableName + "." + arguments[i]);
+      var self = this;
+
+      Array.prototype.forEach.call(arguments, function (args) {
+        if (schema.columns.hasOwnProperty(args)) {
+          self.sql.select.push(schema.tableName + "." + args);
         }
-      }
+      });
 
       return this;
     },
@@ -214,17 +214,17 @@ Snake.venomousObject = function (schema) {
       * @returns {Object} this 
       */
     find: function () {
-      var field = null,
+      var args = Array.prototype.slice.call(arguments, 0),
+          field = null,
           value = null,
-          selector = null,
-          tmp = null;
+          selector = null;
 
       // if we're passing each argument
-      if (arguments.length > 1) {
+      if (args.length > 1) {
         // first argument is the field
-        field = arguments[0];
+        field = args[0];
         // second argument should be the value
-        value = arguments[1];
+        value = args[1];
 
         // unless the value is actually a selector
         if (value in SELECTORS) {
@@ -232,7 +232,7 @@ Snake.venomousObject = function (schema) {
 
         // otherwise the third argument is the selector
         } else {
-          selector = SELECTORS[arguments[2]] || SELECTORS.EQUAL;
+          selector = SELECTORS[args[2]] || SELECTORS.EQUAL;
         }
 
         addWhere(field, value, selector);
@@ -241,65 +241,60 @@ Snake.venomousObject = function (schema) {
       } else {
 
         // Pull by ID
-        if (typeof(arguments[0]) === "number") {
+        if (typeof(args[0]) === "number") {
 
-          addWhere("id", arguments[0]);
+          addWhere("id", args.shift());
 
         // It's an object
         } else {
 
           // loop through each field
-          for (field in arguments[0]) {
+          Object.keys(args[0]).forEach(function (field) {
+            var tmp = null;
 
-            if (arguments[0].hasOwnProperty(field)) {
-              // the value is the property of the field
-              value = arguments[0][field];
+            // the value is the property of the field
+            value = args[0][field];
 
-              switch (Object.prototype.toString.call(value)) {
-              // if the value is an Array then we perform an IN query
-              case "[object Array]":
-                selector = SELECTORS.IN;
-                addWhere(field, value, selector);
-                break;
+            switch (Object.prototype.toString.call(value)) {
+            // if the value is an Array then we perform an IN query
+            case "[object Array]":
+              selector = SELECTORS.IN;
+              addWhere(field, value, selector);
+              break;
 
-              // if the value is a Regular Expression then we perform a LIKE query
-              case "[object RegExp]": 
-                // TODO - NOT LIKE
-                selector = SELECTORS.LIKE;
-                tmp = value.toString();
-                value = tmp;
-                tmp = value.replace(/\W/g, "");
+            // if the value is a Regular Expression then we perform a LIKE query
+            case "[object RegExp]": 
+              // TODO - NOT LIKE
+              selector = SELECTORS.LIKE;
+              tmp = value.toString();
+              value = tmp;
+              tmp = value.replace(/\W/g, "");
 
-                if (value.substr(1, 1) === '^') {
-                  value = tmp + '%';
-                } else if (value.substr(-2, 1) === '$') {
-                  value = '%' + tmp;
-                } else {
-                  value = '%' + tmp + '%';
-                }
-
-                addWhere(field, value, selector);
-                break;
-
-              // if the value is an Object then we need to loop through all the items in the object and set them for the current field
-              case "[object Object]":
-                for (tmp in value) {
-                  if (value.hasOwnProperty(tmp)) {
-                    selector = SELECTORS[tmp] || SELECTORS.EQUAL;
-
-                    addWhere(field, value[tmp], selector);
-                  }
-                }
-                break;
-
-              // by default the selector is =
-              default:
-                selector = SELECTORS.EQUAL;
-                addWhere(field, value, selector);
+              if (value.substr(1, 1) === '^') {
+                value = tmp + '%';
+              } else if (value.substr(-2, 1) === '$') {
+                value = '%' + tmp;
+              } else {
+                value = '%' + tmp + '%';
               }
-            }
 
-          } // loop
+              addWhere(field, value, selector);
+              break;
+
+            // if the value is an Object then we need to loop through all the items in the object and set them for the current field
+            case "[object Object]":
+              Object.keys(value).forEach(function (tmp) {
+                selector = SELECTORS[tmp] || SELECTORS.EQUAL;
+                addWhere(field, value[tmp], selector);
+              });
+              break;
+
+            // by default the selector is =
+            default:
+              selector = SELECTORS.EQUAL;
+              addWhere(field, value, selector);
+            }
+          });
 
         } // typeof num
 
@@ -318,17 +313,15 @@ Snake.venomousObject = function (schema) {
       * @returns {Object} this 
       */
     orderBy: function (obj) {
-      var column = null,
-          sortOrder = "";
-      for (column in obj) {
-        if (obj.hasOwnProperty(column)) {
-          sortOrder = obj[column].toUpperCase();
-          if (column in schema.columns) {
-            column = schema.tableName + "." + column;
-          }
-          this.sql.orderBy.push(column + " " + sortOrder);
+      var self = this;
+
+      Object.keys(obj).forEach(function (column) {
+        var sortOrder = obj[column].toUpperCase();
+        if (schema.columns.hasOwnProperty(column)) {
+          column = schema.tableName + "." + column;
         }
-      }
+        self.sql.orderBy.push(column + " " + sortOrder);
+      });
 
       return this;
     },
@@ -343,16 +336,17 @@ Snake.venomousObject = function (schema) {
       * @returns {Object} this 
       */
     groupBy: function () {
-      var i = 0,
-          column = null;
+      var self = this,
+          args = Array.prototype.slice.call(arguments, 0);
 
-      for (i = 0; i < arguments.length; i = i + 1) {
-        column = arguments[i];
-        if (column in schema.columns) {
-          column = schema.tableName + "." + column;
+      args.forEach(function (column) {
+        var prepared_column = null;
+
+        if (schema.columns.hasOwnProperty(column)) {
+          prepared_column = schema.tableName + "." + column;
+          self.sql.groupBy.push(prepared_column);
         }
-        this.sql.groupBy.push(column);
-      }
+      });
 
       return this;
     },

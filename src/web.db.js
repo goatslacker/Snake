@@ -67,10 +67,6 @@ Snake.query = (function () {
     
       // HTML5 database perform query
       database.transaction(function (transaction) {
-        var preparedQuery = null,
-            callback = null,
-            i = 0,
-            max = 0;
 
         // convert to single array
         if (!Array.isArray(query)) {
@@ -80,7 +76,7 @@ Snake.query = (function () {
         /**
           @private
           */
-        callback = function (transaction, results) {
+        var callback = function (transaction, results) {
           var result = null,
               i = 0,
               max = 0,
@@ -102,10 +98,9 @@ Snake.query = (function () {
           onSuccess(result);
         };
 
-        for (i, max = query.length; i < max; i = i + 1) {
-
+        query.forEach(function (q) {
           // append semicolon to query
-          preparedQuery = query[i] + ";";
+          var preparedQuery = q + ";";
 
           // debugging
           if (self.debug) {
@@ -117,7 +112,7 @@ Snake.query = (function () {
 
           // perform query
           transaction.executeSql(preparedQuery, params, callback, onFailure);
-        }
+        });
 
       });
     }
