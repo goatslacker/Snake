@@ -2,7 +2,7 @@
 describe("Snake", function () {
 
   it("Snake is proper version", function () {
-    expect(Snake.version).toEqual("0.1.8");
+    expect(Snake.version).toEqual("1.0.0");
   });
 
   it("Driver is WebSQL", function () {
