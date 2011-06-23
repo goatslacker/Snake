@@ -1,9 +1,3 @@
-// TODO
-/*
-  - load plug-ins
-  - select transport/driver
-*/
-
 var gzip = require('gzip'),
     sys = require("sys"),
     fs = require("fs"),
@@ -20,7 +14,6 @@ var gzip = require('gzip'),
 Jake = {
   jshint: function () {
     // Test code using jshint
-    // TODO check to make sure jshint is installed
     console.log("Started Lint testing " + output.file);
     exec("jshint " + output.file + " --config jshint.json", function (error, stdout, stderr) {
       if (stdout) {
@@ -43,7 +36,6 @@ Jake = {
 
   compress: function () {
     // Minimify the code using uglifyJS
-    // TODO check that uglify is installed
     console.log("Compressing " + output.file + " using UglifyJS");
     exec("uglifyjs " + output.file + " > " + output.min, function (error, stdout, stderr) {
       if (stdout) {
@@ -165,36 +157,6 @@ task("uglify", [], function () {
   Jake.compress();
 }, true);
 
-task("gzip", [], function () {
-  fs.readFile(output.file, "utf8", function (err, text) {
-    // NOTE: requires gzip (npm install gzip)
-    // TODO check for gzip installed!
-    console.log("Compressing " + output.file + " using node-gzip");
-    gzip(text, function (err, data) {
-      // Save gzip output to a file
-      fs.writeFile(output.gzip, data, 'utf8', function (err) {
-        console.log("gzipped file: " + output.gzip);
-        fs.stat(output.gzip, function (err, stats) {
-          console.log("gzipped size: " + stats.size);
-        });
-      });
-    });
-  });
-}, true);
-
 task("mkdir", [], function () {
   Jake.createDirs();
 }, true);
-
-/*
-task("node", [], function () {
-  console.log("Building node file");
-  fs.readFile(output.file, "utf8", function (err, text) {
-    fs.writeFile("lib/index.js", text + "\nmodule.exports = Snake", 'utf8', function (err) {
-      if (!err) {
-        console.log("Wrote to lib/index.js");
-      }
-    });
-  });
-}, true);
-*/

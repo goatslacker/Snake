@@ -67,7 +67,7 @@ Snake.base = function (table) {
     * fruits.allocate(result);
     * @returns {Object} model The hydrated model
     */
-  Model.allocate = function (row, model_obj) { // TODO - also handle multiple rows
+  Model.allocate = function (row, model_obj) {
     var model = (this instanceof Model) ? model_obj : new Model(),
         prop = null;
 

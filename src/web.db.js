@@ -162,9 +162,6 @@ Snake.loadFromJSON = function (schema, onComplete, create_tables) {
         }
       }
 
-      // TODO create relationships for the base objects
-      // TODO create doSelectJoins for the relationships
-     
       models.push(model);
 
       Snake.venom[schema[table].tableName] = new Snake.venomousObject(model);

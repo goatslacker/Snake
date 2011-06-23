@@ -9,8 +9,6 @@ describe("Snake", function () {
     expect(Snake.driver).toEqual("WebSQL");
   });
 
-  // TODO test Snake functions!
-
 });
 
 // vql.js
@@ -246,10 +244,6 @@ describe("VQL", function () {
           expect(query).toEqual("SELECT * FROM cards LEFT JOIN decks ON cards.deck_id = decks.id");
         }, null, true);
       });
-
-      // TODO build:
-      // OR
-      // Custom queries with hydrating involved
   });
 
 });

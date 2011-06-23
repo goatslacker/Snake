@@ -264,7 +264,6 @@ Snake.venomousObject = function (schema) {
 
             // if the value is a Regular Expression then we perform a LIKE query
             case "[object RegExp]": 
-              // TODO - NOT LIKE
               selector = SELECTORS.LIKE;
               tmp = value.toString();
               value = tmp;
@@ -353,7 +352,9 @@ Snake.venomousObject = function (schema) {
 
     /**
       * Joins two tables together using the table's primary and foreign keys
-      * TODO params
+      * @param {string} table
+      * @param {Array} on
+      * @param {string} join_method
       * @returns {Object} this 
       */
     join: function (table, on, join_method) {

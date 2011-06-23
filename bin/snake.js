@@ -3,7 +3,6 @@
 var sys = require("sys"),
     path = require("path"),
     fs = require("fs"),
-//    Snake = require("../build/snake.dev.js"), //TODO
     args = (function () {
       var args = process.argv.splice(2),
           i = 0,
