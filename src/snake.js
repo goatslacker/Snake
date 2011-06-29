@@ -11,8 +11,7 @@
   * @this {Snake}
   */
 var Snake = {
-  version: "0.1.8",
-  build: "alpha",
+  version: "2.0.0",
   global: this,
   debug: false,
   config: {},

@@ -546,6 +546,99 @@ Snake.venomousObject = function (schema) {
       }
 
       queryBuilder(!output_sql, sql, query, callback, onFailure);
+    },
+
+    /**
+      * Saves a record to the database
+      *
+      * @param {Function} onSuccess The callback to execute if the transaction completes successfully
+      * @param {Function} onFailure The callback to execute if the transaction fails
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
+      */
+
+    // TODO obj can be function as well!
+    save: function (obj, onSuccess, onFailure, output_sql) {
+      var isNew = (!obj.hasOwnProperty('id')),
+          sql = "",
+          q = [],
+          params = [],
+          interpolate = Snake.interpolate;
+
+      if (isNew) {
+        schema.map.forEach(function (map) {
+          var val = obj[map] || null;
+
+          if (map === 'created_at' && val === null) {
+            val = Date.now();
+          }
+
+          params.push(val);
+          q.push("?");
+        });
+
+        sql = interpolate("INSERT INTO '#{table}' (#{columns}) VALUES (#{q})", {
+          table: schema.tableName,
+          columns: schema.map,
+          q: q
+        });
+      } else {
+        schema.map.forEach(function (map) {
+          var val = obj[map] || null;
+
+          if (val === null) {
+            return;
+          }
+
+          params.push(val);
+          q.push(map + " = ?");
+        });
+
+        // TODO make sure it exists?
+        sql = interpolate("UPDATE #{table} SET #{conditions} WHERE id = ?", {
+          table: schema.tableName,
+          conditions: q
+        });
+
+        params.push(obj.id);
+      }
+
+      // We run the query
+      if (!output_sql) {
+        Snake.query(sql, params, onSuccess, onFailure);
+
+      // use the callback to return the query
+      } else {
+        if (onSuccess) {
+          onSuccess(sql, params);
+        }
+      }
+    },
+
+    /**
+      * Deletes a record from the database
+      *
+      * @param {Function} onSuccess The callback to execute if the transaction completes successfully
+      * @param {Function} onFailure The callback to execute if the transaction fails
+      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
+      */
+    destroy: function (obj, onSuccess, onFailure, output_sql) {
+      var val = "";
+
+      switch (typeof obj) {
+      case "function":
+        val = obj();
+        val = val.id;
+        break;
+      case "object":
+        val = obj.id;
+        break;
+      default:
+        val = obj;
+      }
+
+      if (val) {
+        this.find(val).doDelete(onSuccess, onFailure, output_sql);
+      }
     }
 
   };
