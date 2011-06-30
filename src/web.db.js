@@ -6,8 +6,7 @@ Snake.driver = "WebSQL";
   * @function
   * @param {string} query A prepared statement
   * @param {Array} params The parameters to insert into the prepared statements
-  * @param {Function} onSuccess The function to callback if the transaction is successfully executed
-  * @param {Function} onFailure The function to callback if the transaction fails
+  * @param {Function} onComplete The function to callback if the transaction is successfully executed
   */
 Snake.query = (function () {
 // TODO support versioning
@@ -21,47 +20,39 @@ Snake.query = (function () {
 /**
   * @private
   */
-  function connect(onSuccess, onFailure) {
+  function connect(onComplete) {
     var self = Snake,
         db = self.config.database;
 
     // defaults
-    onSuccess = onSuccess || function () {};
-    onFailure = onFailure || function () {};
+    onComplete = onComplete || function () {};
 
     // HTML5 openDatabase
     database = openDatabase(db.name, db.version, db.displayName, db.size);
 
     // callbacks
     if (!database) {
-      onFailure("Could not open database");
+      onComplete("Could not open database");
     } else {
-      onSuccess();
+      onComplete(null);
     }
   }
 
   /**
     * @private
     */
-  Query = function (query, params, onSuccess, onFailure) {
+  Query = function (query, params, onComplete) {
     var self = Snake;
 
     // defaults
     params = params || null;
 
-    onSuccess = onSuccess || function (transaction, results) {
-      self.log(transaction);
-      self.log(results);
-    };
-    onFailure = onFailure || function (transaction, error) {
-      self.log(transaction);
-      self.log(error);
-    };
+    onComplete = onComplete || function (transaction, results) {};
 
     if (!database) {
       self.log("Connecting to the database");
       connect(function () {
-        Snake.query(query, params, onSuccess, onFailure);
+        Snake.query(query, params, onComplete);
       });
     } else {
     
@@ -95,7 +86,7 @@ Snake.query = (function () {
             }
           }
           
-          onSuccess(result);
+          onComplete(null, result);
         };
 
         query.forEach(function (q) {
@@ -111,7 +102,9 @@ Snake.query = (function () {
           }
 
           // perform query
-          transaction.executeSql(preparedQuery, params, callback, onFailure);
+          transaction.executeSql(preparedQuery, params, callback, function (transaction, results) {
+            onComplete(transaction);
+          });
         });
 
       });

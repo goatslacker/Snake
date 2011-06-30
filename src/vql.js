@@ -22,6 +22,7 @@ Snake.venomousObject = function (schema) {
   resetObj = function () {
     Collection.sql = {
       distinct: false,
+      persist: true,
       select: [],
       from: schema.tableName,
       joins: [],
@@ -81,7 +82,7 @@ Snake.venomousObject = function (schema) {
     * @private
     * Builds the query and passes it onto Snake.query for processing
     */
-  queryBuilder = function (persist, sql, query, onSuccess, onFailure) {
+  queryBuilder = function (sql, query, onComplete) {
     var params = null,
         interpolate = Snake.interpolate;
 
@@ -128,13 +129,13 @@ Snake.venomousObject = function (schema) {
     }
 
     // We run the query
-    if (persist) {
-      Snake.query(interpolate(sql, query), params, onSuccess, onFailure);
+    if (Collection.persist) {
+      Snake.query(interpolate(sql, query), params, onComplete);
 
     // use the callback to return the query
     } else {
-      if (onSuccess) {
-        onSuccess(interpolate(sql, query), params);
+      if (onComplete) {
+        onComplete(null, interpolate(sql, query), params);
       }
     }
 
@@ -185,6 +186,14 @@ Snake.venomousObject = function (schema) {
         }
       });
 
+      return this;
+    },
+
+    toSQL: function (persist) {
+      if (typeof persist === "undefined") {
+        persist = this.persist;
+      }
+      this.persist = !persist;
       return this;
     },
 
@@ -420,51 +429,45 @@ Snake.venomousObject = function (schema) {
       * Retrieves one record by the current collection's primary key
       *
       * @param {number} pk The primary key to retrieve from the database
-      * @param {Function} onSuccess The function to callback once the operation completes successfully
-      * @param {Function} onFailure The function to callback if the operation fails
-      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {Function} onComplete The function to callback once the operation completes successfully
       */
-    retrieveByPK: function (pk, onSuccess, onFailure, output_sql) {
-      this.find(pk).doSelectOne(onSuccess, onFailure, output_sql);
+    retrieveByPK: function (pk, onComplete) {
+      this.find(pk).doSelectOne(onComplete);
     },
 
     /**
       * Retrieves one record from the database from the specified criteria 
       *
-      * @param {Function} onSuccess The function to callback once the operation completes successfully
-      * @param {Function} onFailure The function to callback if the operation fails
-      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {Function} onComplete The function to callback once the operation completes successfully
       */
-    doSelectOne: function (onSuccess, onFailure, output_sql) {
+    doSelectOne: function (onComplete) {
       var callback = null;
 
-      if (output_sql === true) {
-        callback = onSuccess;
+      if (this.persist === false) {
+        callback = onComplete;
       } else {
         /** @private */
-        callback = function (rows) {
-          if (onSuccess) {
+        callback = function (err, rows) {
+          if (onComplete) {
             if (rows.length > 0) {
-              onSuccess(rows[0]);
+              onComplete(err, rows[0]);
             } else {
-              onSuccess(null);
+              onComplete(null, null);
             }
           }
         };
       }
 
-      this.limit(1).doSelect(callback, onFailure, output_sql);
+      this.limit(1).doSelect(callback);
     },
 
     /**
       * Returns the number of records for a given criteria
       *
-      * @param {Function} onSuccess The function to callback once the operation completes successfully
-      * @param {Function} onFailure The function to callback if the operation fails
+      * @param {Function} onComplete The function to callback once the operation completes successfully
       * @param {boolean} useDistinct If true the COUNT is performed as distinct
-      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
       */
-    doCount: function (onSuccess, onFailure, useDistinct, output_sql) {
+    doCount: function (onComplete, useDistinct) {
       useDistinct = ((useDistinct || this.sql.distinct === true) && this.sql.select.length > 0) ? "DISTINCT " : "";
       var sql = "SELECT COUNT(" + useDistinct + "#{select}) AS count FROM #{from}",
           callback = null,
@@ -476,41 +479,37 @@ Snake.venomousObject = function (schema) {
         query.select = this.sql.select;
       }
 
-      if (output_sql === true) {
-        callback = onSuccess;
+      if (this.persist === false) {
+        callback = onComplete;
       } else {
         /** @private */
-        callback = function (results) {
+        callback = function (err, results) {
           var obj = results[0];
 
-          if (onSuccess) {
-            onSuccess(obj.count);
+          if (onComplete) {
+            onComplete(err, obj.count);
           }
         };
       }
 
-      queryBuilder(!output_sql, sql, query, callback, onFailure);
+      queryBuilder(sql, query, callback);
     },
 
     /**
       * Deletes an object from the database
       *
-      * @param {Function} onSuccess The function to callback once the operation completes successfully
-      * @param {Function} onFailure The function to callback if the operation fails
-      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {Function} onComplete The function to callback once the operation completes successfully
       */
-    doDelete: function (onSuccess, onFailure, output_sql) {
-      queryBuilder(!output_sql, "DELETE FROM #{from}", null, onSuccess, onFailure);
+    doDelete: function (onComplete) {
+      queryBuilder("DELETE FROM #{from}", null, onComplete);
     },
 
     /**
       * Returns an Array of objects for the specified criteria
       *
-      * @param {Function} onSuccess The function to callback once the operation completes successfully
-      * @param {Function} onFailure The function to callback if the operation fails
-      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise we attempt to retrieve the data from the database
+      * @param {Function} onComplete The function to callback once the operation completes successfully
       */
-    doSelect: function (onSuccess, onFailure, output_sql) {
+    doSelect: function (onComplete) {
       var sql = "SELECT #{select} FROM #{from}",
           callback = null,
           query = {};
@@ -522,11 +521,11 @@ Snake.venomousObject = function (schema) {
         query.select = query.select + this.sql.select;
       }
 
-      if (output_sql === true) {
-        callback = onSuccess;
+      if (this.persist === false) {
+        callback = onComplete;
       } else {
         /** @private */
-        callback = function (results) {
+        callback = function (err, results) {
           var arr = [],
               i = 0,
               max = 0,
@@ -539,25 +538,23 @@ Snake.venomousObject = function (schema) {
             }
           }
 
-          if (onSuccess) {
-            onSuccess(arr);
+          if (onComplete) {
+            onComplete(err, arr);
           }
         };
       }
 
-      queryBuilder(!output_sql, sql, query, callback, onFailure);
+      queryBuilder(sql, query, callback);
     },
 
     /**
       * Saves a record to the database
       *
-      * @param {Function} onSuccess The callback to execute if the transaction completes successfully
-      * @param {Function} onFailure The callback to execute if the transaction fails
-      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
+      * @param {Function} onComplete The callback to execute if the transaction completes successfully
       */
 
     // TODO obj can be function as well!
-    save: function (obj, onSuccess, onFailure, output_sql) {
+    save: function (obj, onComplete) {
       var isNew = (!obj.hasOwnProperty('id')),
           sql = "",
           q = [],
@@ -603,13 +600,13 @@ Snake.venomousObject = function (schema) {
       }
 
       // We run the query
-      if (!output_sql) {
-        Snake.query(sql, params, onSuccess, onFailure);
+      if (this.persist === true) {
+        Snake.query(sql, params, onComplete);
 
       // use the callback to return the query
       } else {
-        if (onSuccess) {
-          onSuccess(sql, params);
+        if (onComplete) {
+          onComplete(null, sql, params);
         }
       }
     },
@@ -617,11 +614,9 @@ Snake.venomousObject = function (schema) {
     /**
       * Deletes a record from the database
       *
-      * @param {Function} onSuccess The callback to execute if the transaction completes successfully
-      * @param {Function} onFailure The callback to execute if the transaction fails
-      * @param {boolean} output_sql If true the SQL is returned to the onSuccess callback as a string, otherwise the data is persisted to the database
+      * @param {Function} onComplete The callback to execute if the transaction completes successfully
       */
-    destroy: function (obj, onSuccess, onFailure, output_sql) {
+    destroy: function (obj, onComplete) {
       var val = "";
 
       switch (typeof obj) {
@@ -637,7 +632,7 @@ Snake.venomousObject = function (schema) {
       }
 
       if (val) {
-        this.find(val).doDelete(onSuccess, onFailure, output_sql);
+        this.find(val).doDelete(onComplete);
       }
     }
 
