@@ -157,7 +157,7 @@ Snake.loadFromJSON = function (schema, onComplete, create_tables) {
 
       models.push(model);
 
-      Snake.venom[schema[table].tableName] = new Snake.venomousObject(model);
+      Snake.vql[schema[table].tableName] = new Snake.collection(model);
     }
   }
 

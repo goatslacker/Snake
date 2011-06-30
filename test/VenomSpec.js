@@ -14,8 +14,14 @@ describe("Snake", function () {
 // vql.js
 describe("VQL", function () {
 
-  it("Venom should be defined", function () {
-    expect(venom).toBeDefined();
+  var vql = null;
+
+  beforeEach(function () {
+    vql = Snake.vql;
+  });
+
+  it("VQL should be defined", function () {
+    expect(vql).not.toBeNull();
   });
 
   // Run through venom and return the SQL query

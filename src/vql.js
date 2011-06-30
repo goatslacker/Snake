@@ -5,7 +5,7 @@
   * @param {Object} schema The object's schema
   * @returns {Object}
   */
-Snake.venomousObject = function (schema) {
+Snake.collection = function (schema) {
   /**
     * @private
     */
@@ -643,7 +643,4 @@ Snake.venomousObject = function (schema) {
   return Collection;
 };
 
-Snake.venom = {};
-
-var venom = Snake.venom,
-    vql = venom;
+Snake.vql = {};
