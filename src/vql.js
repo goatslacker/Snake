@@ -191,9 +191,9 @@ Snake.collection = function (schema) {
 
     toSQL: function (persist) {
       if (typeof persist === "undefined") {
-        persist = this.persist;
+        persist = this.sql.persist;
       }
-      this.persist = !persist;
+      this.sql.persist = !persist;
       return this;
     },
 
@@ -443,7 +443,7 @@ Snake.collection = function (schema) {
     doSelectOne: function (onComplete) {
       var callback = null;
 
-      if (this.persist === false) {
+      if (this.sql.persist === false) {
         callback = onComplete;
       } else {
         /** @private */
@@ -479,7 +479,7 @@ Snake.collection = function (schema) {
         query.select = this.sql.select;
       }
 
-      if (this.persist === false) {
+      if (this.sql.persist === false) {
         callback = onComplete;
       } else {
         /** @private */
@@ -519,29 +519,6 @@ Snake.collection = function (schema) {
       } else {
         query.select = this.sql.distinct ? "DISTINCT " : "";
         query.select = query.select + this.sql.select;
-      }
-
-      if (this.persist === false) {
-        callback = onComplete;
-      } else {
-        /** @private */
-        callback = function (err, results) {
-          var arr = [],
-              i = 0,
-              max = 0,
-              model = null;
-          
-          if (results.length > 0) {
-            for (i = 0, max = results.length; i < max; i = i + 1) {
-              model = Snake.global[schema.jsName].allocate(results[i]);
-              arr.push(model);
-            }
-          }
-
-          if (onComplete) {
-            onComplete(err, arr);
-          }
-        };
       }
 
       queryBuilder(sql, query, callback);
@@ -600,7 +577,7 @@ Snake.collection = function (schema) {
       }
 
       // We run the query
-      if (this.persist === true) {
+      if (this.sql.persist === true) {
         Snake.query(sql, params, onComplete);
 
       // use the callback to return the query
@@ -609,6 +586,8 @@ Snake.collection = function (schema) {
           onComplete(null, sql, params);
         }
       }
+
+      resetObj();
     },
 
     /**
@@ -634,6 +613,8 @@ Snake.collection = function (schema) {
       if (val) {
         this.find(val).doDelete(onComplete);
       }
+
+      resetObj();
     }
 
   };

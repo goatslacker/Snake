@@ -1,6 +1,8 @@
-<script type="text/javascript" src="../build/snake.dev.js"></script>
+<script type="text/javascript" src="../build/snake.js"></script>
 <script type="text/javascript" src="fixtures/cards.js"></script>
 <script type="text/javascript">
+  var vql = Snake.vql;
+
   // define the db properties
   Snake.config.database = { name: "mycards", size: 65000, description: "An example", version: "0.1" };
 
@@ -37,83 +39,42 @@
         "card_id": { "type": "integer", "foreign": "cards.id", "delete": "cascade" }
       }
     }
-  }, null, true);
+  }, function () {
 
-  /** Load Fixtures for Web DB testing */
-  (function (onComplete) {
-    var i = 0,
-        max = 0,
-        row = null,
-        fixture = null,
-        model = null;
+  }, true);
 
-    // load fixtures by creating a new model for each row
-    for (fixture in Snake.Fixtures) {
-      if (Snake.Fixtures.hasOwnProperty(fixture)) {
-        for (i = 0, max = Snake.Fixtures[fixture].length; i < max; i = i + 1) {
-          row = Snake.Fixtures[fixture][i];
-          model = Snake.global[fixture].allocate(row);
-          model.save(function (id) {
-            console.log(id);
-          });
-        }
-      }
-    }
-
-    onComplete();
-  }(runTests));
+  (function () {
+    // load fixtures
+    Object.keys(Snake.Fixtures).forEach(function (fixture) {
+      Snake.Fixtures[fixture].forEach(function (row) {
+        vql[fixture].save(row, function (err, id) {
+          console.log(id + " in " + fixture);
+        });
+      });
+    });
+   
+    runTests();
+  }());
 
   function runTests() {
+    console.log('imhere');
     // select all the cards!
-    vql.cards.doSelect(function (cards) {
+    vql.cards.doSelect(function (err, cards) {
+      console.log(err);
       console.log(cards);
     });
 
     // select a single card
-    vql.cards.doSelectOne(function (card) {
+    vql.cards.doSelectOne(function (err, card) {
+      console.log(err);
       console.log(card);
     });
 
     // select a single deck
-    vql.decks.doSelectOne(function (deck) {
+    vql.decks.doSelectOne(function (err, deck) {
+      console.log(err);
       console.log(deck);
     });
-
-    // hydrate w/ join should return a Card object with "deck" {Object} as a property of Card.
-    //vql.Card.join("deck").doSelect(function (cards) { console.log(cards) });
-/*
-    // test out the on delete cascade
-    // FIXME ON DELETE CASCADE doesn't work
-    vql.decks.doSelectOne(function (deck) {
-      deck.doDelete();
-
-      vql.decks.doSelect(function (decks) {
-        console.log(decks);
-      });
-
-      // now test to see if they were deleted
-      vql.cards.doSelect(function (cards) {
-        console.log(cards); // not working
-      });
-    });
-*/
-    // join is a little tricky
-/*  FIXME
-    when joining a column, ambiguous column names may require an "as"
-    and then the allocate func would need to take this into consideration and allocate into the appropriate column
-*/
-/*
-    Snake.query("SELECT cards.face,cards.suit,decks.name,decks.id as decks_id,cards.id as cards_id,decks.created_at as decks_created_at FROM cards LEFT JOIN decks ON cards.deck_id = decks.id WHERE cards.face = 'A' and cards.suit = 'clubs'", null, function (transaction, results) {
-      console.log('experimenting');
-      console.log(results.rows.item(0));
-      console.log(results.rows.item(0)['suit']);
-      console.log(results.rows.item(0)['name']);
-      console.log('==========================');
-    });
-*/
-
-    // Use this syntax prefferably
-    //vql.cards.select("face", "suit").join("deck").doSelect(function (cards) { console.log(cards) });
   }
 
 </script>

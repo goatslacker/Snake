@@ -1,11 +1,11 @@
 Snake.Fixtures = {
-  "Player": [
+  "players": [
     {
       "name": "Josh",
       "chips": 100
     }
   ],
-  "Card": [
+  "cards": [
     { "face": 2, "suit": "diamonds", "deck_id": 1 },
     { "face": 2, "suit": "clubs", "deck_id": 1 },
     { "face": 2, "suit": "hearts", "deck_id": 1 },
@@ -59,10 +59,10 @@ Snake.Fixtures = {
     { "face": "A", "suit": "hearts", "deck_id": 1 },
     { "face": "A", "suit": "spades", "deck_id": 1 }
   ],
-  "Deck": [
+  "decks": [
     { "name": "Standard Deck" }
   ],
-  "PlayerCard": [
+  "player_cards": [
     { "player_id": 1, "card_id": 1 },
     { "player_id": 1, "card_id": 2 },
     { "player_id": 1, "card_id": 3 },

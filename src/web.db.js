@@ -69,8 +69,6 @@ Snake.query = (function () {
           */
         var callback = function (transaction, results) {
           var result = null,
-              i = 0,
-              max = 0,
               rows = null;
 
           try {
@@ -80,12 +78,12 @@ Snake.query = (function () {
             rows = results.rows;
 
             if (rows.length > 0) {
-              for (i = 0, max = rows.length; i < max; i = i + 1) {
-                result.push(rows.item(i));
-              }
+              rows.forEach(function (row, index) {
+                result.push(rows.item(index));
+              });
             }
           }
-          
+
           onComplete(null, result);
         };
 
