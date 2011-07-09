@@ -4,7 +4,7 @@
   var vql = Snake.vql;
 
   // define the db properties
-  Snake.config.database = { name: "mycards", size: 65000, description: "An example", version: "0.1" };
+  Snake({ name: "mycards", size: 65000, description: "An example", version: "0.1" });
 
   // drop all tables first
   Snake.query(["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
@@ -52,12 +52,11 @@
         });
       });
     });
-   
+
     runTests();
   }());
 
   function runTests() {
-    console.log('imhere');
     // select all the cards!
     vql.cards.doSelect(function (err, cards) {
       console.log(err);

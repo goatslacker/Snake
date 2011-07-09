@@ -129,7 +129,7 @@ Snake.collection = function (schema) {
     }
 
     // We run the query
-    if (Collection.persist) {
+    if (Collection.sql.persist) {
       Snake.query(interpolate(sql, query), params, onComplete);
 
     // use the callback to return the query
@@ -511,7 +511,6 @@ Snake.collection = function (schema) {
       */
     doSelect: function (onComplete) {
       var sql = "SELECT #{select} FROM #{from}",
-          callback = null,
           query = {};
 
       if (this.sql.select.length === 0) {
@@ -521,7 +520,7 @@ Snake.collection = function (schema) {
         query.select = query.select + this.sql.select;
       }
 
-      queryBuilder(sql, query, callback);
+      queryBuilder(sql, query, onComplete);
     },
 
     /**

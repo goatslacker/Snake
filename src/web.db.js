@@ -22,7 +22,7 @@ Snake.query = (function () {
   */
   function connect(onComplete) {
     var self = Snake,
-        db = self.config.database;
+        db = self.config;
 
     // defaults
     onComplete = onComplete || function () {};
@@ -42,6 +42,10 @@ Snake.query = (function () {
     * @private
     */
   Query = function (query, params, onComplete) {
+    if (!Snake.ready) {
+      throw "Snake is not ready!";
+    }
+
     var self = Snake;
 
     // defaults
@@ -50,7 +54,6 @@ Snake.query = (function () {
     onComplete = onComplete || function (transaction, results) {};
 
     if (!database) {
-      self.log("Connecting to the database");
       connect(function () {
         Snake.query(query, params, onComplete);
       });
@@ -69,7 +72,9 @@ Snake.query = (function () {
           */
         var callback = function (transaction, results) {
           var result = null,
-              rows = null;
+              rows = null,
+              i = 0,
+              max = 0;
 
           try {
             result = results.insertId;
@@ -78,9 +83,9 @@ Snake.query = (function () {
             rows = results.rows;
 
             if (rows.length > 0) {
-              rows.forEach(function (row, index) {
-                result.push(rows.item(index));
-              });
+              for (i, max = rows.length; i < max; i += 1) {
+                result.push(rows.item(i));
+              }
             }
           }
 
@@ -90,14 +95,6 @@ Snake.query = (function () {
         query.forEach(function (q) {
           // append semicolon to query
           var preparedQuery = q + ";";
-
-          // debugging
-          if (self.debug) {
-            self.log(preparedQuery);
-            if (params) {
-              self.log(params);
-            }
-          }
 
           // perform query
           transaction.executeSql(preparedQuery, params, callback, function (transaction, results) {
