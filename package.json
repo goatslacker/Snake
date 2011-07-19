@@ -1,14 +1,14 @@
 {
-  "name": "Snake",
-  "version": "2.0.0",
-  "description": "JavaScript DBAL for WebSQL",
+  "name": "snake",
+  "version": "2.1.0",
+  "description": "DBAL for Node MySQL",
   "repository": {
     "type": "git",
-    "url": "https://github.com/goatslacker/Snake.git"
+    "url": "https://github.com/goatslacker/node-snake.git"
   },
   "author": "Josh Perez <josh@goatslacker.com>",
   "licenses": ["MIT"],
-  "dependencies": [
+  "devdependencies": [
     "forge": ">= 1.0.0"
   ]
 }
