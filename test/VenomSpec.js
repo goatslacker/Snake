@@ -1,8 +1,8 @@
 /* snake.js */
 describe("Snake", function () {
 
-  it("Snake is proper version", function () {
-    expect(Snake.version).toEqual("2.0.3");
+  it("Snake exists", function () {
+    expect(Snake).toBeDefined();
   });
 
   it("Driver is WebSQL", function () {
@@ -265,6 +265,18 @@ describe("VQL", function () {
         expect(params[0]).toEqual(2);
         expect(params[1]).toEqual('spades');
         expect(params[2]).toEqual(2);
+      });
+    });
+
+  });
+
+
+  // WebSQL
+  describe("WebSQL", function () {
+
+    it("should have 52 cards", function () {
+      vql.cards.doSelect(function (err, cards) {
+        expect(cards.length).toEqual(52);
       });
     });
 

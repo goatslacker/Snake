@@ -12,7 +12,10 @@
   <script type="text/javascript" src="../examples/fixtures/cards.js"></script>
   <script type="text/javascript">
     // define the db properties
-    Snake.config.database = { name: "mycards", size: 65000, description: "An example", version: "0.1" };
+    Snake({ name: "mycards", size: 65000, description: "An example", version: "0.1" });
+
+    // drop all tables first
+    Snake.query(["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
 
     // build the model via JSON, dynamically load it, and create the tables if they don't exist
     Snake.loadFromJSON({
@@ -44,7 +47,16 @@
           "card_id": { "type": "integer", "foreign": "cards.id" }
         }
       }
-    }, null, false);
+    }, function () {
+      Object.keys(Snake.Fixtures).forEach(function (fixture) {
+        Snake.Fixtures[fixture].forEach(function (row) {
+          Snake.vql[fixture].save(row, function (err, id) {
+            console.log(id + " in " + fixture);
+          });
+        });
+      });
+    }, true);
+
   </script>
 
   <!-- include spec files here... -->
