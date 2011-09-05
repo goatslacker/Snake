@@ -74,6 +74,20 @@ Sample schema for a deck of playing cards:
 
 The schema can be defined in JSON format.
 
+## Saving data
+
+    vql.collection.save({
+      id: 4,
+      name: "Hello World",
+      created_at: "2010-11-20"
+    });
+
+## Retrieving data
+
+    vql.collection.find(id, 4).doSelect(function (err, data) {
+      data.name; // Hello World
+    });
+
 ## SQL to VQL Map
 
 SELECT * FROM sports;
