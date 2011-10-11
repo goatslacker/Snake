@@ -1,30 +1,21 @@
 <script type="text/javascript" src="../build/snake.js"></script>
 <script type="text/javascript" src="fixtures/cards.js"></script>
 <script type="text/javascript">
-  var vql = Snake.vql;
-
-  // define the db properties
-  Snake({ name: "mycards", size: 65000, description: "An example", version: "0.1" });
-
-  // drop all tables first
-  Snake.query(["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
-
-  // build the model via JSON, dynamically load it, and create the tables if they don't exist
-  Snake.loadFromJSON({
-    Player: { 
-      "tableName": 'players', 
+  var db = new Snake({ name: "mycards", size: 65000, description: "An example", version: "0.1" }, {
+    Player: {
+      "tableName": 'players',
       "columns": {
         "name": { "type": "text" },
         "chips": { "type": "integer" }
       }
     },
-    Deck: { 
+    Deck: {
       "tableName": 'decks',
       "columns": {
         "name": { "type": "text" }
       }
     },
-    Card: { 
+    Card: {
       "tableName": 'cards',
       "columns": {
         "deck_id": { "type": "integer", "foreign": "decks.id", "delete": "cascade" },
@@ -32,49 +23,20 @@
         "suit": { "type": "text" }
       }
     },
-    PlayerCard: { 
-      "tableName": 'player_cards', 
+    PlayerCard: {
+      "tableName": 'player_cards',
       "columns": {
         "player_id": { "type": "integer", "foreign": "players.id", "delete": "cascade" },
         "card_id": { "type": "integer", "foreign": "cards.id", "delete": "cascade" }
       }
     }
-  }, function () {
+  });
 
-  }, true);
+  console.log(db);
+  //db.cards.find({ suit: "hearts" }).doSelect(function (err, data) {
+  //});
 
-  (function () {
-    // load fixtures
-    Object.keys(Snake.Fixtures).forEach(function (fixture) {
-      Snake.Fixtures[fixture].forEach(function (row) {
-        vql[fixture].save(row, function (err, id) {
-          console.log(id + " in " + fixture);
-        });
-      });
-    });
-
-    runTests();
-  }());
-
-  function runTests() {
-    // select all the cards!
-    vql.cards.doSelect(function (err, cards) {
-      console.log(err);
-      console.log(cards);
-    });
-
-    // select a single card
-    vql.cards.doSelectOne(function (err, card) {
-      console.log(err);
-      console.log(card);
-    });
-
-    // select a single deck
-    vql.decks.doSelectOne(function (err, deck) {
-      console.log(err);
-      console.log(deck);
-    });
-  }
+  // drop all tables first
+  //Snake.query(["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
 
 </script>
-<h1>Check console for results</h1>
