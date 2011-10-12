@@ -25,29 +25,41 @@ var Snake = function (config, schema) {
   this.SYSTEM = {};
   this.SYSTEM.config = config || {};
 
-  // what is this for?
+  // keep track of the models
   var models = [];
+  // keep track of the queries
+  var queries = [];
 
   var has = "hasOwnProperty";
 
+  // loop through the schema
   Object.keys(schema).forEach(function (table) {
     var model = schema[table];
 
+    // houses the SQL stmt for each object
+    var sql = {
+      fields: [],
+      foreign: []
+    };
+
     model.jsName = table;
+
+    // the map of the model
+    model.map = [];
 
     // create default properties
     model.columns.id = { type: "INTEGER" };
     model.columns.created_at = { type: "INTEGER" };
 
-
-    // what is this for?
-    model.map = [];
-
-
     // loop through each column
     Object.keys(model.columns).forEach(function (column) {
       // this houses the field's type and any extra properties
       var field = model.columns[column];
+
+      // add to SQL
+      if (column !== "id" && column !== "created_at") {
+        sql.fields.push(column + " " + field.type);
+      }
 
       // if it's a foreign key, then we capture the foreign table
       // and the key it points to
@@ -57,11 +69,21 @@ var Snake = function (config, schema) {
         (function applyForeignKey() {
           var fk = field.foreign.split(".");
           model.foreign[fk[0]] = [column, fk[1]];
+
+          // create SQL for the foreign key
+          sql.foreign.push("FOREIGN KEY (" + column + ") REFERENCES " + fk[0] + "(" + fk[1] + ")");
         }());
       }
 
+      // store map information
       model.map.push(column);
     });
+
+    // push into queries
+    queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{body})", {
+        table: model.tableName,
+        body: sql.fields.concat(sql.foreign).join(" ")
+    }));
 
     models.push(model);
 
@@ -69,70 +91,8 @@ var Snake = function (config, schema) {
     this[model.tableName] = new Snake.collection(model);
   }.bind(this));
 
-/*
-  (function (self, models) {
-    var queries = [],
-        i = 0,
-        max = 0,
-        column = null,
-        foreign = null,
-        foreign_key = null,
-        refaction = null,
-        ref = [],
-        fields = [],
-        fk = [];
-
-    for (i, max = models.length; i < max; i = i + 1) {
-      fields = [];
-      fk = [];
-
-      for (column in models[i].columns) {
-        if (models[i].columns[has](column)) {
-          if (column !== "id" && column !== "created_at") {
-            fields.push(column + " " + models[i].columns[column].type);
-          }
-        }
-      }
-
-      if ("foreign" in models[i]) {
-        foreign_key = models[i].foreign;
-        for (foreign in foreign_key) {
-          if (foreign_key[has](foreign)) {
-            ref = [];
-
-            if ("delete" in models[i].columns[foreign_key[foreign][0]]) {
-              ref.push("ON DELETE " + models[i].columns[foreign_key[foreign][0]]["delete"]);
-            }
-
-            if ("update" in models[i].columns[foreign_key[foreign][0]]) {
-              ref.push("ON DELETE " + models[i].columns[foreign_key[foreign][0]]["delete"]);
-            }
-
-            fk.push("FOREIGN KEY (" + foreign_key[foreign][0] + ") REFERENCES " + foreign + "(" + foreign_key[foreign][1] + ") " + ref.join(""));
-          }
-        }
-
-        if ("ref" in models[i]) {
-          for (refaction in models[i].ref) {
-            if (models[i].ref[has](refaction)) {
-              ref.push("ON " + refaction + " " + models[i].ref[refaction]);
-            }
-          }
-        }
-
-      }
-
-      fields = fields.concat(["id INTEGER PRIMARY KEY AUTOINCREMENT", "created_at INTEGER"], fk);
-
-      queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{fields})", {
-        table: models[i].tableName,
-        fields: fields
-      }));
-    }
-
-    self.SQL(queries, null);
-  }(this, models));
-*/
+  // create the tables if they don't exist
+  this.SQL(queries, null);
 };
 
 /**
