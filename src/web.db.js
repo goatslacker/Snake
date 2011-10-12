@@ -1,5 +1,3 @@
-Snake.driver = "WebSQL";
-
 Snake.prototype.connect = function (onComplete) {
   var db = this.SYSTEM.config;
 

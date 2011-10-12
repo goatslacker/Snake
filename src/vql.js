@@ -147,11 +147,11 @@ Snake.collection = function (schema) {
     * @constant
     */
   SELECTORS = {
-    EQUAL: "=", 
+    EQUAL: "=",
     NOT_EQUAL: "<>",
-    GREATER_THAN: ">", 
-    LESS_THAN: "<", 
-    GREATER_EQUAL: ">=", 
+    GREATER_THAN: ">",
+    LESS_THAN: "<",
+    GREATER_EQUAL: ">=",
     LESS_EQUAL: "<=",
     ISNULL: "IS NULL",
     ISNOTNULL: "IS NOT NULL",
@@ -175,7 +175,7 @@ Snake.collection = function (schema) {
       * @example
       * SELECT nebulas, black_holes, stars FROM galaxies;
       * vql.galaxies.select("nebulas", "black_holes", "stars").doSelect(callback);
-      * @returns {Object} this 
+      * @returns {Object} this
       */
     select: function () {
       var self = this;
@@ -204,7 +204,7 @@ Snake.collection = function (schema) {
       * @example
       * SELECT DISTINCT nebulas, black_holes, stars FROM galaxies;
       * vql.galaxies.distinct("nebulas", "black_holes", "stars").doSelect(callback);
-      * @returns {Object} this 
+      * @returns {Object} this
       */
     distinct: function () {
       this.sql.distinct = true;
@@ -220,7 +220,7 @@ Snake.collection = function (schema) {
       * SELECT * FROM fruits WHERE name = 'mango';
       * vql.fruits.find({ name: "mango" }).doCount(callback);
       * vql.fruits.find("name", "mango").doCount(callback);
-      * @returns {Object} this 
+      * @returns {Object} this
       */
     find: function () {
       var args = Array.prototype.slice.call(arguments, 0),
@@ -272,7 +272,7 @@ Snake.collection = function (schema) {
               break;
 
             // if the value is a Regular Expression then we perform a LIKE query
-            case "[object RegExp]": 
+            case "[object RegExp]":
               selector = SELECTORS.LIKE;
               tmp = value.toString();
               value = tmp;
@@ -318,7 +318,7 @@ Snake.collection = function (schema) {
       * @example
       * SELECT * FROM tasks ORDER BY priority DESC;
       * vql.tasks.orderBy({ priority: 'desc' }).doSelect(callback);
-      * @returns {Object} this 
+      * @returns {Object} this
       */
     orderBy: function (obj) {
       var self = this;
@@ -341,7 +341,7 @@ Snake.collection = function (schema) {
       * @example
       * SELECT * FROM population GROUP BY ethnicity;
       * vql.population.groupBy('ethnicity');
-      * @returns {Object} this 
+      * @returns {Object} this
       */
     groupBy: function () {
       var self = this,
@@ -364,7 +364,7 @@ Snake.collection = function (schema) {
       * @param {string} table
       * @param {Array} on
       * @param {string} join_method
-      * @returns {Object} this 
+      * @returns {Object} this
       */
     join: function (table, on, join_method) {
       var interpolate = Snake.interpolate;
@@ -436,7 +436,7 @@ Snake.collection = function (schema) {
     },
 
     /**
-      * Retrieves one record from the database from the specified criteria 
+      * Retrieves one record from the database from the specified criteria
       *
       * @param {Function} onComplete The function to callback once the operation completes successfully
       */
