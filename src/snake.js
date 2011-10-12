@@ -25,47 +25,51 @@ var Snake = function (config, schema) {
   this.SYSTEM = {};
   this.SYSTEM.config = config || {};
 
-  var table = null;
-  var column = null;
-  var def_column = null;
-  var fk = null;
+  // what is this for?
   var models = [];
-  var model = null;
 
   var has = "hasOwnProperty";
 
-  for (table in schema) {
-    if (schema[has](table)) {
-      model = schema[table];
+  Object.keys(schema).forEach(function (table) {
+    var model = schema[table];
 
-      model.jsName = table;
-      model.columns.id = { type: "INTEGER" };
-      model.columns.created_at = { type: "INTEGER" };
+    model.jsName = table;
 
-      model.map = [];
-      for (column in schema[table].columns) {
-        if (schema[table].columns[has](column)) {
-          def_column = schema[table].columns[column];
+    // create default properties
+    model.columns.id = { type: "INTEGER" };
+    model.columns.created_at = { type: "INTEGER" };
 
-          if ("foreign" in def_column) {
-            if (!model.foreign) {
-              model.foreign = {};
-            }
 
-            fk = def_column.foreign.split(".");
-            model.foreign[fk[0]] = [column, fk[1]];
-          }
+    // what is this for?
+    model.map = [];
 
-          model.map.push(column);
-        }
+
+    // loop through each column
+    Object.keys(model.columns).forEach(function (column) {
+      // this houses the field's type and any extra properties
+      var field = model.columns[column];
+
+      // if it's a foreign key, then we capture the foreign table
+      // and the key it points to
+      if ("foreign" in field) {
+        model.foreign = {};
+
+        (function applyForeignKey() {
+          var fk = field.foreign.split(".");
+          model.foreign[fk[0]] = [column, fk[1]];
+        }());
       }
 
-      models.push(model);
+      model.map.push(column);
+    });
 
-      this[schema[table].tableName] = new Snake.collection(model);
-    }
-  }
+    models.push(model);
 
+    // create a VQL Collection Object
+    this[model.tableName] = new Snake.collection(model);
+  }.bind(this));
+
+/*
   (function (self, models) {
     var queries = [],
         i = 0,
@@ -128,6 +132,7 @@ var Snake = function (config, schema) {
 
     self.SQL(queries, null);
   }(this, models));
+*/
 };
 
 /**
