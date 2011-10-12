@@ -85,8 +85,8 @@ var Snake = function (config, schema, preQueries) {
 
     // push into queries
     queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{body})", {
-        table: model.tableName,
-        body: sql.fields.concat(sql.foreign).join(" ")
+      table: model.tableName,
+      body: sql.fields.concat(sql.foreign).join(" ")
     }));
 
     models.push(model);

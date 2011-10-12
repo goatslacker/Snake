@@ -12,7 +12,7 @@
 
 - Clean and simple schema building in JSON.
 
-- Small library ~7kb minimified.
+- Small library ~6kb minimified.
 
 ## Installing
 
@@ -41,20 +41,20 @@ Sample schema for a deck of playing cards:
         "version": "0.1"
       },
       "schema": {
-        "Player": { 
-          "tableName": "players", 
+        "Player": {
+          "tableName": "players",
           "columns": {
             "name": { "type": "text" },
             "chips": { "type": "integer" }
           }
         },
-        "Deck": { 
+        "Deck": {
           "tableName": "decks",
           "columns": {
             "name": { "type": "text" }
           }
         },
-        "Card": { 
+        "Card": {
           "tableName": "cards",
           "columns": {
             "deck_id": { "type": "integer", "foreign": "decks.id", "delete": "cascade" },
@@ -62,8 +62,8 @@ Sample schema for a deck of playing cards:
             "suit": { "type": "text" }
           }
         },
-        "PlayerCard": { 
-          "tableName": "player_cards", 
+        "PlayerCard": {
+          "tableName": "player_cards",
           "columns": {
             "player_id": { "type": "integer", "foreign": "players.id", "delete": "cascade" },
             "card_id": { "type": "integer", "foreign": "cards.id", "delete": "cascade" }

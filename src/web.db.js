@@ -42,59 +42,51 @@ Snake.prototype.SQL = function (query, params, onComplete) {
 
   // defaults
   params = params || null;
-
   onComplete = onComplete || function (transaction, results) {};
 
-  if (!system.database) {
-    connect(function () {
-      this.SQL(query, params, onComplete);
-    }.bind(this));
-  } else {
+  // HTML5 database perform query
+  system.database.transaction(function (transaction) {
 
-    // HTML5 database perform query
-    system.database.transaction(function (transaction) {
+    // convert to single array
+    if (!Array.isArray(query)) {
+      query = [query];
+    }
 
-      // convert to single array
-      if (!Array.isArray(query)) {
-        query = [query];
-      }
+    /**
+      @private
+      */
+    var callback = function (transaction, results) {
+      var result = null,
+          rows = null,
+          i = 0,
+          max = 0;
 
-      /**
-        @private
-        */
-      var callback = function (transaction, results) {
-        var result = null,
-            rows = null,
-            i = 0,
-            max = 0;
+      try {
+        result = results.insertId;
+      } catch (e) {
+        result = [];
+        rows = results.rows;
 
-        try {
-          result = results.insertId;
-        } catch (e) {
-          result = [];
-          rows = results.rows;
-
-          if (rows.length > 0) {
-            for (i, max = rows.length; i < max; i += 1) {
-              result.push(rows.item(i));
-            }
+        if (rows.length > 0) {
+          for (i, max = rows.length; i < max; i += 1) {
+            result.push(rows.item(i));
           }
         }
+      }
 
-        onComplete(null, result);
-      };
+      onComplete(null, result);
+    };
 
-      query.forEach(function (q) {
-        // append semicolon to query
-        var preparedQuery = q + ";";
+    query.forEach(function (q) {
+      // append semicolon to query
+      var preparedQuery = q + ";";
 
-        // perform query
-        transaction.executeSql(preparedQuery, params, callback, function (transaction, results) {
-          onComplete(transaction);
-        });
+      // perform query
+      transaction.executeSql(preparedQuery, params, callback, function (transaction, results) {
+        onComplete(transaction);
       });
-
     });
-  }
+
+  });
 
 };
