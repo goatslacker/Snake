@@ -5,10 +5,6 @@ describe("Snake", function () {
     expect(Snake).toBeDefined();
   });
 
-  it("Driver is WebSQL", function () {
-    expect(Snake.driver).toEqual("WebSQL");
-  });
-
 });
 
 // db.js
