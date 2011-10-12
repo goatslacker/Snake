@@ -22,14 +22,15 @@
 */
 
 var Snake = function (config, schema) {
-  this.SYSTEM = {};
-  this.SYSTEM.config = config || {};
+  var system = this.SYSTEM = {};
+  system.config = config || {};
 
   // keep track of the models
   var models = [];
   // keep track of the queries
   var queries = [];
 
+  // pointer to hasOwnProperty, because that word is too long.
   var has = "hasOwnProperty";
 
   // loop through the schema
