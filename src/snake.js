@@ -25,12 +25,12 @@ var Snake = function (config, schema) {
   this.SYSTEM = {};
   this.SYSTEM.config = config || {};
 
-  var table = null,
-      column = null,
-      def_column = null,
-      fk = null,
-      models = [],
-      model = null;
+  var table = null;
+  var column = null;
+  var def_column = null;
+  var fk = null;
+  var models = [];
+  var model = null;
 
   for (table in schema) {
     if (schema.hasOwnProperty(table)) {
@@ -64,7 +64,7 @@ var Snake = function (config, schema) {
     }
   }
 
-  (function (models) {
+  (function (self, models) {
     var queries = [],
         i = 0,
         max = 0,
@@ -124,8 +124,8 @@ var Snake = function (config, schema) {
       }));
     }
 
-    this.SQL(queries, null);
-  }.bind(this)(models));
+    self.SQL(queries, null);
+  }(this, models));
 };
 
 /**
