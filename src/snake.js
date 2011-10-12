@@ -1,25 +1,30 @@
 /**
-  * Snake - A JavaScript DBAL
-  *
-  * @author <a href="mailto:josh@goatslacker.com">Josh Perez</a>
-  */
+  Copyright (C) 2011 by Josh Perez
+  https://github.com/goatslacker/Snake
 
-/**
-  * The Snake DBAL
-  *
-  * @namespace Snake
-  * @version 2.0.4
-  */
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+*/
+
 var Snake = function (config, schema) {
   this.SYSTEM = {};
   this.SYSTEM.config = config || {};
-  /**
-    * Dynamically builds the Models
-    *
-    * @param {Object} schema The schema in JSON format
-    * @param {Function} onComplete The callback function to execute once the schema finishes building
-    * @param {boolean} create_tables If set the true the tables will be automatically created for you if they don't exist
-    */
+
   var table = null,
       column = null,
       def_column = null,
@@ -59,7 +64,7 @@ var Snake = function (config, schema) {
     }
   }
 
-  function sqlCreateTables(models) {
+  (function (models) {
     var queries = [],
         i = 0,
         max = 0,
@@ -119,18 +124,8 @@ var Snake = function (config, schema) {
       }));
     }
 
-    this.SQL(queries, null, onComplete);
-  }
-
-/*
-  if (create_tables === true) {
-    sqlCreateTables(models);
-  } else {
-    if (onComplete) {
-      onComplete();
-    }
-  }
-*/
+    this.SQL(queries, null);
+  }.bind(this)(models));
 };
 
 /**

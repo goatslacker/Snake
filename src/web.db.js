@@ -19,14 +19,6 @@ Snake.prototype.connect = function (onComplete) {
   }
 };
 
-/**
-  * Performs a query on the Web Database
-  *
-  * @function
-  * @param {string} query A prepared statement
-  * @param {Array} params The parameters to insert into the prepared statements
-  * @param {Function} onComplete The function to callback if the transaction is successfully executed
-  */
 Snake.prototype.SQL = function (query, params, onComplete) {
   if (!this.SYSTEM.isReady) {
 // FIXME
