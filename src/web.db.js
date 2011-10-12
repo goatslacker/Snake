@@ -58,7 +58,7 @@ Snake.query = (function () {
         Snake.query(query, params, onComplete);
       });
     } else {
-    
+
       // HTML5 database perform query
       database.transaction(function (transaction) {
 
@@ -116,114 +116,81 @@ Snake.query = (function () {
   * @param {Function} onComplete The callback function to execute once the schema finishes building
   * @param {boolean} create_tables If set the true the tables will be automatically created for you if they don't exist
   */
-Snake.loadFromJSON = function (schema, onComplete, create_tables) {
-  var table = null,
-      column = null,
-      def_column = null,
-      fk = null,
-      models = [],
-      model = null;
+Snake.loadFromJSON = function (schema, onComplete) {
+  var preQueries = preQueries || [];
 
-  for (table in schema) {
-    if (schema.hasOwnProperty(table)) {
-      model = schema[table];
+  // keep track of the models
+  var models = [];
+  // keep track of the queries
+  var queries = [];
 
-      model.jsName = table;
-      model.columns.id = { type: "INTEGER" };
-      model.columns.created_at = { type: "INTEGER" };
+  // pointer to hasOwnProperty, because that word is too long.
+  var has = "hasOwnProperty";
 
-      model.map = [];
-      for (column in schema[table].columns) {
-        if (schema[table].columns.hasOwnProperty(column)) {
-          def_column = schema[table].columns[column];
+  // loop through the schema
+  Object.keys(schema).forEach(function (table) {
+    var model = schema[table];
 
-          if ("foreign" in def_column) {
-            if (!model.foreign) {
-              model.foreign = {};
-            }
+    // houses the SQL stmt for each object
+    var sql = {
+      fields: [],
+      foreign: []
+    };
 
-            fk = def_column.foreign.split(".");
-            model.foreign[fk[0]] = [column, fk[1]];
-          }
+    model.jsName = table;
 
-          model.map.push(column);
-        }
+    // the map of the model
+    model.map = [];
+
+    // create default properties
+    model.columns.id = { type: "INTEGER" };
+    model.columns.created_at = { type: "INTEGER" };
+
+    // loop through each column
+    Object.keys(model.columns).forEach(function (column) {
+      // this houses the field's type and any extra properties
+      var field = model.columns[column];
+
+      // add to SQL
+      if (column !== "id" && column !== "created_at") {
+        sql.fields.push(column + " " + field.type);
       }
 
-      models.push(model);
+      // if it's a foreign key, then we capture the foreign table
+      // and the key it points to
+      if ("foreign" in field) {
+        model.foreign = {};
 
-      Snake.vql[schema[table].tableName] = new Snake.collection(model);
-    }
-  }
+        (function applyForeignKey() {
+          var fk = field.foreign.split(".");
+          model.foreign[fk[0]] = [column, fk[1]];
 
-  function sqlCreateTables(models) {
-    var queries = [],
-        i = 0,
-        max = 0,
-        column = null,
-        foreign = null,
-        foreign_key = null,
-        refaction = null,
-        ref = [],
-        fields = [],
-        fk = [];
-
-    for (i, max = models.length; i < max; i = i + 1) {
-      fields = [];
-      fk = [];
-
-      for (column in models[i].columns) {
-        if (models[i].columns.hasOwnProperty(column)) {
-          if (column !== "id" && column !== "created_at") {
-            fields.push(column + " " + models[i].columns[column].type);
-          }
-        }
+          // create SQL for the foreign key
+          sql.foreign.push("FOREIGN KEY (" + column + ") REFERENCES " + fk[0] + "(" + fk[1] + ")");
+        }());
       }
 
-      if ("foreign" in models[i]) {
-        foreign_key = models[i].foreign;
-        for (foreign in foreign_key) {
-          if (foreign_key.hasOwnProperty(foreign)) {
-            ref = [];
+      // store map information
+      model.map.push(column);
+    });
 
-            if ("delete" in models[i].columns[foreign_key[foreign][0]]) {
-              ref.push("ON DELETE " + models[i].columns[foreign_key[foreign][0]]["delete"]);
-            }
+    // push into queries
+    queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{body})", {
+      table: model.tableName,
+      body: sql.fields.concat(sql.foreign).join(" ")
+    }));
 
-            if ("update" in models[i].columns[foreign_key[foreign][0]]) {
-              ref.push("ON DELETE " + models[i].columns[foreign_key[foreign][0]]["delete"]);
-            }
+    models.push(model);
 
-            fk.push("FOREIGN KEY (" + foreign_key[foreign][0] + ") REFERENCES " + foreign + "(" + foreign_key[foreign][1] + ") " + ref.join(""));
-          }
-        }
+    // create a VQL Collection Object
+    Snake.vql[model.tableName] = new Snake.collection(model);
+  });
 
-        if ("ref" in models[i]) {
-          for (refaction in models[i].ref) {
-            if (models[i].ref.hasOwnProperty(refaction)) {
-              ref.push("ON " + refaction + " " + models[i].ref[refaction]);
-            }
-          }
-        }
+  // create the tables if they don't exist
+  Snake.query(preQueries.concat(queries), null);
 
-      }
-
-      fields = fields.concat(["id INTEGER PRIMARY KEY AUTOINCREMENT", "created_at INTEGER"], fk);
-      
-      queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{fields})", {
-        table: models[i].tableName,
-        fields: fields
-      }));
-    }
-
-    Snake.query(queries, null, onComplete);
-  }
-
-  if (create_tables === true) {
-    sqlCreateTables(models);
-  } else {
-    if (onComplete) {
-      onComplete();
-    }
+  // return callback
+  if (onComplete) {
+    onComplete();
   }
 };
