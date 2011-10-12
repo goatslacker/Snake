@@ -32,8 +32,10 @@ var Snake = function (config, schema) {
   var models = [];
   var model = null;
 
+  var has = "hasOwnProperty";
+
   for (table in schema) {
-    if (schema.hasOwnProperty(table)) {
+    if (schema[has](table)) {
       model = schema[table];
 
       model.jsName = table;
@@ -42,7 +44,7 @@ var Snake = function (config, schema) {
 
       model.map = [];
       for (column in schema[table].columns) {
-        if (schema[table].columns.hasOwnProperty(column)) {
+        if (schema[table].columns[has](column)) {
           def_column = schema[table].columns[column];
 
           if ("foreign" in def_column) {
@@ -81,7 +83,7 @@ var Snake = function (config, schema) {
       fk = [];
 
       for (column in models[i].columns) {
-        if (models[i].columns.hasOwnProperty(column)) {
+        if (models[i].columns[has](column)) {
           if (column !== "id" && column !== "created_at") {
             fields.push(column + " " + models[i].columns[column].type);
           }
@@ -91,7 +93,7 @@ var Snake = function (config, schema) {
       if ("foreign" in models[i]) {
         foreign_key = models[i].foreign;
         for (foreign in foreign_key) {
-          if (foreign_key.hasOwnProperty(foreign)) {
+          if (foreign_key[has](foreign)) {
             ref = [];
 
             if ("delete" in models[i].columns[foreign_key[foreign][0]]) {
@@ -108,7 +110,7 @@ var Snake = function (config, schema) {
 
         if ("ref" in models[i]) {
           for (refaction in models[i].ref) {
-            if (models[i].ref.hasOwnProperty(refaction)) {
+            if (models[i].ref[has](refaction)) {
               ref.push("ON " + refaction + " " + models[i].ref[refaction]);
             }
           }
