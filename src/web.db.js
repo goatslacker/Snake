@@ -1,28 +1,43 @@
 Snake.prototype.connect = function (onComplete) {
-  var db = this.SYSTEM.config;
+  var system = this.SYSTEM;
+  var db = system.config;
 
   // defaults
   onComplete = onComplete || function () {};
 
   // HTML5 openDatabase
-  this.SYSTEM.database = openDatabase(db.name, db.version, db.displayName, db.size);
+  system.database = openDatabase(db.name, db.version, db.displayName, db.size);
 
   // callbacks
-  if (!this.SYSTEM.database) {
+  if (!system.database) {
     onComplete("Could not open database");
   } else {
+    // fire up the callback
     onComplete(null, true);
-    this.SYSTEM.isReady = true;
+
+    // we're now connected
+    system.connected = true;
+
+    // freeze the system object
     Object.freeze(this.SYSTEM);
+
+    // if there are any queries in the pool
+    // query them now
+    this.ARRAY.forEach(function (args) {
+      this.SQL.apply(this, args);
+    }.bind(this));
+
+    delete this.ARRAY;
   }
 };
 
 Snake.prototype.SQL = function (query, params, onComplete) {
-  if (!this.SYSTEM.isReady) {
-// FIXME
-//    this.SQL.cache = this.SQL.cache || [];
-//    this.SQL.cache.push(query);
-    return false;
+  var system = this.SYSTEM;
+  var array = this.ARRAY;
+
+  if (!system.connected) {
+    array.push([query, params, onComplete]);
+    return this.connect();
   }
 
   // defaults
@@ -30,14 +45,14 @@ Snake.prototype.SQL = function (query, params, onComplete) {
 
   onComplete = onComplete || function (transaction, results) {};
 
-  if (!this.SYSTEM.database) {
+  if (!system.database) {
     connect(function () {
       this.SQL(query, params, onComplete);
     }.bind(this));
   } else {
 
     // HTML5 database perform query
-    this.SYSTEM.database.transaction(function (transaction) {
+    system.database.transaction(function (transaction) {
 
       // convert to single array
       if (!Array.isArray(query)) {

@@ -30,13 +30,12 @@
         "card_id": { "type": "integer", "foreign": "cards.id", "delete": "cascade" }
       }
     }
-  });
+  }, ["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
 
   console.log(db);
   //db.cards.find({ suit: "hearts" }).doSelect(function (err, data) {
   //});
 
   // drop all tables first
-  //Snake.query(["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
 
 </script>

@@ -21,9 +21,12 @@
   THE SOFTWARE.
 */
 
-var Snake = function (config, schema) {
+var Snake = function (config, schema, preQueries) {
   var system = this.SYSTEM = {};
+  this.ARRAY = [];
   system.config = config || {};
+
+  preQueries = preQueries || [];
 
   // keep track of the models
   var models = [];
@@ -93,7 +96,7 @@ var Snake = function (config, schema) {
   }.bind(this));
 
   // create the tables if they don't exist
-  this.SQL(queries, null);
+  this.SQL(preQueries.concat(queries), null);
 };
 
 /**
