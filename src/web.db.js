@@ -152,9 +152,7 @@ Snake.loadFromJSON = function (schema, onComplete) {
       var field = model.columns[column];
 
       // add to SQL
-      if (column !== "id" && column !== "created_at") {
-        sql.fields.push(column + " " + field.type);
-      }
+      sql.fields.push(column + " " + field.type);
 
       // if it's a foreign key, then we capture the foreign table
       // and the key it points to
@@ -177,7 +175,7 @@ Snake.loadFromJSON = function (schema, onComplete) {
     // push into queries
     queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{body})", {
       table: model.tableName,
-      body: sql.fields.concat(sql.foreign).join(" ")
+      body: sql.fields.concat(sql.foreign).join(", ")
     }));
 
     models.push(model);
