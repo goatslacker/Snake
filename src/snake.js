@@ -21,7 +21,40 @@
   THE SOFTWARE.
 */
 
+/**
+  ### Snake
+
+  Constructs a new Snake object
+
+  **Config** is an Object with the following parameters:
+
+  * __name__ is the name of the database
+  * __size__ is the size in bytes the data will take up
+  * __description__ (optional)
+  * __version__ any number, describe the version of the database. eg: 1.0
+
+  **Schema** is an Object representing the model of your data
+
+  A typical Schema looks like this:
+
+      {
+        "Siblings": {
+          "tableName": "siblings",
+          "columns": {
+            "name": { "type": "TEXT" },
+            "age": { "type": "INTEGER" }
+          }
+        }
+      }
+
+  **preQueries** is an Array of SQL queries that Snake should execute prior to creating the tables
+
+
+  Snake will construct the schema as a Collection and create the tables. Once it's finished it will
+  return a new Object with direct access to the tables in the schema as well as an **SQL** method in it's prototype.
+*/
 var Snake = function (config, schema, preQueries) {
+  // the SYSTEM Object which will house our config and schema
   var system = this.SYSTEM = {};
   this.ARRAY = [];
   system.config = config || {};
@@ -100,12 +133,10 @@ var Snake = function (config, schema, preQueries) {
 };
 
 /**
-* Inserts a foreign object into a template.
-  *
-  * @param {string} str The string to interpolate
-  * @param {Object} obj The foreign Object to interpolate into the string
-  * @returns {string} The string interpolated with the object's values
-  */
+  ### Interpolation
+
+  Need I say more? Used internally by Snake.
+*/
 Snake.interpolate = function (str, obj) {
   Object.keys(obj).forEach(function (prop) {
     if (obj.hasOwnProperty(prop)) {
