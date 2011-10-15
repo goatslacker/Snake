@@ -266,7 +266,6 @@ describe("VQL", function () {
 
   });
 
-/*
   // WebSQL
   describe("WebSQL", function () {
 
@@ -276,7 +275,26 @@ describe("VQL", function () {
       });
     });
 
+    it("should be an ace of clubs", function () {
+      db.cards.find({ face: "A", suit: "clubs" }).doSelectOne(function (err, card) {
+        expect(card.face).toEqual("A");
+        expect(card.suit).toEqual("clubs");
+      });
+    });
+
+    it("should have 4 cards", function () {
+      db.cards.find({ face: 7 }).doSelect(function (err, cards) {
+        expect(cards.length).toEqual(4);
+      });
+    });
+
+    it("should have 13 cards", function () {
+      db.cards.find({ suit: "hearts" }).doSelect(function (err, cards) {
+        expect(cards.length).toEqual(13);
+      });
+    });
+
+    waits(2000);
   });
-*/
 
 });
