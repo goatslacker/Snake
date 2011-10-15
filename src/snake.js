@@ -21,59 +21,62 @@
   THE SOFTWARE.
 */
 
-/**
-  ### Snake
-
-  Constructs a new Snake object
-
-  **Config** is an Object with the following parameters:
-
-  * __name__ is the name of the database
-  * __size__ is the size in bytes the data will take up
-  * __description__ (optional)
-  * __version__ any number, describe the version of the database. eg: 1.0
-
-  **Schema** is an Object representing the model of your data
-
-  A typical Schema looks like this:
-
-      {
-        "Siblings": {
-          "tableName": "siblings",
-          "columns": {
-            "name": { "type": "TEXT" },
-            "age": { "type": "INTEGER" }
-          }
-        }
-      }
-
-  **preQueries** is an Array of SQL queries that Snake should execute prior to creating the tables
-
-
-  Snake will construct the schema as a Collection and create the tables. Once it's finished it will
-  return a new Object with direct access to the tables in the schema as well as an **SQL** method in it's prototype.
-*/
+// ##Snake
+//
+// Constructs a new Snake object
+//
+// **Config** is an Object with the following parameters:
+//
+// * __name__ is the name of the database
+// * __size__ is the size in bytes the data will take up
+// * __description__ (optional)
+// * __version__ any number, describe the version of the database. eg: 1.0
+//
+// **Schema** is an Object representing the model of your data
+//
+// A typical Schema looks like this:
+//
+//     {
+//       "Siblings": {
+//         "tableName": "siblings",
+//           "columns": {
+//           "name": { "type": "TEXT" },
+//           "age": { "type": "INTEGER" }
+//         }
+//       }
+//     }
+//
+// **preQueries** is an Array of SQL queries that Snake should execute prior to creating the tables
+//
+//
+// Snake will construct the schema as a Collection and create the tables. Once it's finished it will
+// return a new Object with direct access to the tables in the schema as well as an **SQL** method in it's prototype.
 var Snake = function (config, schema, preQueries) {
-  // the SYSTEM Object which will house our config and schema
+// intialize the SYSTEM Object which will house our config and schema
+// and ARRAY which will contain all of the queries while the system isn't ready
   var system = this.SYSTEM = {};
   this.ARRAY = [];
   system.config = config || {};
 
   preQueries = preQueries || [];
 
-  // keep track of the models
+// keep track of the models
+// and the queries
+// and we create a pointer to hasOwnProperty, because that word is too long.
   var models = [];
-  // keep track of the queries
   var queries = [];
 
-  // pointer to hasOwnProperty, because that word is too long.
   var has = "hasOwnProperty";
 
-  // loop through the schema
+// Now we loop through the schema
+// and create a new SQL store for each table
+//
+// `model.map` is the map of the model
+//
+// `id` and `created_at` are default properties that each object gets
   Object.keys(schema).forEach(function (table) {
     var model = schema[table];
 
-    // houses the SQL stmt for each object
     var sql = {
       fields: [],
       foreign: []
@@ -81,25 +84,24 @@ var Snake = function (config, schema, preQueries) {
 
     model.jsName = table;
 
-    // the map of the model
     model.map = [];
 
-    // create default properties
     model.columns.id = { type: "INTEGER" };
     model.columns.created_at = { type: "INTEGER" };
 
-    // loop through each column
+// Here we loop through each column in the table
+// `field` contains the field's type and any extra properties
+//
+// then we add to SQL
+// and store the map information
     Object.keys(model.columns).forEach(function (column) {
-      // this houses the field's type and any extra properties
       var field = model.columns[column];
 
-      // add to SQL
-      if (column !== "id" && column !== "created_at") {
-        sql.fields.push(column + " " + field.type);
-      }
+      sql.fields.push(column + " " + field.type);
 
-      // if it's a foreign key, then we capture the foreign table
-      // and the key it points to
+// If it's a foreign key, then we capture the foreign table
+// and the key it points to
+// and we create SQL for the foreign key
       if ("foreign" in field) {
         model.foreign = {};
 
@@ -107,36 +109,31 @@ var Snake = function (config, schema, preQueries) {
           var fk = field.foreign.split(".");
           model.foreign[fk[0]] = [column, fk[1]];
 
-          // create SQL for the foreign key
           sql.foreign.push("FOREIGN KEY (" + column + ") REFERENCES " + fk[0] + "(" + fk[1] + ")");
         }());
       }
 
-      // store map information
       model.map.push(column);
     });
 
-    // push into queries
     queries.push(Snake.interpolate("CREATE TABLE IF NOT EXISTS '#{table}' (#{body})", {
       table: model.tableName,
-      body: sql.fields.concat(sql.foreign).join(" ")
+      body: sql.fields.concat(sql.foreign).join(", ")
     }));
 
     models.push(model);
 
-    // create a VQL Collection Object
-    this[model.tableName] = new Snake.collection(model);
+// create a VQL Collection Object
+    this[model.tableName] = new Snake.collection(model, this);
   }.bind(this));
 
-  // create the tables if they don't exist
+// create the tables if they don't exist
   this.SQL(preQueries.concat(queries), null);
 };
 
-/**
-  ### Interpolation
-
-  Need I say more? Used internally by Snake.
-*/
+// ### Interpolation
+//
+// Need I say more? Used internally by Snake.
 Snake.interpolate = function (str, obj) {
   Object.keys(obj).forEach(function (prop) {
     if (obj.hasOwnProperty(prop)) {
@@ -147,3 +144,103 @@ Snake.interpolate = function (str, obj) {
   return str;
 };
 
+// ### Connect
+//
+// #### Connects to the database
+//
+// * __onComplete__ is the callback function
+Snake.prototype.connect = function (onComplete) {
+  var system = this.SYSTEM;
+  var db = system.config;
+
+  onComplete = onComplete || function () {};
+
+// HTML5 openDatabase
+  system.database = openDatabase(db.name, db.version, db.displayName, db.size);
+
+// If the database isn't connected then we return an error
+// otherwise we return true, set `connected` to true and freeze the `SYSTEM`
+// object so we make it immutable.
+// If there are any queries in the pool
+// we query them now
+  if (!system.database) {
+    onComplete("Could not open database");
+  } else {
+    onComplete(null, true);
+    system.connected = true;
+    Object.freeze(this.SYSTEM);
+
+    this.ARRAY.forEach(function (args) {
+      this.SQL.apply(this, args);
+    }.bind(this));
+
+    delete this.ARRAY;
+  }
+};
+
+// ### SQL
+//
+// #### Performs an SQL query on the database
+//
+// * __query__ is the String query to perform
+// * __params__ is an Array containing the parameters that go along with the query
+// * __onComplete__ is the callback function
+Snake.prototype.SQL = function (query, params, onComplete) {
+  var system = this.SYSTEM;
+  var array = this.ARRAY;
+
+// If the system isn't connected yet
+// we queue up the queries and then fire them once the system is ready
+  if (!system.connected) {
+    array.push([query, params, onComplete]);
+    return this.connect();
+  }
+
+  params = params || null;
+  onComplete = onComplete || function (transaction, results) {};
+
+// HTML5 database perform query
+  system.database.transaction(function (transaction) {
+
+    if (!Array.isArray(query)) {
+      query = [query];
+    }
+
+    /** @private */
+    var callback = function (transaction, results) {
+      var result = null,
+          rows = null,
+          i = 0,
+          max = 0;
+
+      try {
+        result = results.insertId;
+      } catch (e) {
+        result = [];
+        rows = results.rows;
+
+        if (rows.length > 0) {
+          for (i, max = rows.length; i < max; i += 1) {
+            result.push(rows.item(i));
+          }
+        }
+      }
+
+      onComplete(null, result);
+    };
+
+// For each query
+// we append a semicolon to query
+// and then perform query
+// and then we pass the transaction to the callback
+    query.forEach(function (q) {
+      var preparedQuery = q + ";";
+
+      transaction.executeSql(preparedQuery, params, callback, function (transaction, results) {
+        onComplete(transaction);
+      });
+    });
+
+  });
+
+};

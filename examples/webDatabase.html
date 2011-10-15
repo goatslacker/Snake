@@ -33,9 +33,37 @@
   }, ["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
 
   console.log(db);
-  //db.cards.find({ suit: "hearts" }).doSelect(function (err, data) {
-  //});
+  (function () {
+    // load fixtures
+    Object.keys(Snake.Fixtures).forEach(function (fixture) {
+      Snake.Fixtures[fixture].forEach(function (row) {
+        db[fixture].save(row, function (err, id) {
+          console.log(id + " in " + fixture);
+        });
+      });
+    });
 
-  // drop all tables first
+    runTests();
+  }());
+
+  function runTests() {
+    // select all the cards!
+    db.cards.doSelect(function (err, cards) {
+      console.log(err);
+      console.log(cards);
+    });
+
+    // select a single card
+    db.cards.doSelectOne(function (err, card) {
+      console.log(err);
+      console.log(card);
+    });
+
+    // select a single deck
+    db.decks.doSelectOne(function (err, deck) {
+      console.log(err);
+      console.log(deck);
+    });
+  }
 
 </script>
