@@ -1,0 +1,6 @@
+[submodule "3rd-party/UglifyJS"]
+	path = 3rd-party/UglifyJS
+	url = git://github.com/mishoo/UglifyJS.git
+[submodule "3rd-party/docco"]
+	path = 3rd-party/docco
+	url = git://github.com/jashkenas/docco.git
