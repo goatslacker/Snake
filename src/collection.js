@@ -255,7 +255,7 @@ Snake.collection = function (schema, snake) {
 
         if (typeof(args[0]) === "number") {
 
-          addWhere("id", args.shift());
+          addWhere("_id", args.shift());
 
         } else {
 
@@ -553,58 +553,33 @@ Snake.collection = function (schema, snake) {
 // #### Saves a record to the database
 //
 // * __onComplete__ is the callback to execute if the transaction completes successfully
-    /* TODO obj can be function as well! */
     save: function (obj, onComplete) {
-      var isNew = (!obj.hasOwnProperty('id')),
-          sql = "",
+      obj = (typeof obj)[0] === "f" ? obj() : obj;
+
+      var sql = "",
           q = [],
           params = [],
           interpolate = Snake.interpolate;
 
-// If the Element is new, which is determined by if the `id` property exists or not, then
-// we iterate through the schema's map and push all the values into a parameters Array
-// and then we create the `INSERT INTO` query and pass that along with the parameters to this.SQL
-      if (isNew) {
-        schema.map.forEach(function (map) {
-          var val = obj[map] || null;
+// Here we iterate through the schema's map and push all the values into a parameters Array
+// and then we create the `INSERT OR REPLACE INTO` query and pass that along with the parameters to this.SQL
+// if the primary key already exists then it's replaced, otherwise the row is inserted.
+      schema.map.forEach(function (map) {
+        var val = obj[map] || null;
 
-          if (map === 'created_at' && val === null) {
-            val = Date.now();
-          }
+        if (map === '_date' && val === null) {
+          val = Date.now();
+        }
 
-          params.push(val);
-          q.push("?");
-        });
+        params.push(val);
+        q.push("?");
+      });
 
-        sql = interpolate("INSERT INTO '#{table}' (#{columns}) VALUES (#{q})", {
-          table: schema.tableName,
-          columns: schema.map,
-          q: q
-        });
-
-// If the Element is _not_ new then
-// we need to create an `UPDATE` query
-// and pass the query along with the parameters to this.SQL
-      } else {
-        schema.map.forEach(function (map) {
-          var val = obj[map] || null;
-
-          if (val === null) {
-            return;
-          }
-
-          params.push(val);
-          q.push(map + " = ?");
-        });
-
-        /* TODO make sure it exists? */
-        sql = interpolate("UPDATE #{table} SET #{conditions} WHERE id = ?", {
-          table: schema.tableName,
-          conditions: q
-        });
-
-        params.push(obj.id);
-      }
+      sql = interpolate("INSERT OR REPLACE INTO '#{table}' (#{columns}) VALUES (#{q})", {
+        table: schema.tableName,
+        columns: schema.map,
+        q: q
+      });
 
       if (this.sql.persist === true) {
         snake.SQL(sql, params, onComplete);
@@ -628,10 +603,10 @@ Snake.collection = function (schema, snake) {
       switch (typeof obj) {
       case "function":
         val = obj();
-        val = val.id;
+        val = val._id;
         break;
       case "object":
-        val = obj.id;
+        val = obj._id;
         break;
       default:
         val = obj;

@@ -204,7 +204,7 @@ describe("VQL", function () {
 
     it("retrieveByPK", function () {
       db.cards.toSQL().retrieveByPK(101, function (err, query, params) {
-        expect(query).toEqual("SELECT * FROM cards WHERE cards.id = ? LIMIT 1");
+        expect(query).toEqual("SELECT * FROM cards WHERE cards._id = ? LIMIT 1");
         expect(params).toEqual([101]);
       });
     });
@@ -249,18 +249,9 @@ describe("VQL", function () {
 
     it("Saving an object", function () {
       db.cards.toSQL().save({ face: 5, suit: 'hearts' }, function (err, query, params) {
-        expect(query).toEqual("INSERT INTO 'cards' (deck_id,face,suit,id,created_at) VALUES (?,?,?,?,?)");
+        expect(query).toEqual("INSERT OR REPLACE INTO 'cards' (deck_id,face,suit,_id,_date) VALUES (?,?,?,?,?)");
         expect(params[1]).toEqual(5);
         expect(params[2]).toEqual('hearts');
-      });
-    });
-
-    it("Updating a record", function () {
-      db.cards.toSQL().save({ id: 2, face: 2, suit: 'spades' }, function (err, query, params) {
-        expect(query).toEqual("UPDATE cards SET face = ?,suit = ?,id = ? WHERE id = ?");
-        expect(params[0]).toEqual(2);
-        expect(params[1]).toEqual('spades');
-        expect(params[2]).toEqual(2);
       });
     });
 

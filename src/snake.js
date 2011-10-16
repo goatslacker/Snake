@@ -73,7 +73,7 @@ var Snake = function (config, schema, preQueries) {
 //
 // `model.map` is the map of the model
 //
-// `id` and `created_at` are default properties that each object gets
+// `_id` and `_date` are default properties that each object gets
   Object.keys(schema).forEach(function (table) {
     var model = schema[table];
 
@@ -86,8 +86,8 @@ var Snake = function (config, schema, preQueries) {
 
     model.map = [];
 
-    model.columns.id = { type: "INTEGER" };
-    model.columns.created_at = { type: "INTEGER" };
+    model.columns._id = { type: "INTEGER", extra: "PRIMARY KEY AUTOINCREMENT" };
+    model.columns._date = { type: "INTEGER" };
 
 // Here we loop through each column in the table
 // `field` contains the field's type and any extra properties
@@ -97,7 +97,7 @@ var Snake = function (config, schema, preQueries) {
     Object.keys(model.columns).forEach(function (column) {
       var field = model.columns[column];
 
-      sql.fields.push(column + " " + field.type);
+      sql.fields.push(column + " " + field.type + (field.extra ? " " + field.extra : ""));
 
 // If it's a foreign key, then we capture the foreign table
 // and the key it points to
@@ -210,23 +210,28 @@ Snake.prototype.SQL = function (query, params, onComplete) {
     var callback = function (transaction, results) {
       var result = null,
           rows = null,
+          err = null,
           i = 0,
           max = 0;
 
       try {
         result = results.insertId;
       } catch (e) {
-        result = [];
-        rows = results.rows;
+        if (e.name === "INVALID_ACCESS_ERR" && e.code === 15) {
+          result = [];
+          rows = results.rows;
 
-        if (rows.length > 0) {
-          for (i, max = rows.length; i < max; i += 1) {
-            result.push(rows.item(i));
+          if (rows.length > 0) {
+            for (i, max = rows.length; i < max; i += 1) {
+              result.push(rows.item(i));
+            }
           }
+        } else {
+          err = e;
         }
       }
 
-      onComplete(null, result);
+      onComplete(err, result);
     };
 
 // For each query
