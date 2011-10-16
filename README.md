@@ -32,49 +32,56 @@ Run `make install`
 
     $ make install
 
-## Schemas
+## Getting Started
 
-Sample schema for a deck of playing cards:
+Create an instance
+
+    var db = new Snake(database_details, schema, queries_to_execute_first);
+
+Save data
+
+    db.table_name.save({ column_name: "value" });
+
+Retrieve saved data
+
+    db.table_name.find({ column_name: "value" }).doSelect(callback_function);
+
+`database_details` should look something like this:
+
+    { name: DATABASE_NAME, description: OPTIONAL_DESCRIPTION, size: OPTIONAL_SIZE, version: "1.0" }
+
+The schema is defined in JSON format. Here's a sample schema for a deck of playing cards:
 
     {
-      "fileName": "cardsExample",
-      "database": {
-        "name": "cards",
-        "version": "0.1"
+      "Player": {
+        "tableName": "players",
+        "columns": {
+          "name": { "type": "text" },
+          "chips": { "type": "integer" }
+        }
       },
-      "schema": {
-        "Player": {
-          "tableName": "players",
-          "columns": {
-            "name": { "type": "text" },
-            "chips": { "type": "integer" }
-          }
-        },
-        "Deck": {
-          "tableName": "decks",
-          "columns": {
-            "name": { "type": "text" }
-          }
-        },
-        "Card": {
-          "tableName": "cards",
-          "columns": {
-            "deck_id": { "type": "integer", "foreign": "decks.id", "delete": "cascade" },
-            "face": { "type": "text" },
-            "suit": { "type": "text" }
-          }
-        },
-        "PlayerCard": {
-          "tableName": "player_cards",
-          "columns": {
-            "player_id": { "type": "integer", "foreign": "players.id", "delete": "cascade" },
-            "card_id": { "type": "integer", "foreign": "cards.id", "delete": "cascade" }
-          }
+      "Deck": {
+        "tableName": "decks",
+        "columns": {
+          "name": { "type": "text" }
+        }
+      },
+      "Card": {
+        "tableName": "cards",
+        "columns": {
+          "deck_id": { "type": "integer", "foreign": "decks.id" },
+          "face": { "type": "text" },
+          "suit": { "type": "text" }
+        }
+      },
+      "PlayerCard": {
+        "tableName": "player_cards",
+        "columns": {
+          "player_id": { "type": "integer", "foreign": "players.id" },
+          "card_id": { "type": "integer", "foreign": "cards.id" }
         }
       }
     }
-
-The schema can be defined in JSON format.
 
 ## Saving data
 
@@ -89,3 +96,9 @@ The schema can be defined in JSON format.
     vql.collection.find(id, 4).doSelect(function (err, data) {
       console.log(data.name); // Hello World
     });
+
+## More?
+
+There's the annotated source found at https://goatslacker.github.com/Snake
+
+Examples can be found here: https://github.com/goatslacker/Snake/blob/v2.5/EXAMPLES.md
