@@ -83,20 +83,6 @@ The schema is defined in JSON format. Here's a sample schema for a deck of playi
       }
     }
 
-## Saving data
-
-    vql.collection.save({
-      id: 4,
-      name: "Hello World",
-      created_at: "2010-11-20"
-    });
-
-## Retrieving data
-
-    vql.collection.find(id, 4).doSelect(function (err, data) {
-      console.log(data.name); // Hello World
-    });
-
 ## More?
 
 There's the annotated source found at https://goatslacker.github.com/Snake
