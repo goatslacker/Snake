@@ -12,140 +12,79 @@
 
 - Clean and simple schema building in JSON.
 
-- Small library ~7kb minimified.
+- Small library ~6kb minimified.
 
 ## Installing
+
+Download `Snake` from here:
+
+__Uncompressed source w/ comments__ https://github.com/downloads/goatslacker/Snake/snake.js
+
+__Compressed__ https://github.com/downloads/goatslacker/Snake/snake.min.js
+
+OR
 
 Clone the `Snake` repository from github
 
     $ git clone git://github.com/goatslacker/Snake.git
 
-Run `make`
+Run `make install`
 
-    $ make && make install
+    $ make install
 
-## How to Use
+## Getting Started
 
-Copy `build/snake.min.js` into your project`s directory, you can load the files like this:
+Create an instance
 
-    <script src="snake.js" type="application/javascript"></script>
+    var db = new Snake(database_details, schema, queries_to_execute_first);
 
-## Defining a Schema
+Save data
 
-Sample schema for a deck of playing cards:
+    db.table_name.save({ column_name: "value" });
+
+Retrieve saved data
+
+    db.table_name.find({ column_name: "value" }).doSelect(callback_function);
+
+`database_details` should look something like this:
+
+    { name: DATABASE_NAME, description: OPTIONAL_DESCRIPTION, size: OPTIONAL_SIZE, version: "1.0" }
+
+The schema is defined in JSON format. Here's a sample schema for a deck of playing cards:
 
     {
-      "fileName": "cardsExample",
-      "database": {
-        "name": "cards",
-        "version": "0.1"
+      "Player": {
+        "tableName": "players",
+        "columns": {
+          "name": { "type": "text" },
+          "chips": { "type": "integer" }
+        }
       },
-      "schema": {
-        "Player": { 
-          "tableName": "players", 
-          "columns": {
-            "name": { "type": "text" },
-            "chips": { "type": "integer" }
-          }
-        },
-        "Deck": { 
-          "tableName": "decks",
-          "columns": {
-            "name": { "type": "text" }
-          }
-        },
-        "Card": { 
-          "tableName": "cards",
-          "columns": {
-            "deck_id": { "type": "integer", "foreign": "decks.id", "delete": "cascade" },
-            "face": { "type": "text" },
-            "suit": { "type": "text" }
-          }
-        },
-        "PlayerCard": { 
-          "tableName": "player_cards", 
-          "columns": {
-            "player_id": { "type": "integer", "foreign": "players.id", "delete": "cascade" },
-            "card_id": { "type": "integer", "foreign": "cards.id", "delete": "cascade" }
-          }
+      "Deck": {
+        "tableName": "decks",
+        "columns": {
+          "name": { "type": "text" }
+        }
+      },
+      "Card": {
+        "tableName": "cards",
+        "columns": {
+          "deck_id": { "type": "integer", "foreign": "decks.id" },
+          "face": { "type": "text" },
+          "suit": { "type": "text" }
+        }
+      },
+      "PlayerCard": {
+        "tableName": "player_cards",
+        "columns": {
+          "player_id": { "type": "integer", "foreign": "players.id" },
+          "card_id": { "type": "integer", "foreign": "cards.id" }
         }
       }
     }
 
-The schema can be defined in JSON format.
+## More?
 
-## Saving data
+There's the annotated source found at https://goatslacker.github.com/Snake
 
-    vql.collection.save({
-      id: 4,
-      name: "Hello World",
-      created_at: "2010-11-20"
-    });
-
-## Retrieving data
-
-    vql.collection.find(id, 4).doSelect(function (err, data) {
-      data.name; // Hello World
-    });
-
-## SQL to VQL Map
-
-SELECT * FROM sports;
-
-    vql.sports.doSelect(function (err, sports) {
-      console.log(sports);
-    });
-
-SELECT * FROM fruits WHERE name = 'mango' LIMIT 1;
-
-    vql.fruits.find({ name: 'mango' }).doSelectOne(function (err, mango) {
-      console.log(mango);
-    });
-
-SELECT * FROM cars WHERE doors > 2 LIMIT 10;
-
-    vql.cars.find("doors", 2, "GREATER_THAN").limit(10).doSelect(function (err, cars) {
-      console.log(cars);
-    });
-
-    vql.cars.find({ doors: { "GREATER_THAN": 2 }}).limit(10).doSelect(function (err, cars) {
-      console.log(cars);
-    });
-
-SELECT nebulas, black_holes, stars FROM galaxies WHERE galaxy_name = "Milky Way";
-
-    vql.galaxies.select("nebulas", "black_holes", "stars").find({ galaxy_name: "Milky Way" }).doSelect(function (err, space) {
-      console.log(space);
-    });
-
-SELECT * FROM pizza WHERE toppings > 2 AND toppings < 4 ORDER BY slices DESC;
-
-    vql.pizza.find({ toppings: { "GREATER_THAN": 2, "LESS_THAN": 4 }}).orderBy({ slices: 'desc' }).doSelect(function (err, pizzas) {
-      console.log(pizzas);
-    });
-
-SELECT family, genus, species FROM animals WHERE genus IN("felis", "canis");
-
-    vql.animals.select("family", "genus", "species").find({ genus: ["felis", "canis"] }).doSelect(function (err, animals) {
-      console.log(animals);
-    });
-
-SELECT * FROM beer WHERE name LIKE "%ale%";
-
-    vql.beer.find({ name: /ale/ }).doSelect(function (err, beer) {
-      console.log(beer);
-    });
-
-    vql.beer.find("name", "%ale%", "LIKE").doSelect(function (err, beer) {
-      console.log(beer);
-    });
-
-SELECT count(coins) FROM fountain;
-
-    vql.fountain.select('coins').doCount(function (err, num_coins) {
-      console.log(num_coins);
-    });
-
-DELETE FROM desktop WHERE icon = "old_file.txt";
-
-    vql.desktop.find({ icon: "old_file.txt" }).doDelete();
+Examples can be found here: https://github.com/goatslacker/Snake/blob/v2.5/EXAMPLES.md
