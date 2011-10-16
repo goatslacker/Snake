@@ -65,7 +65,7 @@ and create a new SQL store for each table</p>
 
 <p><code>model.map</code> is the map of the model</p>
 
-<p><code>id</code> and <code>created_at</code> are default properties that each object gets</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">schema</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">table</span><span class="p">)</span> <span class="p">{</span>
+<p><code>_id</code> and <code>_date</code> are default properties that each object gets</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">schema</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">table</span><span class="p">)</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">model</span> <span class="o">=</span> <span class="nx">schema</span><span class="p">[</span><span class="nx">table</span><span class="p">];</span>
 
     <span class="kd">var</span> <span class="nx">sql</span> <span class="o">=</span> <span class="p">{</span>
@@ -77,15 +77,15 @@ and create a new SQL store for each table</p>
 
     <span class="nx">model</span><span class="p">.</span><span class="nx">map</span> <span class="o">=</span> <span class="p">[];</span>
 
-    <span class="nx">model</span><span class="p">.</span><span class="nx">columns</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;INTEGER&quot;</span> <span class="p">};</span>
-    <span class="nx">model</span><span class="p">.</span><span class="nx">columns</span><span class="p">.</span><span class="nx">created_at</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;INTEGER&quot;</span> <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Here we loop through each column in the table
+    <span class="nx">model</span><span class="p">.</span><span class="nx">columns</span><span class="p">.</span><span class="nx">_id</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;INTEGER&quot;</span><span class="p">,</span> <span class="nx">extra</span><span class="o">:</span> <span class="s2">&quot;PRIMARY KEY AUTOINCREMENT&quot;</span> <span class="p">};</span>
+    <span class="nx">model</span><span class="p">.</span><span class="nx">columns</span><span class="p">.</span><span class="nx">_date</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">type</span><span class="o">:</span> <span class="s2">&quot;INTEGER&quot;</span> <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Here we loop through each column in the table
 <code>field</code> contains the field's type and any extra properties</p>
 
 <p>then we add to SQL
 and store the map information</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">model</span><span class="p">.</span><span class="nx">columns</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">column</span><span class="p">)</span> <span class="p">{</span>
       <span class="kd">var</span> <span class="nx">field</span> <span class="o">=</span> <span class="nx">model</span><span class="p">.</span><span class="nx">columns</span><span class="p">[</span><span class="nx">column</span><span class="p">];</span>
 
-      <span class="nx">sql</span><span class="p">.</span><span class="nx">fields</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">column</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nx">field</span><span class="p">.</span><span class="nx">type</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>If it's a foreign key, then we capture the foreign table
+      <span class="nx">sql</span><span class="p">.</span><span class="nx">fields</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">column</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nx">field</span><span class="p">.</span><span class="nx">type</span> <span class="o">+</span> <span class="p">(</span><span class="nx">field</span><span class="p">.</span><span class="nx">extra</span> <span class="o">?</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nx">field</span><span class="p">.</span><span class="nx">extra</span> <span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">));</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>If it's a foreign key, then we capture the foreign table
 and the key it points to
 and we create SQL for the foreign key</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;foreign&quot;</span> <span class="k">in</span> <span class="nx">field</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">model</span><span class="p">.</span><span class="nx">foreign</span> <span class="o">=</span> <span class="p">{};</span>
@@ -172,23 +172,28 @@ we queue up the queries and then fire them once the system is ready</p>         
     <span class="kd">var</span> <span class="nx">callback</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">transaction</span><span class="p">,</span> <span class="nx">results</span><span class="p">)</span> <span class="p">{</span>
       <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
           <span class="nx">rows</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
+          <span class="nx">err</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span>
           <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
           <span class="nx">max</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
       <span class="k">try</span> <span class="p">{</span>
         <span class="nx">result</span> <span class="o">=</span> <span class="nx">results</span><span class="p">.</span><span class="nx">insertId</span><span class="p">;</span>
       <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">result</span> <span class="o">=</span> <span class="p">[];</span>
-        <span class="nx">rows</span> <span class="o">=</span> <span class="nx">results</span><span class="p">.</span><span class="nx">rows</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">name</span> <span class="o">===</span> <span class="s2">&quot;INVALID_ACCESS_ERR&quot;</span> <span class="o">&amp;&amp;</span> <span class="nx">e</span><span class="p">.</span><span class="nx">code</span> <span class="o">===</span> <span class="mi">15</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">result</span> <span class="o">=</span> <span class="p">[];</span>
+          <span class="nx">rows</span> <span class="o">=</span> <span class="nx">results</span><span class="p">.</span><span class="nx">rows</span><span class="p">;</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="nx">rows</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-          <span class="k">for</span> <span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">max</span> <span class="o">=</span> <span class="nx">rows</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">max</span><span class="p">;</span> <span class="nx">i</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-            <span class="nx">result</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">rows</span><span class="p">.</span><span class="nx">item</span><span class="p">(</span><span class="nx">i</span><span class="p">));</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nx">rows</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">max</span> <span class="o">=</span> <span class="nx">rows</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">max</span><span class="p">;</span> <span class="nx">i</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+              <span class="nx">result</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">rows</span><span class="p">.</span><span class="nx">item</span><span class="p">(</span><span class="nx">i</span><span class="p">));</span>
+            <span class="p">}</span>
           <span class="p">}</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nx">err</span> <span class="o">=</span> <span class="nx">e</span><span class="p">;</span>
         <span class="p">}</span>
       <span class="p">}</span>
 
-      <span class="nx">onComplete</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">result</span><span class="p">);</span>
+      <span class="nx">onComplete</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">result</span><span class="p">);</span>
     <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>For each query
 we append a semicolon to query
 and then perform query
@@ -415,7 +420,7 @@ the value of <code>args[0][field]</code> is the property of the field.</p>      
 
         <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">===</span> <span class="s2">&quot;number&quot;</span><span class="p">)</span> <span class="p">{</span>
 
-          <span class="nx">addWhere</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="nx">args</span><span class="p">.</span><span class="nx">shift</span><span class="p">());</span>
+          <span class="nx">addWhere</span><span class="p">(</span><span class="s2">&quot;_id&quot;</span><span class="p">,</span> <span class="nx">args</span><span class="p">.</span><span class="nx">shift</span><span class="p">());</span>
 
         <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
 
@@ -704,52 +709,30 @@ and that depends on the DataType of the value</p>
 
 <ul>
 <li><strong>onComplete</strong> is the callback to execute if the transaction completes successfully</li>
-</ul>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="cm">/* TODO obj can be function as well! */</span>
-    <span class="nx">save</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">obj</span><span class="p">,</span> <span class="nx">onComplete</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kd">var</span> <span class="nx">isNew</span> <span class="o">=</span> <span class="p">(</span><span class="o">!</span><span class="nx">obj</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)),</span>
-          <span class="nx">sql</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">save</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">obj</span><span class="p">,</span> <span class="nx">onComplete</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">obj</span> <span class="o">=</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">obj</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">===</span> <span class="s2">&quot;f&quot;</span> <span class="o">?</span> <span class="nx">obj</span><span class="p">()</span> <span class="o">:</span> <span class="nx">obj</span><span class="p">;</span>
+
+      <span class="kd">var</span> <span class="nx">sql</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
           <span class="nx">q</span> <span class="o">=</span> <span class="p">[],</span>
           <span class="nx">params</span> <span class="o">=</span> <span class="p">[],</span>
-          <span class="nx">interpolate</span> <span class="o">=</span> <span class="nx">Snake</span><span class="p">.</span><span class="nx">interpolate</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-48">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-48">&#182;</a>               </div>               <p>If the Element is new, which is determined by if the <code>id</code> property exists or not, then
-we iterate through the schema's map and push all the values into a parameters Array
-and then we create the <code>INSERT INTO</code> query and pass that along with the parameters to this.SQL</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span><span class="nx">isNew</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">schema</span><span class="p">.</span><span class="nx">map</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">map</span><span class="p">)</span> <span class="p">{</span>
-          <span class="kd">var</span> <span class="nx">val</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">[</span><span class="nx">map</span><span class="p">]</span> <span class="o">||</span> <span class="kc">null</span><span class="p">;</span>
+          <span class="nx">interpolate</span> <span class="o">=</span> <span class="nx">Snake</span><span class="p">.</span><span class="nx">interpolate</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-48">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-48">&#182;</a>               </div>               <p>Here we iterate through the schema's map and push all the values into a parameters Array
+and then we create the <code>INSERT OR REPLACE INTO</code> query and pass that along with the parameters to this.SQL
+if the primary key already exists then it's replaced, otherwise the row is inserted.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nx">schema</span><span class="p">.</span><span class="nx">map</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">map</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">val</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">[</span><span class="nx">map</span><span class="p">]</span> <span class="o">||</span> <span class="kc">null</span><span class="p">;</span>
 
-          <span class="k">if</span> <span class="p">(</span><span class="nx">map</span> <span class="o">===</span> <span class="s1">&#39;created_at&#39;</span> <span class="o">&amp;&amp;</span> <span class="nx">val</span> <span class="o">===</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-            <span class="nx">val</span> <span class="o">=</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">();</span>
-          <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">map</span> <span class="o">===</span> <span class="s1">&#39;_date&#39;</span> <span class="o">&amp;&amp;</span> <span class="nx">val</span> <span class="o">===</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">val</span> <span class="o">=</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">();</span>
+        <span class="p">}</span>
 
-          <span class="nx">params</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">val</span><span class="p">);</span>
-          <span class="nx">q</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">);</span>
-        <span class="p">});</span>
+        <span class="nx">params</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">val</span><span class="p">);</span>
+        <span class="nx">q</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">);</span>
+      <span class="p">});</span>
 
-        <span class="nx">sql</span> <span class="o">=</span> <span class="nx">interpolate</span><span class="p">(</span><span class="s2">&quot;INSERT INTO &#39;#{table}&#39; (#{columns}) VALUES (#{q})&quot;</span><span class="p">,</span> <span class="p">{</span>
-          <span class="nx">table</span><span class="o">:</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">tableName</span><span class="p">,</span>
-          <span class="nx">columns</span><span class="o">:</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">map</span><span class="p">,</span>
-          <span class="nx">q</span><span class="o">:</span> <span class="nx">q</span>
-        <span class="p">});</span></pre></div>             </td>           </tr>                               <tr id="section-49">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-49">&#182;</a>               </div>               <p>If the Element is <em>not</em> new then
-we need to create an <code>UPDATE</code> query
-and pass the query along with the parameters to this.SQL</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-        <span class="nx">schema</span><span class="p">.</span><span class="nx">map</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">map</span><span class="p">)</span> <span class="p">{</span>
-          <span class="kd">var</span> <span class="nx">val</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">[</span><span class="nx">map</span><span class="p">]</span> <span class="o">||</span> <span class="kc">null</span><span class="p">;</span>
-
-          <span class="k">if</span> <span class="p">(</span><span class="nx">val</span> <span class="o">===</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">return</span><span class="p">;</span>
-          <span class="p">}</span>
-
-          <span class="nx">params</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">val</span><span class="p">);</span>
-          <span class="nx">q</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">map</span> <span class="o">+</span> <span class="s2">&quot; = ?&quot;</span><span class="p">);</span>
-        <span class="p">});</span>
-
-        <span class="cm">/* TODO make sure it exists? */</span>
-        <span class="nx">sql</span> <span class="o">=</span> <span class="nx">interpolate</span><span class="p">(</span><span class="s2">&quot;UPDATE #{table} SET #{conditions} WHERE id = ?&quot;</span><span class="p">,</span> <span class="p">{</span>
-          <span class="nx">table</span><span class="o">:</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">tableName</span><span class="p">,</span>
-          <span class="nx">conditions</span><span class="o">:</span> <span class="nx">q</span>
-        <span class="p">});</span>
-
-        <span class="nx">params</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
-      <span class="p">}</span>
+      <span class="nx">sql</span> <span class="o">=</span> <span class="nx">interpolate</span><span class="p">(</span><span class="s2">&quot;INSERT OR REPLACE INTO &#39;#{table}&#39; (#{columns}) VALUES (#{q})&quot;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">table</span><span class="o">:</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">tableName</span><span class="p">,</span>
+        <span class="nx">columns</span><span class="o">:</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">map</span><span class="p">,</span>
+        <span class="nx">q</span><span class="o">:</span> <span class="nx">q</span>
+      <span class="p">});</span>
 
       <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">sql</span><span class="p">.</span><span class="nx">persist</span> <span class="o">===</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">snake</span><span class="p">.</span><span class="nx">SQL</span><span class="p">(</span><span class="nx">sql</span><span class="p">,</span> <span class="nx">params</span><span class="p">,</span> <span class="nx">onComplete</span><span class="p">);</span>
@@ -760,7 +743,7 @@ and pass the query along with the parameters to this.SQL</p>             </td>  
       <span class="p">}</span>
 
       <span class="nx">resetObj</span><span class="p">();</span>
-    <span class="p">},</span></pre></div>             </td>           </tr>                               <tr id="section-50">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-50">&#182;</a>               </div>               <h3>destroy</h3>
+    <span class="p">},</span></pre></div>             </td>           </tr>                               <tr id="section-49">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-49">&#182;</a>               </div>               <h3>destroy</h3>
 
 <h4>Deletes a record from the database</h4>
 
@@ -772,10 +755,10 @@ and pass the query along with the parameters to this.SQL</p>             </td>  
       <span class="k">switch</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">obj</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">case</span> <span class="s2">&quot;function&quot;</span><span class="o">:</span>
         <span class="nx">val</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">();</span>
-        <span class="nx">val</span> <span class="o">=</span> <span class="nx">val</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+        <span class="nx">val</span> <span class="o">=</span> <span class="nx">val</span><span class="p">.</span><span class="nx">_id</span><span class="p">;</span>
         <span class="k">break</span><span class="p">;</span>
       <span class="k">case</span> <span class="s2">&quot;object&quot;</span><span class="o">:</span>
-        <span class="nx">val</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+        <span class="nx">val</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">_id</span><span class="p">;</span>
         <span class="k">break</span><span class="p">;</span>
       <span class="k">default</span><span class="o">:</span>
         <span class="nx">val</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">;</span>
