@@ -14,6 +14,10 @@
 
 - Small library ~6kb minimified.
 
+## Annotated source
+
+Documentation can be found here -> http://goatslacker.github.com/Snake
+
 ## Installing
 
 Download `Snake` from here:
@@ -24,13 +28,9 @@ __Compressed__ https://github.com/downloads/goatslacker/Snake/snake.min.js
 
 OR
 
-Clone the `Snake` repository from github
+Clone the `Snake` repository from github and run `make install`
 
-    $ git clone git://github.com/goatslacker/Snake.git
-
-Run `make install`
-
-    $ make install
+    $ git clone git://github.com/goatslacker/Snake.git && cd Snake && make install
 
 ## Getting Started
 
@@ -45,6 +45,32 @@ Save data
 Retrieve saved data
 
     db.table_name.find({ column_name: "value" }).doSelect(callback_function);
+
+Quick API Reference
+
+Collection sorting methods.
+
+* find (object)
+* orderBy (Object)
+* groupBy (Object)
+* join (String table, Array on, String join_method)
+* offset (Number offset)
+* limit (Number limit)
+
+Query methods. Queries are lazy, you need to call these methods to execute them.
+
+* retrieveByPk (Function)
+* doSelect (Function)
+* doSelectOne (Function)
+* doDelete (Function)
+* doCount (Function)
+
+Single object methods.
+
+* save (Function)
+* destroy (Function)
+
+You can find more details on these methods in the documented source: http://goatslacker.github.com/Snake
 
 `database_details` should look something like this:
 
@@ -85,6 +111,6 @@ The schema is defined in JSON format. Here's a sample schema for a deck of playi
 
 ## More?
 
-There's the annotated source found at https://goatslacker.github.com/Snake
+Examples can be found here: https://github.com/goatslacker/Snake/blob/master/EXAMPLES.md
 
-Examples can be found here: https://github.com/goatslacker/Snake/blob/v2.5/EXAMPLES.md
+More documentation can be found here: http://goatslacker.github.com/Snake
