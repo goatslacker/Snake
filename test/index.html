@@ -3,9 +3,7 @@
 <html>
 <head>
   <title>Snake Unit Testing | Jasmine</title>
-  <link rel="stylesheet" type="text/css" href="../packages/jasmine/jasmine.css">
-  <script type="text/javascript" src="../packages/jasmine/jasmine.js"></script>
-  <script type="text/javascript" src="../packages/jasmine/jasmine-html.js"></script>
+  <script type="text/javascript" src="vowser.js"></script>
 
   <!-- include source files here... -->
   <script type="text/javascript" src="../build/snake.js"></script>
@@ -44,11 +42,11 @@
     }, ["DROP TABLE players", "DROP TABLE cards", "DROP TABLE decks", "DROP TABLE player_cards"]);
   </script>
 
-  <!-- include spec files here... -->
-  <script type="text/javascript" src="VenomSpec.js"></script>
-
 </head>
 <body>
+
+<!-- include spec files here... -->
+<script type="text/javascript" src="VenomSpec.js"></script>
 
 <script type="text/javascript">
   (function () {
@@ -61,9 +59,7 @@
       });
     });
 
-    // start the tests
-    jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
-    jasmine.getEnv().execute();
+    vows_specs.run();
   }());
 </script>
 

@@ -1,13 +1,31 @@
 /* snake.js */
-describe("Snake", function () {
 
-  it("Snake exists", function () {
-    expect(Snake).toBeDefined();
-  });
+vows.describe("Snake").addBatch({
+  'exists': {
+    topic: Snake,
 
+    'expect to be defined': function (result) {
+      assert.isFunction(Snake);
+    }
+  }
+});
+
+var vows_specs = vows.describe('VQL').addBatch({
+  'when a select query is fired': {
+    topic: function () {
+      db.cards.toSQL().doSelect(this.callback);
+    },
+
+    'expect select query to be valid SQL': function (err, query, params) {
+      assert.isNull(err);
+      assert.equal(query, 'SELECT * FROM cards');
+      assert.isNull(params);
+    }
+  }
 });
 
 // db.js
+/*
 describe("VQL", function () {
 
   var vql = null;
@@ -289,3 +307,4 @@ describe("VQL", function () {
   });
 
 });
+*/
